@@ -57,6 +57,15 @@ async def handle_webhook(
     changes = entry.get("changes", [{}])[0]
     value = changes.get("value", {})
     messages = value.get("messages", [])
+    statuses = value.get("statuses", [])
+    
+    # Handle message status updates (delivery, read)
+    if statuses:
+        for status in statuses:
+            status_type = status.get("status")
+            if status_type == "read":
+                print(f"[WhatsApp] Message {status.get('id')} marked as read")
+        return {"status": "ok"}
     
     if not messages:
         return {"status": "ok"}
@@ -77,6 +86,10 @@ async def handle_webhook(
         # Mark as processed
         db.add(ProcessedMessage(message_id=message_id))
         await db.commit()
+    
+    # Send read receipt immediately
+    if message_id:
+        await whatsapp.send_read_receipt(message_id)
     
     # Get or create user
     user = await get_user_by_phone(db, from_phone)
@@ -105,11 +118,16 @@ async def handle_webhook(
     
     # Handle text messages
     if message_type == "text":
+        # Show typing indicator
+        await whatsapp.send_typing_indicator(from_phone)
+        
         text = message.get("text", {}).get("body", "")
         await process_text_message(db, user, text)
     
     # Handle interactive responses (button clicks)
     elif message_type == "interactive":
+        await whatsapp.send_typing_indicator(from_phone)
+        
         interactive = message.get("interactive", {})
         button_reply = interactive.get("button_reply", {})
         button_id = button_reply.get("id", "")
@@ -117,6 +135,7 @@ async def handle_webhook(
     
     # Handle image/document uploads
     elif message_type in ["image", "document", "video", "audio"]:
+        await whatsapp.send_typing_indicator(from_phone)
         await handle_media_message(db, user, message, message_type)
     
     return {"status": "ok"}
@@ -244,8 +263,14 @@ async def handle_cancel_command(service: LeaveService, user: User, request_id: O
 
 async def handle_approve_command(service: LeaveService, user: User, request_id: Optional[int]):
     """Handle approve command (managers only)."""
+    # Verify user is a manager, HR, or admin
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
-        await whatsapp.send_text(user.phone, "❌ Only managers can approve requests")
+        await whatsapp.send_text(
+            user.phone, 
+            "❌ Access Denied\n\n"
+            f"You are registered as {user.role.value}, but only Managers, HR, and Admins can approve leave requests.\n\n"
+            "Contact your HR department if you believe this is incorrect."
+        )
         return
     
     if not request_id:
@@ -253,13 +278,19 @@ async def handle_approve_command(service: LeaveService, user: User, request_id: 
         return
     
     request = await service.approve_leave(request_id, user.id)
-    await whatsapp.send_text(user.phone, f"✅ Leave #{request_id} approved!")
+    await whatsapp.send_text(user.phone, f"✅ Leave #{request_id} approved by {user.name}!")
 
 
 async def handle_reject_command(service: LeaveService, user: User, request_id: Optional[int], reason: Optional[str]):
     """Handle reject command (managers only)."""
+    # Verify user is a manager, HR, or admin
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
-        await whatsapp.send_text(user.phone, "❌ Only managers can reject requests")
+        await whatsapp.send_text(
+            user.phone, 
+            "❌ Access Denied\n\n"
+            f"You are registered as {user.role.value}, but only Managers, HR, and Admins can reject leave requests.\n\n"
+            "Contact your HR department if you believe this is incorrect."
+        )
         return
     
     if not request_id:
@@ -267,13 +298,19 @@ async def handle_reject_command(service: LeaveService, user: User, request_id: O
         return
     
     request = await service.reject_leave(request_id, user.id, reason)
-    await whatsapp.send_text(user.phone, f"❌ Leave #{request_id} rejected")
+    await whatsapp.send_text(user.phone, f"❌ Leave #{request_id} rejected by {user.name}")
 
 
 async def handle_pending_command(service: LeaveService, user: User):
     """Handle pending list command (managers only)."""
+    # Verify user is a manager, HR, or admin
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
-        await whatsapp.send_text(user.phone, "❌ Only managers can view pending requests")
+        await whatsapp.send_text(
+            user.phone, 
+            "❌ Access Denied\n\n"
+            f"You are registered as {user.role.value}, but only Managers, HR, and Admins can view pending requests.\n\n"
+            "Contact your HR department if you believe this is incorrect."
+        )
         return
     
     requests = await service.get_pending_requests(manager_id=user.id)

@@ -27,6 +27,53 @@ class WhatsAppService:
             "Content-Type": "application/json"
         }
     
+    async def send_typing_indicator(self, to: str) -> bool:
+        """Send typing indicator (shows '...' in WhatsApp)."""
+        if not self.token or not self.phone_id:
+            print(f"[WhatsApp] Would send typing indicator to {to}")
+            return True
+        
+        url = f"{self.BASE_URL}/{self.phone_id}/messages"
+        payload = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": to,
+            "type": "typing"
+        }
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.post(url, json=payload, headers=self.headers, timeout=10.0)
+                response.raise_for_status()
+                print(f"[WhatsApp] Typing indicator sent to {to}")
+                return True
+            except Exception as e:
+                print(f"[WhatsApp] Error sending typing indicator: {e}")
+                return False
+    
+    async def send_read_receipt(self, message_id: str) -> bool:
+        """Send read receipt (blue ticks) for a message."""
+        if not self.token or not self.phone_id:
+            print(f"[WhatsApp] Would send read receipt for message {message_id}")
+            return True
+        
+        url = f"{self.BASE_URL}/{self.phone_id}/messages"
+        payload = {
+            "messaging_product": "whatsapp",
+            "status": "read",
+            "message_id": message_id
+        }
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.post(url, json=payload, headers=self.headers, timeout=10.0)
+                response.raise_for_status()
+                print(f"[WhatsApp] Read receipt sent for message {message_id}")
+                return True
+            except Exception as e:
+                print(f"[WhatsApp] Error sending read receipt: {e}")
+                return False
+    
     async def send_text(self, to: str, message: str) -> bool:
         """Send a text message."""
         if not self.token or not self.phone_id:
