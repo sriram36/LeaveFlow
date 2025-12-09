@@ -88,17 +88,48 @@ class ApiClient {
       ...options.headers,
     };
 
-    const response = await fetch(`${API_BASE}${path}`, {
-      ...options,
-      headers,
-    });
+    try {
+      const response = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers,
+        // Add timeout for better UX
+        signal: AbortSignal.timeout(30000), // 30 second timeout
+      });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ detail: 'Request failed' }));
-      throw new Error(error.detail || 'Request failed');
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ 
+          detail: response.status === 403 
+            ? 'You do not have permission to access this resource' 
+            : response.status === 404
+            ? 'Resource not found'
+            : response.status === 503
+            ? 'Service temporarily unavailable. Please try again.'
+            : 'Request failed' 
+        }));
+        
+        // Handle specific error cases
+        if (response.status === 401) {
+          // Clear token on auth failure
+          this.setToken(null);
+          if (typeof window !== 'undefined') {
+            window.location.href = '/';
+          }
+        }
+        
+        throw new Error(error.detail || error.message || 'Request failed');
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      // Handle network errors
+      if (error.name === 'AbortError' || error.name === 'TimeoutError') {
+        throw new Error('Request timed out. Please check your connection and try again.');
+      }
+      if (error.message.includes('Failed to fetch')) {
+        throw new Error('Unable to connect to server. Please check your internet connection.');
+      }
+      throw error;
     }
-
-    return response.json();
   }
 
   // Auth

@@ -18,7 +18,8 @@ class GeminiService:
     def __init__(self):
         if settings.gemini_api_key:
             genai.configure(api_key=settings.gemini_api_key)
-            self.model = genai.GenerativeModel('gemini-1.5-flash')
+            # Use gemini-1.5-flash (latest stable model)
+            self.model = genai.GenerativeModel('gemini-2.0-flash')
         else:
             self.model = None
     

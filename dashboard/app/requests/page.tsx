@@ -6,6 +6,8 @@ import { useAuth } from "../lib/auth-context";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { TableSkeleton } from "../components/skeleton";
+import { ErrorMessage } from "../components/loading";
 
 type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
@@ -19,22 +21,44 @@ export default function RequestsPage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  const { data: requests, isLoading, error } = useQuery({
+  const { data: requests, isLoading, error, refetch } = useQuery({
     queryKey: ['pending-requests'],
     queryFn: () => api.getPendingRequests(),
     enabled: isAuthenticated,
   });
 
-  if (authLoading || isLoading) {
+  if (authLoading) {
     return (
-      <main className="flex items-center justify-center py-20">
-        <div className="text-muted-foreground">Loading...</div>
+      <main className="space-y-6">
+        <div className="h-10 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+        <TableSkeleton rows={3} />
       </main>
     );
   }
 
   if (error) {
-    return <div className="text-red-600">Failed to load requests.</div>;
+    const errorMessage = error instanceof Error ? error.message : 'Failed to load requests';
+    return (
+      <main className="space-y-6">
+        <h1 className="text-3xl font-bold">Pending Requests</h1>
+        <ErrorMessage message={errorMessage} onRetry={() => refetch()} />
+      </main>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <main className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Pending Requests</h1>
+          <div className="flex gap-2">
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+        <TableSkeleton rows={5} />
+      </main>
+    );
   }
 
   const rows = requests ?? [];
