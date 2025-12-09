@@ -100,14 +100,30 @@ async def handle_webhook(
     
     if not user:
         # Auto-register new users as workers
+        # Find a default manager to assign
+        from sqlalchemy import select
+        manager_result = await db.execute(
+            select(User)
+            .where(User.role.in_([UserRole.manager, UserRole.hr]))
+            .limit(1)
+        )
+        default_manager = manager_result.scalar_one_or_none()
+        
         user = User(
             name=f"User {from_phone[-4:]}",
             phone=from_phone,
-            role=UserRole.worker
+            role=UserRole.worker,
+            manager_id=default_manager.id if default_manager else None
         )
         db.add(user)
         await db.commit()
         await db.refresh(user)
+        
+        print(f"[Webhook] 👤 New user registered: {user.name} ({user.phone})")
+        if default_manager:
+            print(f"[Webhook] 👔 Assigned manager: {default_manager.name}")
+        else:
+            print(f"[Webhook] ⚠️ No manager available to assign!")
         
         await whatsapp.send_text(
             from_phone,
