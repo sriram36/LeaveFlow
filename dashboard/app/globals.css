@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 217.2 91.2% 59.8%;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: radial-gradient(circle at 20% 20%, hsl(var(--accent) / 0.3) 0%, transparent 25%),
+      radial-gradient(circle at 80% 0%, hsl(var(--accent) / 0.2) 0%, transparent 30%),
+      radial-gradient(circle at 50% 80%, hsl(var(--accent) / 0.25) 0%, transparent 25%),
+      hsl(var(--background));
+    min-height: 100vh;
+    color: hsl(var(--foreground));
+  }
+
+  .dark body {
+    background: radial-gradient(circle at 20% 20%, hsl(217 91% 20% / 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 80% 0%, hsl(217 91% 30% / 0.1) 0%, transparent 45%),
+      radial-gradient(circle at 50% 80%, hsl(217 91% 25% / 0.12) 0%, transparent 35%),
+      hsl(var(--background));
+  }
+
+  * {
+    box-sizing: border-box;
+    border-color: hsl(var(--border));
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-border bg-card text-card-foreground p-5 shadow-lg transition-all duration-200 hover:shadow-xl;
+  }
+
+  .dark .card {
+    @apply shadow-2xl shadow-blue-500/5 hover:shadow-blue-500/10;
+  }
+
+  .panel {
+    @apply rounded-2xl border border-border bg-card/95 backdrop-blur-sm px-6 py-5 shadow-lg;
+  }
+
+  .dark .panel {
+    @apply shadow-2xl shadow-blue-500/5 bg-card/80;
+  }
+
+  .btn {
+    @apply rounded-lg px-5 py-2.5 font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 inline-flex items-center justify-center gap-2;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 focus-visible:ring-blue-500 shadow-md hover:shadow-lg;
+  }
+
+  .dark .btn-primary {
+    @apply from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-blue-500/20 hover:shadow-blue-500/30;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring;
+  }
+
+  .btn-success {
+    @apply bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 focus-visible:ring-green-500 shadow-md hover:shadow-lg;
+  }
+
+  .dark .btn-success {
+    @apply from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-green-500/20 hover:shadow-green-500/30;
+  }
+
+  .btn-danger {
+    @apply bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700 focus-visible:ring-red-500 shadow-md hover:shadow-lg;
+  }
+
+  .dark .btn-danger {
+    @apply from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 shadow-red-500/20 hover:shadow-red-500/30;
+  }
+
+  .btn:disabled {
+    @apply bg-muted text-muted-foreground cursor-not-allowed opacity-60;
+  }
+
+  /* Input fields */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  textarea,
+  select {
+    @apply border border-input bg-background text-foreground rounded-lg px-4 py-2.5 text-sm transition-all duration-200;
+    @apply focus:border-ring focus:ring-2 focus:ring-ring/20;
+    @apply hover:border-ring/50;
+  }
+
+  .dark input[type="text"],
+  .dark input[type="email"],
+  .dark input[type="password"],
+  .dark input[type="date"],
+  .dark textarea,
+  .dark select {
+    @apply bg-card border-border focus:border-primary focus:ring-primary/20;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400;
+  }
+
+  .shadow-glass {
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    backdrop-filter: blur(8px);
+  }
+
+  .hover-lift {
+    @apply transition-transform duration-200 hover:-translate-y-1;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-in;
+  }
+}
+
