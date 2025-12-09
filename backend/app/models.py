@@ -96,6 +96,7 @@ class Holiday(Base):
     id = Column(Integer, primary_key=True, index=True)
     date = Column(Date, unique=True, nullable=False, index=True)
     name = Column(String(100), nullable=False)
+    description = Column(String(500), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

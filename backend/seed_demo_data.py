@@ -200,7 +200,7 @@ async def seed_data():
                 duration_type=DurationType.full if days_count >= 1 else random.choice([DurationType.half_morning, DurationType.half_afternoon]),
                 days=days_count,
                 status=LeaveStatus.approved,
-                approver_id=manager.id
+                approved_by=manager.id
             )
             db.add(req)
             approved_count += 1
@@ -223,7 +223,7 @@ async def seed_data():
                 duration_type=DurationType.full if days_count >= 1 else random.choice([DurationType.half_morning, DurationType.half_afternoon]),
                 days=days_count,
                 status=LeaveStatus.pending,
-                approver_id=None
+                approved_by=None
             )
             db.add(req)
             pending_count += 1
@@ -247,7 +247,7 @@ async def seed_data():
                 duration_type=DurationType.full,
                 days=days_count,
                 status=LeaveStatus.rejected,
-                approver_id=manager.id
+                approved_by=manager.id
             )
             db.add(req)
             rejected_count += 1
@@ -263,8 +263,8 @@ async def seed_data():
             name="New Employee",
             email="newemployee@leaveflow.com",
             phone="+1234567099",
-            role=UserRole.worker,
-            requested_by_id=managers[0].id,
+            requested_role=UserRole.worker,
+            requested_by=managers[0].id,
             status=AccountCreationRequestStatus.pending
         )
         db.add(pending_account)
@@ -274,10 +274,10 @@ async def seed_data():
             name="John Smith",
             email="john@leaveflow.com",
             phone="+1234567098",
-            role=UserRole.worker,
-            requested_by_id=managers[1].id,
+            requested_role=UserRole.worker,
+            requested_by=managers[1].id,
             status=AccountCreationRequestStatus.approved,
-            reviewed_by_id=admin.id
+            approved_by=admin.id
         )
         db.add(approved_account)
         
@@ -288,25 +288,19 @@ async def seed_data():
         print("\n📊 Creating audit logs...")
         audit_logs = [
             AuditLog(
-                user_id=managers[0].id,
-                action="LEAVE_APPROVED",
-                entity_type="LeaveRequest",
-                entity_id=1,
-                details="Approved leave request"
+                actor_id=managers[0].id,
+                action="approved",
+                details="Approved leave request for family function"
             ),
             AuditLog(
-                user_id=admin.id,
-                action="USER_CREATED",
-                entity_type="User",
-                entity_id=workers[0].id,
+                actor_id=managers[1].id,
+                action="rejected",
+                details="Rejected leave request due to team shortage"
+            ),
+            AuditLog(
+                actor_id=admin.id,
+                action="user_created",
                 details=f"Created user account for {workers[0].name}"
-            ),
-            AuditLog(
-                user_id=hr_team[0].id,
-                action="HOLIDAY_CREATED",
-                entity_type="Holiday",
-                entity_id=1,
-                details="Added New Year's Day holiday"
             ),
         ]
         
