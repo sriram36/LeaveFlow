@@ -312,7 +312,8 @@ async def advanced_search(
     """
     query = select(LeaveRequest).options(
         selectinload(LeaveRequest.user),
-        selectinload(LeaveRequest.approver)
+        selectinload(LeaveRequest.approver),
+        selectinload(LeaveRequest.attachments)
     )
     
     # Role-based filtering

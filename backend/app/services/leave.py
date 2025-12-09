@@ -284,7 +284,8 @@ class LeaveService:
     async def get_pending_requests(self, manager_id: Optional[int] = None) -> List[LeaveRequest]:
         """Get pending leave requests."""
         query = select(LeaveRequest).options(
-            selectinload(LeaveRequest.user)
+            selectinload(LeaveRequest.user),
+            selectinload(LeaveRequest.attachments)
         ).where(
             LeaveRequest.status == LeaveStatus.pending
         ).order_by(LeaveRequest.created_at.desc())
@@ -304,7 +305,8 @@ class LeaveService:
         
         result = await self.db.execute(
             select(LeaveRequest).options(
-                selectinload(LeaveRequest.user)
+                selectinload(LeaveRequest.user),
+                selectinload(LeaveRequest.attachments)
             ).where(
                 and_(
                     LeaveRequest.status == LeaveStatus.approved,
