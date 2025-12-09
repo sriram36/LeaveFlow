@@ -25,18 +25,25 @@ cd D:\Projects\LeaveFlow\backend
 # 3. Initialize Railway project (creates project + PostgreSQL database)
 npx railway init
 
-# 4. Set your Secret Key (generate unique one)
+# 4. Set Database (Railway creates automatically)
+npx railway variable set DATABASE_URL "postgresql+asyncpg://postgres:password@localhost/leaveflow"
+
+# 5. Set your Secret Key (generate unique one)
 npx railway variable set SECRET_KEY "your-super-secret-key-12345"
 
-# 5. Set WhatsApp credentials
-npx railway variable set WHATSAPP_BUSINESS_ACCOUNT_ID "your-account-id"
+# 6. Set JWT settings
+npx railway variable set ALGORITHM "HS256"
+npx railway variable set ACCESS_TOKEN_EXPIRE_MINUTES "10080"
+
+# 7. Set WhatsApp credentials
+npx railway variable set WHATSAPP_TOKEN "your-whatsapp-access-token"
 npx railway variable set WHATSAPP_PHONE_NUMBER_ID "your-phone-id"
-npx railway variable set WHATSAPP_ACCESS_TOKEN "your-access-token"
+npx railway variable set WHATSAPP_VERIFY_TOKEN "your-verify-token"
 
-# 6. Set CORS to allow Vercel frontend
-npx railway variable set CORS_ORIGINS "https://leaveflow-app.vercel.app"
+# 8. Set CORS to allow Vercel frontend
+npx railway variable set CORS_ORIGINS "https://leaveflow-app.vercel.app,http://localhost:3000"
 
-# 7. Deploy!
+# 9. Deploy!
 npx railway up
 
 # ✅ Wait for deployment to complete
@@ -66,10 +73,11 @@ npx vercel --prod
 # - Click the link shown or go to: https://vercel.com/settings/environment-variables
 # - Add new variable:
 #   - Name: NEXT_PUBLIC_API_URL
-#   - Value: (paste the URL from Step 1, e.g., https://leaveflow-api-production.up.railway.app)
+#   - Value: (paste the FULL URL from Step 1, e.g., https://leaveflow-api-production.up.railway.app)
+#   - IMPORTANT: Do NOT include trailing slash!
 
 # 4. Redeploy with the new variable
-npx vercel --prod
+npx vercel --prod --force
 
 # ✅ Your app is now live!
 # 📋 Copy the URL shown (e.g., https://leaveflow-app.vercel.app)
@@ -126,11 +134,13 @@ git push origin main
 npx railway login
 cd D:\Projects\LeaveFlow\backend
 npx railway init
-npx railway variable set SECRET_KEY "generated-secret-key-here"
-npx railway variable set WHATSAPP_BUSINESS_ACCOUNT_ID "123456789"
-npx railway variable set WHATSAPP_PHONE_NUMBER_ID "987654321"
-npx railway variable set WHATSAPP_ACCESS_TOKEN "your-token-here"
-npx railway variable set CORS_ORIGINS "https://leaveflow-app.vercel.app"
+npx railway variable set SECRET_KEY "your-generated-secret-key-here"
+npx railway variable set ALGORITHM "HS256"
+npx railway variable set ACCESS_TOKEN_EXPIRE_MINUTES "10080"
+npx railway variable set WHATSAPP_TOKEN "your-whatsapp-token-here"
+npx railway variable set WHATSAPP_PHONE_NUMBER_ID "your-phone-id-here"
+npx railway variable set WHATSAPP_VERIFY_TOKEN "your-verify-token-here"
+npx railway variable set CORS_ORIGINS "https://leaveflow-app.vercel.app,http://localhost:3000"
 npx railway up
 # Wait for "✓ Deployed!" message
 # Copy the URL: https://leaveflow-api-production.up.railway.app
