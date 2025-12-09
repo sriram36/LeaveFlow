@@ -16,31 +16,28 @@ Create accounts at:
 ## 🎯 Step 1: Deploy Backend to Railway (Copy & Paste)
 
 ```bash
-# 1. Install Railway CLI
-npm install -g @railway/cli
+# 1. Login to Railway (opens browser)
+npx railway login
 
-# 2. Login to Railway (opens browser)
-railway login
-
-# 3. Navigate to backend
+# 2. Navigate to backend
 cd D:\Projects\LeaveFlow\backend
 
-# 4. Initialize Railway project (creates project + PostgreSQL database)
-railway init
+# 3. Initialize Railway project (creates project + PostgreSQL database)
+npx railway init
 
-# 5. Set your Secret Key (generate unique one)
-railway variable set SECRET_KEY "your-super-secret-key-12345"
+# 4. Set your Secret Key (generate unique one)
+npx railway variable set SECRET_KEY "your-super-secret-key-12345"
 
-# 6. Set WhatsApp credentials
-railway variable set WHATSAPP_BUSINESS_ACCOUNT_ID "your-account-id"
-railway variable set WHATSAPP_PHONE_NUMBER_ID "your-phone-id"
-railway variable set WHATSAPP_ACCESS_TOKEN "your-access-token"
+# 5. Set WhatsApp credentials
+npx railway variable set WHATSAPP_BUSINESS_ACCOUNT_ID "your-account-id"
+npx railway variable set WHATSAPP_PHONE_NUMBER_ID "your-phone-id"
+npx railway variable set WHATSAPP_ACCESS_TOKEN "your-access-token"
 
-# 7. Set CORS to allow Vercel frontend
-railway variable set CORS_ORIGINS "https://leaveflow-app.vercel.app"
+# 6. Set CORS to allow Vercel frontend
+npx railway variable set CORS_ORIGINS "https://leaveflow-app.vercel.app"
 
-# 8. Deploy!
-railway up
+# 7. Deploy!
+npx railway up
 
 # ✅ Wait for deployment to complete
 # 📋 Copy the URL shown (e.g., https://leaveflow-api-production.up.railway.app)
@@ -126,16 +123,15 @@ git push origin main
 
 **Terminal 1 - Backend Setup:**
 ```bash
-npm install -g @railway/cli
-railway login
+npx railway login
 cd D:\Projects\LeaveFlow\backend
-railway init
-railway variable set SECRET_KEY "generated-secret-key-here"
-railway variable set WHATSAPP_BUSINESS_ACCOUNT_ID "123456789"
-railway variable set WHATSAPP_PHONE_NUMBER_ID "987654321"
-railway variable set WHATSAPP_ACCESS_TOKEN "your-token-here"
-railway variable set CORS_ORIGINS "https://leaveflow-app.vercel.app"
-railway up
+npx railway init
+npx railway variable set SECRET_KEY "generated-secret-key-here"
+npx railway variable set WHATSAPP_BUSINESS_ACCOUNT_ID "123456789"
+npx railway variable set WHATSAPP_PHONE_NUMBER_ID "987654321"
+npx railway variable set WHATSAPP_ACCESS_TOKEN "your-token-here"
+npx railway variable set CORS_ORIGINS "https://leaveflow-app.vercel.app"
+npx railway up
 # Wait for "✓ Deployed!" message
 # Copy the URL: https://leaveflow-api-production.up.railway.app
 ```
