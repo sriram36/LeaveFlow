@@ -20,7 +20,7 @@ from app.services.whatsapp import (
     whatsapp, format_balance_message, format_status_message,
     format_pending_list
 )
-from app.services.gemini import gemini_service
+from app.services.ai_service import ai_service
 from app.auth import get_user_by_phone
 
 settings = get_settings()
@@ -202,7 +202,13 @@ async def process_text_message(db: AsyncSession, user: User, text: str):
         print(traceback.format_exc())
         await whatsapp.send_text(
             user.phone,
-            "❌ Oops! Something went wrong. Try: `balance` or _'sick leave tomorrow'_"
+            "❌ Sorry, I couldn't process that.\n\n"
+            "📝 *Try these commands:*\n"
+            "• `balance` - Check your leave balance\n"
+            "• `pending` - View pending requests\n"
+            "• _'Apply 2 days sick leave from tomorrow'_\n"
+            "• _'Half day leave on Dec 15'_\n\n"
+            "Need help? Type `help` for more info."
         )
 
 
@@ -215,11 +221,12 @@ async def handle_natural_language_request(db: AsyncSession, user: User, text: st
         # Provide concise help
         await whatsapp.send_text(
             user.phone,
-            f"❓ I didn't understand that.\n\n"
-            "Try:\n"
-            "• _'Sick leave tomorrow'_\n"
-            "• _'Half day morning Dec 15'_\n"
-            "• `balance` to check leaves"
+            "❓ I didn't quite understand that.\n\n"
+            "📋 *Try these formats:*\n"
+            "• _'Apply sick leave tomorrow'_\n"
+            "• _'2 days vacation from Dec 15'_\n"
+            "• _'Half day morning on Monday'_\n\n"
+            "Or use: `balance`, `pending`, `help`"
         )
         return
     

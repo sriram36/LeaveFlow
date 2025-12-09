@@ -219,6 +219,17 @@ class ApiClient {
     return this.fetch(`/users/${id}`);
   }
 
+  async updateUser(id: number, userData: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  }): Promise<User> {
+    return this.fetch(`/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+  }
+
   // Registration
   async register(userData: {
     name: string;

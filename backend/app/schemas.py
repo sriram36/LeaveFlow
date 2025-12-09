@@ -34,6 +34,13 @@ class UserCreate(UserBase):
     manager_id: Optional[int] = None
 
 
+class UserUpdate(BaseModel):
+    """Schema for users updating their own profile (limited fields)."""
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+
+
 class UserResponse(UserBase):
     id: int
     manager_id: Optional[int] = None

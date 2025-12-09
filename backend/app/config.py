@@ -24,8 +24,8 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000"
     escalation_hours: int = 24
     
-    # Gemini AI
-    gemini_api_key: str = ""
+    # AI Service (OpenRouter - Free models available)
+    openrouter_api_key: str = ""
     
     class Config:
         env_file = ".env.local"

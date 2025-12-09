@@ -11,7 +11,7 @@ from typing import List, Optional
 from app.database import get_db
 from app.auth import get_current_user_required, require_manager, require_admin, require_hr_admin, check_user_access
 from app.models import User, UserRole
-from app.schemas import UserResponse, UserCreate, UserWithBalance
+from app.schemas import UserResponse, UserCreate, UserUpdate, UserWithBalance
 
 router = APIRouter(prefix="/users", tags=["User Management"])
 
@@ -114,17 +114,50 @@ async def create_user(
 @router.put("/{user_id}", response_model=UserResponse)
 async def update_user(
     user_id: int,
-    user_data: UserCreate,
+    user_data: UserUpdate,
     db: AsyncSession = Depends(get_db),
-    admin: User = Depends(require_hr_admin)
+    current_user: User = Depends(get_current_user_required)
 ):
-    """Update a user (HR and admin only)."""
+    """Update a user. Users can update their own profile (name, email, phone only)."""
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    # Check permissions - users can only update their own profile
+    if current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="You can only update your own profile")
+    
+    # Update only the allowed fields
+    if user_data.name is not None:
+        user.name = user_data.name
+    if user_data.phone is not None:
+        user.phone = user_data.phone
+    if user_data.email is not None:
+        user.email = user_data.email
+    
+    await db.commit()
+    await db.refresh(user)
+    
+    return user
+
+
+@router.put("/{user_id}/admin", response_model=UserResponse)
+async def admin_update_user(
+    user_id: int,
+    user_data: UserCreate,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_hr_admin)
+):
+    """Update any user (HR and admin only) - can change role, manager, password."""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Admin can update everything
     user.name = user_data.name
     user.phone = user_data.phone
     user.email = user_data.email
