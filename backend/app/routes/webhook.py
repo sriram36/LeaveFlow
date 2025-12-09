@@ -101,7 +101,6 @@ async def handle_webhook(
     if not user:
         # Auto-register new users as workers
         # Find a default manager to assign
-        from sqlalchemy import select
         manager_result = await db.execute(
             select(User)
             .where(User.role.in_([UserRole.manager, UserRole.hr]))

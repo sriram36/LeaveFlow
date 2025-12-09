@@ -134,18 +134,24 @@ async def general_exception_handler(request: Request, exc: Exception):
 @app.get("/")
 async def root():
     """Root endpoint - simple health check."""
+    import os
     return {
         "status": "ok",
         "service": "LeaveFlow API",
         "version": "1.0.0",
-        "message": "API is running"
+        "message": "API is running",
+        "port": os.getenv("PORT", "8000"),
+        "host": "0.0.0.0"
     }
 
 
 @app.get("/health")
 async def health():
-    """Health check endpoint - Railway uses this."""
+    """Health check endpoint - Railway uses this. NO DB REQUIRED."""
+    import os
     return {
-        "status": "healthy",
-        "service": "LeaveFlow"
+        "status": "ok",
+        "healthy": True,
+        "service": "LeaveFlow",
+        "port": os.getenv("PORT", "8000")
     }

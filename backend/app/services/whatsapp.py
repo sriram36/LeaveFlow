@@ -77,8 +77,11 @@ class WhatsAppService:
     async def send_text(self, to: str, message: str) -> bool:
         """Send a text message."""
         if not self.token or not self.phone_id:
-            print(f"[WhatsApp] ⚠️ Missing credentials - Would send to {to}: {message[:50]}...")
-            return True
+            print(f"[WhatsApp] ❌ MISSING CREDENTIALS!")
+            print(f"[WhatsApp] Token present: {bool(self.token)}")
+            print(f"[WhatsApp] Phone ID present: {bool(self.phone_id)}")
+            print(f"[WhatsApp] Would send to {to}: {message[:50]}...")
+            return False  # Changed from True to False
         
         url = f"{self.BASE_URL}/{self.phone_id}/messages"
         payload = {
@@ -88,8 +91,9 @@ class WhatsAppService:
             "text": {"body": message}
         }
         
-        print(f"[WhatsApp] Sending message to {to}")
+        print(f"[WhatsApp] 📤 Sending message to {to}")
         print(f"[WhatsApp] URL: {url}")
+        print(f"[WhatsApp] Phone ID: {self.phone_id}")
         print(f"[WhatsApp] Message preview: {message[:100]}...")
         
         async with httpx.AsyncClient() as client:
@@ -98,6 +102,7 @@ class WhatsAppService:
                 response.raise_for_status()
                 result = response.json()
                 print(f"[WhatsApp] ✅ Message sent successfully to {to}")
+                print(f"[WhatsApp] Response: {result}")
                 print(f"[WhatsApp] Response: {result}")
                 return True
             except httpx.HTTPStatusError as e:

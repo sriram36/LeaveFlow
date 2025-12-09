@@ -18,10 +18,12 @@ class GeminiService:
     def __init__(self):
         if settings.gemini_api_key:
             genai.configure(api_key=settings.gemini_api_key)
-            # Use gemini-1.5-flash (latest stable model)
-            self.model = genai.GenerativeModel('gemini-2.0-flash')
+            # Use gemini-1.5-flash (better free tier quota than 2.0)
+            self.model = genai.GenerativeModel('gemini-1.5-flash')
+            print("[Gemini] ✅ Initialized with gemini-1.5-flash")
         else:
             self.model = None
+            print("[Gemini] ⚠️ No API key - using fallback mode")
     
     async def parse_leave_request(self, user_message: str, user_name: str) -> Dict[str, Any]:
         """Parse natural language leave request into structured data."""
@@ -71,7 +73,16 @@ If the request is unclear or missing critical info, respond with:
             return json.loads(text)
         
         except Exception as e:
-            print(f"[Gemini] Error parsing: {e}")
+            error_msg = str(e)
+            print(f"[Gemini] Error parsing: {error_msg}")
+            
+            # Check if it's a quota error
+            if "429" in error_msg or "quota" in error_msg.lower():
+                print("[Gemini] ⚠️ Quota exceeded - please use structured format")
+                return {
+                    "error": "Please use format: 'leave from DD/MM/YYYY to DD/MM/YYYY for [reason]'"
+                }
+            
             return {"error": f"Could not understand your request. Please try: 'I need leave on 2024-12-15 for sick leave'"}
     
     async def generate_friendly_response(self, action: str, details: Dict[str, Any]) -> str:
