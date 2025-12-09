@@ -20,6 +20,7 @@ from app.services.whatsapp import (
     whatsapp, format_balance_message, format_status_message,
     format_pending_list
 )
+from app.services.gemini import gemini_service
 from app.auth import get_user_by_phone
 
 settings = get_settings()
@@ -147,6 +148,7 @@ async def process_text_message(db: AsyncSession, user: User, text: str):
     service = LeaveService(db)
     
     try:
+        # First try command-based parsing
         if parsed.command_type == CommandType.LEAVE:
             await handle_leave_command(service, user, parsed)
         
@@ -175,14 +177,8 @@ async def process_text_message(db: AsyncSession, user: User, text: str):
             await handle_team_today_command(service, user)
         
         else:
-            await whatsapp.send_text(
-                user.phone,
-                "❓ I didn't understand that. Try:\n\n"
-                "• `leave 12 Feb sick fever`\n"
-                "• `balance`\n"
-                "• `status 32`\n"
-                "• `cancel 32`"
-            )
+            # Try natural language processing with Gemini
+            await handle_natural_language_request(db, user, text)
     
     except LeaveValidationError as e:
         await whatsapp.send_text(user.phone, f"❌ {e.message}")
@@ -194,6 +190,64 @@ async def process_text_message(db: AsyncSession, user: User, text: str):
         await whatsapp.send_text(
             user.phone,
             "❌ Something went wrong. Please try again."
+        )
+
+
+async def handle_natural_language_request(db: AsyncSession, user: User, text: str):
+    """Handle natural language leave requests using Gemini AI."""
+    # Parse with Gemini
+    parsed_data = await gemini_service.parse_leave_request(text, user.name)
+    
+    if "error" in parsed_data:
+        # Gemini couldn't understand - provide helpful guidance
+        await whatsapp.send_text(
+            user.phone,
+            f"❓ {parsed_data['error']}\n\n"
+            "Examples:\n"
+            "• 'I need leave tomorrow for sick'\n"
+            "• 'Apply casual leave on Dec 15'\n"
+            "• 'Half day leave morning next Monday'\n\n"
+            "Or use commands:\n"
+            "• `leave 12 Feb sick fever`\n"
+            "• `balance` - Check balance\n"
+            "• `status 32` - Check status"
+        )
+        return
+    
+    # Create leave request with parsed data
+    service = LeaveService(db)
+    
+    try:
+        from datetime import datetime
+        request = await service.create_leave_request(
+            user_id=user.id,
+            start_date=datetime.strptime(parsed_data["start_date"], "%Y-%m-%d").date(),
+            end_date=datetime.strptime(parsed_data["end_date"], "%Y-%m-%d").date(),
+            leave_type=parsed_data["leave_type"],
+            reason=parsed_data["reason"],
+            is_half_day=parsed_data["duration_type"] != "full",
+            half_day_period=parsed_data["duration_type"] if parsed_data["duration_type"] != "full" else None
+        )
+        
+        # Generate friendly confirmation
+        response = await gemini_service.generate_friendly_response(
+            "leave_submitted",
+            {
+                "id": request.id,
+                "date": parsed_data["start_date"],
+                "type": parsed_data["leave_type"],
+                "reason": parsed_data["reason"]
+            }
+        )
+        
+        await whatsapp.send_text(user.phone, response)
+    
+    except Exception as e:
+        await whatsapp.send_text(
+            user.phone,
+            f"❌ Could not create leave request: {str(e)}\n\n"
+            "Please try using the command format:\n"
+            "`leave 12 Feb sick fever`"
         )
 
 

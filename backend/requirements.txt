@@ -19,6 +19,9 @@ pydantic-settings==2.1.0
 httpx==0.26.0
 aiofiles==23.2.1
 
+# AI - Gemini for natural language processing
+google-generativeai==0.3.2
+
 # Date parsing
 python-dateutil==2.8.2
 
