@@ -199,16 +199,15 @@ def format_leave_request_notification(
     reason: Optional[str]
 ) -> str:
     """Format a leave request notification for managers."""
-    return f"""📋 *Leave Request #{request_id}*
+    duration = f"{days} day" if days == 1 else f"{days} days"
+    return f"""📋 *New Leave Request*
 
-👤 Employee: {employee_name}
-📅 Dates: {start_date} to {end_date} ({days} day{'s' if days != 1 else ''})
-📝 Type: {leave_type.capitalize()}
-💬 Reason: {reason or 'Not specified'}
+👤 {employee_name}
+📅 {start_date} to {end_date} ({duration})
+🏷️ {leave_type.capitalize()}
+💬 {reason or 'No reason'}
 
-Reply:
-• `approve {request_id}` to approve
-• `reject {request_id} <reason>` to reject"""
+Reply: `approve {request_id}` or `reject {request_id} <reason>`"""
 
 
 def format_leave_confirmation(
@@ -220,39 +219,41 @@ def format_leave_confirmation(
     warning: Optional[str] = None
 ) -> str:
     """Format leave request confirmation for employee."""
-    msg = f"""✅ *Leave Request Submitted*
+    msg = f"""✅ *Leave Submitted*
 
-🎫 Request ID: #{request_id}
-📅 Dates: {start_date} to {end_date}
-📊 Days: {days}
-📝 Type: {leave_type.capitalize()}
+🎫 ID: #{request_id}
+📅 {start_date} to {end_date} ({days} days)
+🏷️ {leave_type.capitalize()}
 
-Your manager has been notified. You'll receive an update once it's reviewed."""
+Manager notified. You'll get an update soon!"""
     
     if warning:
-        msg += f"\n\n⚠️ Note: {warning}"
+        msg += f"\n\n⚠️ {warning}"
     
     return msg
 
 
 def format_approval_notification(request_id: int, approver_name: str) -> str:
     """Format approval notification for employee."""
-    return f"""✅ *Leave Approved*
+    return f"""✅ *Leave Approved!*
 
-Your leave request #{request_id} has been approved by {approver_name}.
+Request #{request_id} approved by {approver_name}.
 
-Have a good time off! 🎉"""
+Enjoy your time off! 🎉"""
 
 
 def format_rejection_notification(request_id: int, approver_name: str, reason: Optional[str]) -> str:
     """Format rejection notification for employee."""
-    return f"""❌ *Leave Rejected*
+    msg = f"""❌ *Leave Rejected*
 
-Your leave request #{request_id} has been rejected by {approver_name}.
-
-Reason: {reason or 'No reason provided'}
-
-You can apply for different dates if needed."""
+Request #{request_id} rejected by {approver_name}."""
+    
+    if reason:
+        msg += f"\n\nReason: {reason}"
+    
+    msg += "\n\nYou can apply for different dates if needed."
+    
+    return msg
 
 
 def format_cancellation_confirmation(request_id: int) -> str:
@@ -272,7 +273,7 @@ def format_balance_message(casual: float, sick: float, special: float) -> str:
 🏥 Sick: {sick} days
 ⭐ Special: {special} days
 
-Use `leave <date> <type> <reason>` to apply."""
+_Just chat: 'sick leave tomorrow'_"""
 
 
 def format_status_message(

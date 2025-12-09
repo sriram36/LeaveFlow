@@ -24,18 +24,30 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
     # Startup
+    print("[Startup] Initializing LeaveFlow API...")
     try:
         await init_db()
-        start_scheduler()
+        print("[Startup] ✅ Database initialized")
     except Exception as e:
-        print(f"[Startup Warning] {e}")
-        # Continue anyway - health endpoint should still work
+        print(f"[Startup] ⚠️ Database initialization failed: {e}")
+        print("[Startup] Continuing without database - health endpoint will still work")
+    
+    try:
+        start_scheduler()
+        print("[Startup] ✅ Scheduler started")
+    except Exception as e:
+        print(f"[Startup] ⚠️ Scheduler failed: {e}")
+    
+    print("[Startup] ✅ Application ready!")
     yield
+    
     # Shutdown
+    print("[Shutdown] Stopping services...")
     try:
         stop_scheduler()
+        print("[Shutdown] ✅ Scheduler stopped")
     except Exception as e:
-        print(f"[Shutdown Warning] {e}")
+        print(f"[Shutdown] ⚠️ Scheduler stop failed: {e}")
 
 
 app = FastAPI(
@@ -121,17 +133,19 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 @app.get("/")
 async def root():
-    """Health check endpoint."""
+    """Root endpoint - simple health check."""
     return {
         "status": "ok",
         "service": "LeaveFlow API",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "message": "API is running"
     }
 
 
 @app.get("/health")
 async def health():
-    """Detailed health check - always returns 200."""
+    """Health check endpoint - Railway uses this."""
     return {
-        "status": "healthy"
+        "status": "healthy",
+        "service": "LeaveFlow"
     }

@@ -92,6 +92,9 @@ async def handle_webhook(
     if message_id:
         await whatsapp.send_read_receipt(message_id)
     
+    # Send typing indicator for instant feedback
+    await whatsapp.send_typing_indicator(from_phone)
+    
     # Get or create user
     user = await get_user_by_phone(db, from_phone)
     
@@ -108,27 +111,23 @@ async def handle_webhook(
         
         await whatsapp.send_text(
             from_phone,
-            "👋 Welcome to LeaveFlow! You've been registered.\n\n"
-            "Commands:\n"
-            "• `leave <date> <type> <reason>` - Apply for leave\n"
-            "• `balance` - Check leave balance\n"
-            "• `status <id>` - Check request status\n"
-            "• `cancel <id>` - Cancel a request"
+            "👋 *Welcome to LeaveFlow!*\n\n"
+            "Just chat naturally to apply for leave:\n"
+            "_'Need sick leave tomorrow for fever'_\n\n"
+            "Quick commands:\n"
+            "• `balance` - Check leaves\n"
+            "• `pending` - View pending (managers)\n"
+            "• `cancel 123` - Cancel request"
         )
         return {"status": "ok"}
     
     # Handle text messages
     if message_type == "text":
-        # Show typing indicator
-        await whatsapp.send_typing_indicator(from_phone)
-        
         text = message.get("text", {}).get("body", "")
         await process_text_message(db, user, text)
     
     # Handle interactive responses (button clicks)
     elif message_type == "interactive":
-        await whatsapp.send_typing_indicator(from_phone)
-        
         interactive = message.get("interactive", {})
         button_reply = interactive.get("button_reply", {})
         button_id = button_reply.get("id", "")
@@ -136,7 +135,6 @@ async def handle_webhook(
     
     # Handle image/document uploads
     elif message_type in ["image", "document", "video", "audio"]:
-        await whatsapp.send_typing_indicator(from_phone)
         await handle_media_message(db, user, message, message_type)
     
     return {"status": "ok"}
@@ -189,7 +187,7 @@ async def process_text_message(db: AsyncSession, user: User, text: str):
         print(traceback.format_exc())
         await whatsapp.send_text(
             user.phone,
-            "❌ Something went wrong. Please try again."
+            "❌ Oops! Something went wrong. Try: `balance` or _'sick leave tomorrow'_"
         )
 
 
@@ -199,18 +197,14 @@ async def handle_natural_language_request(db: AsyncSession, user: User, text: st
     parsed_data = await gemini_service.parse_leave_request(text, user.name)
     
     if "error" in parsed_data:
-        # Gemini couldn't understand - provide helpful guidance
+        # Provide concise help
         await whatsapp.send_text(
             user.phone,
-            f"❓ {parsed_data['error']}\n\n"
-            "Examples:\n"
-            "• 'I need leave tomorrow for sick'\n"
-            "• 'Apply casual leave on Dec 15'\n"
-            "• 'Half day leave morning next Monday'\n\n"
-            "Or use commands:\n"
-            "• `leave 12 Feb sick fever`\n"
-            "• `balance` - Check balance\n"
-            "• `status 32` - Check status"
+            f"❓ I didn't understand that.\n\n"
+            "Try:\n"
+            "• _'Sick leave tomorrow'_\n"
+            "• _'Half day morning Dec 15'_\n"
+            "• `balance` to check leaves"
         )
         return
     
@@ -229,25 +223,22 @@ async def handle_natural_language_request(db: AsyncSession, user: User, text: st
             half_day_period=parsed_data["duration_type"] if parsed_data["duration_type"] != "full" else None
         )
         
-        # Generate friendly confirmation
-        response = await gemini_service.generate_friendly_response(
-            "leave_submitted",
-            {
-                "id": request.id,
-                "date": parsed_data["start_date"],
-                "type": parsed_data["leave_type"],
-                "reason": parsed_data["reason"]
-            }
+        # Send instant confirmation (no Gemini delay)
+        duration = "Half day" if parsed_data["duration_type"] != "full" else f"{request.days} day(s)"
+        await whatsapp.send_text(
+            user.phone,
+            f"✅ *Leave Request Submitted*\n\n"
+            f"📋 Request ID: #{request.id}\n"
+            f"📅 Date: {parsed_data['start_date']}\n"
+            f"🏷️ Type: {parsed_data['leave_type'].capitalize()}\n"
+            f"⏱️ Duration: {duration}\n\n"
+            f"Your manager will be notified. 👍"
         )
-        
-        await whatsapp.send_text(user.phone, response)
     
     except Exception as e:
         await whatsapp.send_text(
             user.phone,
-            f"❌ Could not create leave request: {str(e)}\n\n"
-            "Please try using the command format:\n"
-            "`leave 12 Feb sick fever`"
+            f"❌ Error: {str(e)}\n\nTry: _'sick leave tomorrow'_"
         )
 
 
@@ -321,9 +312,7 @@ async def handle_approve_command(service: LeaveService, user: User, request_id: 
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
         await whatsapp.send_text(
             user.phone, 
-            "❌ Access Denied\n\n"
-            f"You are registered as {user.role.value}, but only Managers, HR, and Admins can approve leave requests.\n\n"
-            "Contact your HR department if you believe this is incorrect."
+            f"❌ *Access Denied*\n\nYou're registered as _{user.role.value}_. Only managers can approve.\n\nContact HR if incorrect."
         )
         return
     
@@ -341,9 +330,7 @@ async def handle_reject_command(service: LeaveService, user: User, request_id: O
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
         await whatsapp.send_text(
             user.phone, 
-            "❌ Access Denied\n\n"
-            f"You are registered as {user.role.value}, but only Managers, HR, and Admins can reject leave requests.\n\n"
-            "Contact your HR department if you believe this is incorrect."
+            f"❌ *Access Denied*\n\nYou're registered as _{user.role.value}_. Only managers can reject.\n\nContact HR if incorrect."
         )
         return
     
@@ -361,9 +348,7 @@ async def handle_pending_command(service: LeaveService, user: User):
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
         await whatsapp.send_text(
             user.phone, 
-            "❌ Access Denied\n\n"
-            f"You are registered as {user.role.value}, but only Managers, HR, and Admins can view pending requests.\n\n"
-            "Contact your HR department if you believe this is incorrect."
+            f"❌ *Access Denied*\n\nYou're registered as _{user.role.value}_. Only managers can view pending.\n\nContact HR if incorrect."
         )
         return
     

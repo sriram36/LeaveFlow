@@ -37,7 +37,7 @@ async def create_account_request(
     if requester.role == UserRole.manager:
         if request_data.requested_role not in [UserRole.worker, UserRole.manager]:
             raise HTTPException(
-                status_code=403,
+                status_code=status.HTTP_403_FORBIDDEN,
                 detail="Managers can only request worker or manager accounts"
             )
     
@@ -80,6 +80,34 @@ async def create_account_request(
     db.add(account_request)
     await db.commit()
     await db.refresh(account_request)
+    
+    # Notify requester of successful submission
+    from app.services.whatsapp import whatsapp
+    print(f"[AccountRequests] 📝 New account request #{account_request.id} created by {requester.name}")
+    await whatsapp.send_text(
+        requester.phone,
+        f"✅ *Account Request Submitted*\n\n"
+        f"Your request has been submitted for approval:\n"
+        f"👤 Name: {request_data.name}\n"
+        f"📱 Phone: {request_data.phone}\n"
+        f"👔 Role: {request_data.requested_role.value.capitalize()}\n\n"
+        f"Request ID: #{account_request.id}\n"
+        f"Status: Pending Admin Approval"
+    )
+    
+    return account_request
+    from app.services.whatsapp import whatsapp
+    print(f"[AccountRequests] 📝 New account request #{account_request.id} created by {requester.name}")
+    await whatsapp.send_text(
+        requester.phone,
+        f"✅ *Account Request Submitted*\n\n"
+        f"Your request has been submitted for approval:\n"
+        f"👤 Name: {request_data.name}\n"
+        f"📱 Phone: {request_data.phone}\n"
+        f"👔 Role: {request_data.requested_role.value.capitalize()}\n\n"
+        f"Request ID: #{account_request.id}\n"
+        f"Status: Pending Admin Approval"
+    )
     
     return account_request
 
@@ -200,6 +228,25 @@ async def approve_account_request(
         await db.commit()
         await db.refresh(new_user)
         
+        # Notify requester about approval
+        from app.services.whatsapp import whatsapp
+        requester_result = await db.execute(
+            select(User).where(User.id == request_obj.requester_id)
+        )
+        requester = requester_result.scalar_one_or_none()
+        
+        if requester:
+            print(f"[AccountRequests] ✅ Account request #{request_id} approved by {admin.name}")
+            await whatsapp.send_text(
+                requester.phone,
+                f"✅ *Account Request Approved*\n\n"
+                f"Your request to create account for:\n"
+                f"👤 Name: {new_user.name}\n"
+                f"📱 Phone: {new_user.phone}\n"
+                f"👔 Role: {new_user.role.value.capitalize()}\n\n"
+                f"The account has been created successfully!"
+            )
+        
         return new_user
     
     else:
@@ -210,7 +257,25 @@ async def approve_account_request(
         
         await db.commit()
         
+        # Notify requester about rejection
+        from app.services.whatsapp import whatsapp
+        requester_result = await db.execute(
+            select(User).where(User.id == request_obj.requester_id)
+        )
+        requester = requester_result.scalar_one_or_none()
+        
+        if requester:
+            print(f"[AccountRequests] ❌ Account request #{request_id} rejected by {admin.name}")
+            await whatsapp.send_text(
+                requester.phone,
+                f"❌ *Account Request Rejected*\n\n"
+                f"Your request to create account for:\n"
+                f"👤 Name: {request_obj.name}\n"
+                f"📱 Phone: {request_obj.phone}\n\n"
+                f"Reason: {approval_data.rejection_reason or 'No reason provided'}"
+            )
+        
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Account request rejected. Reason: {approval_data.rejection_reason or 'No reason provided'}"
         )
