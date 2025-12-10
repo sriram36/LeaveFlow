@@ -56,7 +56,8 @@ class User(Base):
     # Relationships
     leave_requests = relationship("LeaveRequest", back_populates="user", foreign_keys="LeaveRequest.user_id")
     leave_balance = relationship("LeaveBalance", back_populates="user", uselist=False)
-    manager = relationship("User", remote_side=[id], backref="team_members")
+    manager = relationship("User", remote_side=[id], foreign_keys=[manager_id], backref="team_members")
+    approver = relationship("User", remote_side=[id], foreign_keys=[approved_by])
 
 
 class LeaveRequest(Base):

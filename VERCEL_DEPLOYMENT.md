@@ -8,12 +8,20 @@
 
 ## Step 1: Create Database
 
-**Recommended: Neon** (https://neon.tech)
-1. Create project → Copy connection string
-2. Format: `postgres://user:pass@host.neon.tech/dbname`
+**Recommended: Neon (Free Tier)** - https://neon.tech
+1. Sign up at neon.tech
+2. Create new project → Name it "LeaveFlow"
+3. Copy connection string from dashboard
+4. Format: `postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require`
 
-**Alternative: Supabase** (https://supabase.com)
-- Project Settings → Database → Copy URI
+**Alternative: Vercel Postgres** - https://vercel.com/storage/postgres
+1. Vercel Dashboard → Storage → Create Database → Postgres
+2. Connect to your project
+3. Copy `POSTGRES_PRISMA_URL` (this will be your DATABASE_URL)
+
+**Alternative: Supabase (Free Tier)** - https://supabase.com
+1. Create project → Copy connection string
+2. Project Settings → Database → Connection String → URI
 
 ---
 
@@ -56,19 +64,42 @@ OPENROUTER_API_KEY=your-key
 
 ## Step 4: Initialize Database
 
+**Option A: Using Local Environment (Recommended)**
 ```bash
 cd backend
 
-# Set DATABASE_URL temporarily
-$env:DATABASE_URL="your-vercel-postgres-url"
+# Install dependencies if not already installed
+pip install -r requirements.txt
 
-# Run migrations
+# Set DATABASE_URL to your production database
+$env:DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
+
+# Run migrations to create tables
 python migrate.py
 python migrate_account_status.py
 
-# Optional: Seed demo data
+# Optional: Create demo admin account
 python seed_demo_data.py
 ```
+
+**Option B: Using Vercel CLI**
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Set production DATABASE_URL
+vercel env add DATABASE_URL production
+
+# Run migration script through Vercel function
+# (Create a one-time migration endpoint in your code)
+```
+
+**Important Notes:**
+- Make sure `sslmode=require` is in the connection string
+- For Neon: Use the connection string with `?sslmode=require`
+- For Vercel Postgres: Use `POSTGRES_PRISMA_URL` 
+- Migrations create all necessary tables (users, leave_requests, etc.)
+- `seed_demo_data.py` creates an admin account: admin@leaveflow.com / admin123
 
 ---
 
