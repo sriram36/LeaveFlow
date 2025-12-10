@@ -52,7 +52,7 @@ uvicorn app.main:app --reload
 cd dashboard
 npm install
 
-echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
+echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env
 
 npm run dev
 ```
@@ -128,25 +128,76 @@ OPENROUTER_API_KEY=sk-or-v1-...
 CORS_ORIGINS=http://localhost:3000
 ```
 
-**Frontend** (`.env.local`):
+**Frontend** (`.env`):
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
 ## 🚢 Deployment
 
-### Backend (Railway/Render)
-```bash
-cd backend
+### Backend (Render/Railway)
+
+#### 1. Create PostgreSQL Database
+**Render**: Dashboard → New → PostgreSQL (Free tier available)
+**Railway**: New Project → Add PostgreSQL
+
+Copy the **DATABASE_URL** (will look like `postgres://user:pass@host:5432/db`)
+
+#### 2. Deploy Backend
+**Render**:
+1. Dashboard → New → Web Service
+2. Connect your GitHub repo
+3. Root Directory: `backend`
+4. Build Command: `pip install -r requirements.txt`
+5. Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+
+**Railway**:
+1. New Project → Deploy from GitHub
+2. Select `backend` folder
+3. Add Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+
+#### 3. Set Environment Variables
+
+Add these in your platform dashboard:
+
+```env
+DATABASE_URL=<your-postgres-url-from-step-1>
+SECRET_KEY=<generate-random-key>
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=10080
+WHATSAPP_TOKEN=<your-whatsapp-token>
+WHATSAPP_PHONE_NUMBER_ID=<your-phone-id>
+WHATSAPP_VERIFY_TOKEN=<any-random-string>
+OPENROUTER_API_KEY=<your-openrouter-key>
+CORS_ORIGINS=*
 ```
-Set environment variables in platform dashboard, then deploy.
+
+**Note**: The app automatically converts Render's `postgres://` URLs to `postgresql+asyncpg://` format.
+
+#### 4. Initialize Database
+After first deploy, run once:
+```bash
+python seed_demo_data.py
+```
 
 ### Frontend (Vercel)
 ```bash
 cd dashboard
 npx vercel --prod
 ```
-Add `NEXT_PUBLIC_API_URL` in Vercel dashboard.
+Add environment variable in Vercel dashboard:
+```env
+NEXT_PUBLIC_API_URL=https://your-backend-url.onrender.com
+```
+
+### ✅ Local vs Cloud
+
+| Setting | Local (.env) | Cloud (Platform Vars) |
+|---------|-------------------|----------------------|
+| DATABASE_URL | `postgresql+asyncpg://localhost:5432/leaveflow` | Auto-converted from `postgres://` |
+| CORS_ORIGINS | `http://localhost:3000` | `*` (or specific domains) |
+| Config file | Uses `.env` | Ignores file, uses platform vars |
+| Health check | Always passes | Always passes |
 
 ## 📁 Project Structure
 ```

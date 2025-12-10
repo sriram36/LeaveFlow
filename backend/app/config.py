@@ -28,7 +28,8 @@ class Settings(BaseSettings):
     openrouter_api_key: str = ""
     
     class Config:
-        env_file = ".env.local"
+        env_file = ".env"  # still works in local
+        env_file_encoding = 'utf-8'
         case_sensitive = False
 
 

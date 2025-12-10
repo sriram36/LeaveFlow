@@ -4,7 +4,10 @@ from app.config import get_settings
 
 settings = get_settings()
 
-engine = create_async_engine(settings.database_url, echo=False)
+# Normalize database URL for cloud compatibility (Render/Railway use postgres://)
+url = settings.database_url.replace("postgres://", "postgresql+asyncpg://")
+
+engine = create_async_engine(url, echo=False)
 async_session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
