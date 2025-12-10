@@ -37,30 +37,29 @@ class AIService:
         
         today = datetime.now().strftime("%Y-%m-%d")
         
-        prompt = f"""You are a helpful leave management assistant. Parse this leave request into structured data.
+        prompt = f"""You are a friendly HR assistant helping {user_name} with their leave request. Parse this message naturally.
 
-Current date: {today}
-User: {user_name}
+Today's date: {today}
 Message: "{user_message}"
 
-Extract:
-1. start_date (YYYY-MM-DD format)
-2. end_date (YYYY-MM-DD format, same as start if not specified)
-3. leave_type (sick/vacation/personal/other)
-4. reason (brief description)
+Extract and infer:
+- start_date (YYYY-MM-DD) - if they say "tomorrow", calculate it from today
+- end_date (YYYY-MM-DD) - if not mentioned, same as start_date  
+- leave_type (sick/vacation/personal/other) - infer from context
+- reason (their own words, keep it natural)
+- duration_type (full/half_first/half_second) - default "full" unless they mention half day
 
-Respond ONLY with valid JSON in this exact format:
+Respond ONLY with valid JSON:
 {{
   "start_date": "YYYY-MM-DD",
   "end_date": "YYYY-MM-DD",
   "leave_type": "sick",
-  "reason": "brief reason"
+  "reason": "their reason",
+  "duration_type": "full"
 }}
 
-If the request is unclear or missing critical info, respond with:
-{{
-  "error": "What specific information is missing"
-}}"""
+If unclear, respond:
+{{"error": "friendly question about what's missing"}}"""
 
         try:
             response = self.client.chat.completions.create(
@@ -99,37 +98,66 @@ If the request is unclear or missing critical info, respond with:
         if not self.client:
             return self._fallback_response(action, details)
         
-        prompt = f"""Generate a friendly, concise WhatsApp message (max 2-3 sentences) for this leave management action:
+        if action == "leave_submitted":
+            prompt = f"""Write a warm, friendly WhatsApp message confirming a leave request was submitted.
 
-Action: {action}
+Details:
+- Request ID: {details.get('id')}
+- Date: {details.get('date')}
+- Type: {details.get('type')}
+- Duration: {details.get('duration')}
+- Reason: {details.get('reason')}
+
+Tone: Like a helpful colleague, not a robot. Be encouraging and reassuring.
+Length: 2-3 sentences max.
+Include: 1-2 relevant emojis, mention their manager will review it.
+Format: Professional but friendly.
+
+Write the message:"""
+        else:
+            prompt = f"""Generate a friendly WhatsApp message for: {action}
 Details: {details}
-
 Tone: Professional but warm, like talking to a colleague.
-Include emojis sparingly (1-2 max).
 Keep it under 100 words."""
 
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.7,
-                max_tokens=150
+                temperature=0.8,  # More creative/natural
+                max_tokens=200
             )
-            return response.choices[0].message.content.strip()
+            
+            msg = response.choices[0].message.content.strip()
+            
+            # Remove any markdown artifacts
+            msg = msg.replace("```", "").replace("**Message:**", "").strip()
+            
+            # Ensure it has proper line breaks
+            if "\\n" in msg:
+                msg = msg.replace("\\n", "\n")
+            
+            return msg
+            
         except Exception as e:
             print(f"[AI] Error generating response: {e}")
             return self._fallback_response(action, details)
     
     def _fallback_response(self, action: str, details: Dict[str, Any]) -> str:
-        """Fallback responses if Gemini is unavailable."""
+        """Fallback responses if AI is unavailable."""
         if action == "leave_submitted":
-            return f"✅ Your leave request has been submitted! Request ID: #{details.get('id')}"
+            return f"""✅ Got it! Your leave request is in.
+
+📋 Request #{details.get('id')} for {details.get('date')}
+🏷️ {details.get('type', '').capitalize()} - {details.get('duration')}
+
+Your manager will review it shortly. I'll let you know once they respond! 👍"""
         elif action == "leave_approved":
-            return f"🎉 Your leave request #{details.get('id')} has been approved!"
+            return f"🎉 Great news! Your leave request #{details.get('id')} has been approved. Enjoy your time off!"
         elif action == "leave_rejected":
-            return f"❌ Your leave request #{details.get('id')} was not approved. Reason: {details.get('reason', 'Not specified')}"
+            return f"Hey, your leave request #{details.get('id')} wasn't approved. Reason: {details.get('reason', 'Not specified')}. Feel free to discuss with your manager."
         else:
-            return "✅ Done!"
+            return "✅ All done!"
 
 
 # Global instance

@@ -80,34 +80,16 @@ class LeaveService:
         # Get user and manager info for notifications
         user = await self._get_user(user_id)
         
-        # Notify manager
-        if user and user.manager_id:
-            manager = await self._get_user(user.manager_id)
-            if manager:
-                print(f"[LeaveService] Notifying manager {manager.name} (ID: {manager.id}, Phone: {manager.phone}) about leave request #{leave_request.id} from {user.name}")
-                success = await whatsapp.send_text(
-                    manager.phone,
-                    format_leave_request_notification(
-                        request_id=leave_request.id,
-                        employee_name=user.name,
-                        start_date=str(start_date),
-                        end_date=str(end_date),
-                        days=days,
-                        leave_type=leave_type,
-                        reason=reason
-                    )
-                )
-                if success:
-                    print(f"[LeaveService] ✅ Manager notification sent successfully to {manager.phone}")
-                else:
-                    print(f"[LeaveService] ❌ Failed to send manager notification to {manager.phone}")
-            else:
-                print(f"[LeaveService] ⚠️ Manager not found for manager_id={user.manager_id}")
-        else:
-            if user:
-                print(f"[LeaveService] ℹ️ User {user.name} has no manager assigned (manager_id is None)")
-            else:
-                print(f"[LeaveService] ⚠️ User not found for user_id={user_id}")
+        # Notify manager using dedicated function
+        await self._notify_manager_of_new_request(
+            leave_request_id=leave_request.id,
+            user=user,
+            start_date=start_date,
+            end_date=end_date,
+            days=days,
+            leave_type=leave_type,
+            reason=reason
+        )
         
         # Confirm to employee
         if user:

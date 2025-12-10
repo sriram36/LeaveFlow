@@ -161,10 +161,56 @@ def check_user_access(current_user: User, target_user: User) -> bool:
     return False
 
 
+def normalize_phone_number(phone: str, default_country_code: str = "91") -> str:
+    """Normalize phone number by adding country code if missing.
+    
+    Args:
+        phone: Phone number (may or may not have country code)
+        default_country_code: Default country code to use (default: 91 for India)
+    
+    Returns:
+        Phone number with country code in format: +{code}{number}
+    
+    Examples:
+        '8500454345' -> '+918500454345'
+        '918500454345' -> '+918500454345'
+        '+918500454345' -> '+918500454345'
+        '14155551234' -> '+14155551234' (US number)
+    """
+    # Remove all spaces, dashes, and parentheses
+    phone = phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+    
+    # If already has +, return as is
+    if phone.startswith("+"):
+        return phone
+    
+    # If starts with country code digits but no +, add +
+    # Common country codes: 1 (US/Canada), 91 (India), 44 (UK), 86 (China), etc.
+    if phone.startswith("91") and len(phone) >= 12:  # India: 91 + 10 digits
+        return f"+{phone}"
+    if phone.startswith("1") and len(phone) == 11:  # US/Canada: 1 + 10 digits
+        return f"+{phone}"
+    if phone.startswith("44") and len(phone) >= 12:  # UK: 44 + 10 digits
+        return f"+{phone}"
+    if phone.startswith("86") and len(phone) >= 13:  # China: 86 + 11 digits
+        return f"+{phone}"
+    
+    # Otherwise, add default country code
+    return f"+{default_country_code}{phone}"
+
+
 async def get_user_by_phone(db: AsyncSession, phone: str) -> Optional[User]:
-    """Get a user by phone number."""
-    result = await db.execute(select(User).where(User.phone == phone))
-    return result.scalar_one_or_none()
+    """Get a user by phone number. Normalizes phone number first."""
+    normalized_phone = normalize_phone_number(phone)
+    result = await db.execute(select(User).where(User.phone == normalized_phone))
+    user = result.scalar_one_or_none()
+    
+    # If not found with normalized, try original (for backward compatibility)
+    if not user and phone != normalized_phone:
+        result = await db.execute(select(User).where(User.phone == phone))
+        user = result.scalar_one_or_none()
+    
+    return user
 
 
 async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:

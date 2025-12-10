@@ -21,7 +21,7 @@ from app.services.whatsapp import (
     format_pending_list
 )
 from app.services.ai_service import ai_service
-from app.auth import get_user_by_phone
+from app.auth import get_user_by_phone, normalize_phone_number
 
 settings = get_settings()
 router = APIRouter(prefix="/webhook", tags=["WhatsApp Webhook"])
@@ -73,7 +73,7 @@ async def handle_webhook(
     
     message = messages[0]
     message_id = message.get("id")
-    from_phone = message.get("from")
+    from_phone = normalize_phone_number(message.get("from"))  # Normalize phone number
     message_type = message.get("type")
     
     # Idempotency check
@@ -126,13 +126,15 @@ async def handle_webhook(
         
         await whatsapp.send_text(
             from_phone,
-            "👋 *Welcome to LeaveFlow!*\n\n"
-            "Just chat naturally to apply for leave:\n"
-            "_'Need sick leave tomorrow for fever'_\n\n"
-            "Quick commands:\n"
-            "• `balance` - Check leaves\n"
-            "• `pending` - View pending (managers)\n"
-            "• `cancel 123` - Cancel request"
+            "👋 Hey! Welcome to LeaveFlow!\n\n"
+            "I'm here to help with your leaves. Just chat with me naturally:\n"
+            "_'I need sick leave tomorrow'_\n"
+            "_'Taking 2 days off next week'_\n\n"
+            "Or try these:\n"
+            "• `balance` - See your available leaves\n"
+            "• `pending` - Check your requests\n"
+            "• `help` - Get more tips\n\n"
+            "Let's make leave management easy! 😊"
         )
         return {"status": "ok"}
     
@@ -202,31 +204,30 @@ async def process_text_message(db: AsyncSession, user: User, text: str):
         print(traceback.format_exc())
         await whatsapp.send_text(
             user.phone,
-            "❌ Sorry, I couldn't process that.\n\n"
-            "📝 *Try these commands:*\n"
-            "• `balance` - Check your leave balance\n"
-            "• `pending` - View pending requests\n"
-            "• _'Apply 2 days sick leave from tomorrow'_\n"
-            "• _'Half day leave on Dec 15'_\n\n"
-            "Need help? Type `help` for more info."
+            "Oops, something went wrong on my end! 😅\n\n"
+            "Let's try again. Here are some things you can do:\n"
+            "• Type `balance` to check your leaves\n"
+            "• Type `pending` to see your requests\n"
+            "• Or just tell me: _'I need sick leave tomorrow'_\n\n"
+            "Need help? Just ask!"
         )
 
 
 async def handle_natural_language_request(db: AsyncSession, user: User, text: str):
-    """Handle natural language leave requests using Gemini AI."""
-    # Parse with Gemini
-    parsed_data = await gemini_service.parse_leave_request(text, user.name)
+    """Handle natural language leave requests using AI."""
+    # Parse with AI service
+    parsed_data = await ai_service.parse_leave_request(text, user.name)
     
     if "error" in parsed_data:
-        # Provide concise help
+        # Provide friendly, conversational help
         await whatsapp.send_text(
             user.phone,
-            "❓ I didn't quite understand that.\n\n"
-            "📋 *Try these formats:*\n"
-            "• _'Apply sick leave tomorrow'_\n"
-            "• _'2 days vacation from Dec 15'_\n"
-            "• _'Half day morning on Monday'_\n\n"
-            "Or use: `balance`, `pending`, `help`"
+            "Hey! I'm not quite sure what you mean. 🤔\n\n"
+            "Here are some ways you can ask:\n"
+            "• _'I need sick leave tomorrow'_\n"
+            "• _'Taking 2 days off from Dec 15'_\n"
+            "• _'Half day on Monday morning'_\n\n"
+            "Or just type `balance` or `help` anytime!"
         )
         return
     
@@ -245,17 +246,22 @@ async def handle_natural_language_request(db: AsyncSession, user: User, text: st
             half_day_period=parsed_data["duration_type"] if parsed_data["duration_type"] != "full" else None
         )
         
-        # Send instant confirmation (no Gemini delay)
-        duration = "Half day" if parsed_data["duration_type"] != "full" else f"{request.days} day(s)"
-        await whatsapp.send_text(
-            user.phone,
-            f"✅ *Leave Request Submitted*\n\n"
-            f"📋 Request ID: #{request.id}\n"
-            f"📅 Date: {parsed_data['start_date']}\n"
-            f"🏷️ Type: {parsed_data['leave_type'].capitalize()}\n"
-            f"⏱️ Duration: {duration}\n\n"
-            f"Your manager will be notified. 👍"
+        # Generate friendly confirmation using AI
+        duration = "Half day" if parsed_data.get("duration_type", "full") != "full" else f"{request.days} day(s)"
+        
+        # Try to generate human-like response
+        friendly_msg = await ai_service.generate_friendly_response(
+            "leave_submitted",
+            {
+                "id": request.id,
+                "date": parsed_data['start_date'],
+                "type": parsed_data['leave_type'],
+                "duration": duration,
+                "reason": parsed_data.get('reason', '')
+            }
         )
+        
+        await whatsapp.send_text(user.phone, friendly_msg)
     
     except Exception as e:
         await whatsapp.send_text(

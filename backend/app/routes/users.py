@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from typing import List, Optional
 
 from app.database import get_db
-from app.auth import get_current_user_required, require_manager, require_admin, require_hr_admin, check_user_access
+from app.auth import get_current_user_required, require_manager, require_admin, require_hr_admin, check_user_access, normalize_phone_number
 from app.models import User, UserRole
 from app.schemas import UserResponse, UserCreate, UserUpdate, UserWithBalance
 
@@ -97,7 +97,7 @@ async def create_user(
     
     user = User(
         name=user_data.name,
-        phone=user_data.phone,
+        phone=normalize_phone_number(user_data.phone),
         email=user_data.email,
         password_hash=get_password_hash(user_data.password) if user_data.password else None,
         role=user_data.role,
@@ -133,7 +133,7 @@ async def update_user(
     if user_data.name is not None:
         user.name = user_data.name
     if user_data.phone is not None:
-        user.phone = user_data.phone
+        user.phone = normalize_phone_number(user_data.phone)
     if user_data.email is not None:
         user.email = user_data.email
     
@@ -159,7 +159,7 @@ async def admin_update_user(
     
     # Admin can update everything
     user.name = user_data.name
-    user.phone = user_data.phone
+    user.phone = normalize_phone_number(user_data.phone)
     user.email = user_data.email
     user.role = user_data.role
     user.manager_id = user_data.manager_id
