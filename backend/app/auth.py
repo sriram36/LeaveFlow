@@ -30,8 +30,17 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
         truncated_password = plain_password[:72] if len(plain_password.encode('utf-8')) > 72 else plain_password
         return pwd_context.verify(truncated_password, hashed_password)
-    except ValueError:
-        # Invalid hash format or other bcrypt error
+    except Exception as e:
+        # Handle passlib/bcrypt compatibility errors gracefully
+        error_msg = str(e).lower()
+        if "bcrypt" in error_msg or "version" in error_msg or "trapped" in error_msg:
+            # Try direct bcrypt comparison as fallback
+            try:
+                import bcrypt
+                truncated = plain_password[:72] if len(plain_password.encode('utf-8')) > 72 else plain_password
+                return bcrypt.checkpw(truncated.encode('utf-8'), hashed_password.encode('utf-8'))
+            except:
+                return False
         return False
 
 
