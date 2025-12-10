@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import { Providers } from "./lib/providers";
 import { Header } from "./(components)/header";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ErrorBoundary } from "./components/error-boundary";
 
 export const metadata = {
   title: "LeaveFlow Dashboard",
@@ -22,12 +23,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-background text-foreground antialiased" suppressHydrationWarning>
         <ThemeProvider defaultTheme="system" storageKey="leaveflow-theme">
-          <Providers>
-            <Header />
-            <main className="max-w-7xl mx-auto px-4 py-8">
-              {children}
-            </main>
-          </Providers>
+          <ErrorBoundary>
+            <Providers>
+              <Header />
+              <main className="max-w-7xl mx-auto px-4 py-8">
+                {children}
+              </main>
+            </Providers>
+          </ErrorBoundary>
         </ThemeProvider>
       </body>
     </html>

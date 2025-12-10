@@ -34,6 +34,30 @@ export default function ProfilePage() {
     e.preventDefault();
     setError("");
     setSuccess("");
+
+    // Validate inputs
+    if (!formData.name.trim()) {
+      setError("Name is required");
+      return;
+    }
+    if (formData.name.length < 2) {
+      setError("Name must be at least 2 characters");
+      return;
+    }
+    if (!formData.phone.trim()) {
+      setError("Phone number is required");
+      return;
+    }
+    const phoneDigits = formData.phone.replace(/\D/g, "");
+    if (phoneDigits.length < 10) {
+      setError("Phone number must be at least 10 digits");
+      return;
+    }
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+      setError("Invalid email format");
+      return;
+    }
+
     setLoading(true);
 
     try {

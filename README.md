@@ -221,15 +221,58 @@ LeaveFlow/
 │   │   ├── users/         # User management
 │   │   └── holidays/      # Holidays
 │   └── components/         # UI components
+├── TESTING_GUIDE.md        # Complete testing procedures
+├── TROUBLESHOOTING.md      # Common issues & solutions
+├── API_DOCUMENTATION.md    # API endpoint reference
+├── ERROR_PREVENTION_SUMMARY.md  # Error handling overview
 └── README.md
 ```
 
+## 📚 Documentation
+
+### For Users
+- **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - Complete testing procedures for all features
+  - 12 feature testing sections
+  - Step-by-step test cases
+  - Manual and automated testing
+  - Test report template
+
+### For Developers
+- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Complete API reference
+  - All endpoints with examples
+  - Request/response formats
+  - Authentication flow
+  - Postman collection
+  
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Common issues and solutions
+  - 20+ common problems
+  - Step-by-step fixes
+  - Diagnostic scripts
+  - Emergency reset procedures
+
+- **[ERROR_PREVENTION_SUMMARY.md](ERROR_PREVENTION_SUMMARY.md)** - Error handling overview
+  - Backend error handlers
+  - Frontend error handling
+  - Validation strategies
+  - Production readiness checklist
+
 ## 🧪 Testing
 ```bash
+# Backend tests
 cd backend
 pip install -r tests/requirements-test.txt
-pytest tests/ -v
+pytest tests/ -v --cov=app
+
+# For complete testing guide, see TESTING_GUIDE.md
 ```
+
+## 🔧 Troubleshooting
+Having issues? Check **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** for:
+- Module not found errors
+- Database connection issues
+- WhatsApp webhook problems
+- Deployment failures
+- And 20+ more common issues
 
 ## 📄 License
 MIT
