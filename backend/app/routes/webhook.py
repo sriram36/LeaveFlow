@@ -84,9 +84,17 @@ async def handle_webhook(
         if existing.scalar_one_or_none():
             return {"status": "ok", "note": "already processed"}
         
-        # Mark as processed
-        db.add(ProcessedMessage(message_id=message_id))
-        await db.commit()
+        # Mark as processed - use try/except to handle race conditions
+        try:
+            db.add(ProcessedMessage(message_id=message_id))
+            await db.commit()
+        except Exception as e:
+            # Handle race condition if another request already inserted this message
+            await db.rollback()
+            if "duplicate" in str(e).lower() or "unique" in str(e).lower():
+                return {"status": "ok", "note": "already processed"}
+            # Re-raise other errors
+            raise
     
     # Send read receipt immediately
     if message_id:
