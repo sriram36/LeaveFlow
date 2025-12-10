@@ -15,10 +15,13 @@
   "env": {
     "DATABASE_URL": "@database_url",
     "SECRET_KEY": "@secret_key",
+    "ALGORITHM": "@algorithm",
+    "ACCESS_TOKEN_EXPIRE_MINUTES": "@access_token_expire_minutes",
     "WHATSAPP_TOKEN": "@whatsapp_token",
     "WHATSAPP_PHONE_NUMBER_ID": "@whatsapp_phone_number_id",
     "WHATSAPP_VERIFY_TOKEN": "@whatsapp_verify_token",
     "CORS_ORIGINS": "@cors_origins",
-    "OPENROUTER_API_KEY": "@openrouter_api_key"
+    "OPENROUTER_API_KEY": "@openrouter_api_key",
+    "ESCALATION_HOURS": "@escalation_hours"
   }
 }

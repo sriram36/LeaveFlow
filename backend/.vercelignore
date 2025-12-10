@@ -25,8 +25,13 @@ test_*.py
 .git
 .gitignore
 
-# Documentation
-*.md
+# Documentation (exclude only root-level general docs, keep deployment guides)
+README.md
+TESTING_GUIDE.md
+TROUBLESHOOTING.md
+ERROR_PREVENTION_SUMMARY.md
+API_DOCUMENTATION.md
+QUICK_REFERENCE.md
 docs/
 
 # Demo and seed data
