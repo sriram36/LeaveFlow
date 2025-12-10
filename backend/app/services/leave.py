@@ -71,11 +71,10 @@ class LeaveService:
         )
         
         self.db.add(leave_request)
+        # Log the action before commit
+        await self._log_action(leave_request.id, "created", user_id)
         await self.db.commit()
         await self.db.refresh(leave_request)
-        
-        # Log the action
-        await self._log_action(leave_request.id, "created", user_id)
         
         # Get user and manager info for notifications
         user = await self._get_user(user_id)
@@ -134,11 +133,11 @@ class LeaveService:
             leave_request.days
         )
         
+        # Log the action before commit
+        await self._log_action(request_id, "approved", approver_id)
+        
         await self.db.commit()
         await self.db.refresh(leave_request)
-        
-        # Log the action
-        await self._log_action(request_id, "approved", approver_id)
         
         # Notify employee
         user = await self._get_user(leave_request.user_id)
@@ -173,11 +172,11 @@ class LeaveService:
         leave_request.approved_at = datetime.utcnow()
         leave_request.rejection_reason = reason
         
+        # Log the action before commit
+        await self._log_action(request_id, "rejected", approver_id, reason)
+        
         await self.db.commit()
         await self.db.refresh(leave_request)
-        
-        # Log the action
-        await self._log_action(request_id, "rejected", approver_id, reason)
         
         # Notify employee
         user = await self._get_user(leave_request.user_id)
@@ -220,11 +219,11 @@ class LeaveService:
         # Update status
         leave_request.status = LeaveStatus.cancelled
         
+        # Log the action before commit
+        await self._log_action(request_id, "cancelled", user_id)
+        
         await self.db.commit()
         await self.db.refresh(leave_request)
-        
-        # Log the action
-        await self._log_action(request_id, "cancelled", user_id)
         
         # Notify employee
         user = await self._get_user(user_id)
@@ -356,11 +355,16 @@ class LeaveService:
         details: Optional[str] = None
     ):
         """Log an action to audit log."""
-        log = AuditLog(
-            leave_request_id=request_id,
-            action=action,
-            actor_id=actor_id,
-            details=details
-        )
-        self.db.add(log)
-        await self.db.commit()
+        try:
+            log = AuditLog(
+                leave_request_id=request_id,
+                action=action,
+                actor_id=actor_id,
+                details=details
+            )
+            self.db.add(log)
+            # Don't commit here - let the caller handle transaction commits
+            # to avoid nested transaction issues and duplicate key errors
+        except Exception as e:
+            # Log error but don't fail the main operation
+            print(f"[AuditLog] Error preparing audit log: {e}")
