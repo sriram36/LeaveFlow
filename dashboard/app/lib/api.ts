@@ -230,6 +230,20 @@ class ApiClient {
     });
   }
 
+  async adminUpdateUser(id: number, userData: {
+    name: string;
+    email: string;
+    phone: string;
+    role: string;
+    manager_id?: number | null;
+    password?: string;
+  }): Promise<User> {
+    return this.fetch(`/users/${id}/admin`, {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+  }
+
   // Registration
   async register(userData: {
     name: string;

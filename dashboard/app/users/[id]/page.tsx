@@ -77,27 +77,18 @@ export default function UserDetailPage() {
     setUpdateMessage(null);
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/users/${user.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: user.name,
-          phone: user.phone,
-          email: user.email,
-          role: user.role,
-          manager_id: selectedManager
-        })
+      await api.adminUpdateUser(user.id, {
+        name: user.name,
+        phone: user.phone,
+        email: user.email || '',
+        role: user.role,
+        manager_id: selectedManager
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update manager');
-      }
-
       setUpdateMessage({ type: 'success', text: 'Manager assigned successfully!' });
+      setTimeout(() => setUpdateMessage(null), 3000);
     } catch (err) {
+      console.error('Manager update error:', err);
       setUpdateMessage({ type: 'error', text: 'Failed to assign manager. Please try again.' });
     } finally {
       setIsUpdating(false);
