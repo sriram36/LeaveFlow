@@ -79,7 +79,7 @@ class ApiClient {
     return this.token;
   }
 
-  private async fetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  private async fetch<T>(path: string, options: RequestInit = {}, retryCount = 0): Promise<T> {
     const token = this.getToken();
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -97,13 +97,23 @@ class ApiClient {
       });
 
       if (!response.ok) {
+        // Handle 503 Service Unavailable with retry (Vercel cold start)
+        if (response.status === 503 && retryCount < 3) {
+          const waitTime = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s exponential backoff
+          console.log(`[API] 503 Service Unavailable. Retrying in ${waitTime}ms (attempt ${retryCount + 1}/3)`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          return this.fetch<T>(path, options, retryCount + 1);
+        }
+
         const error = await response.json().catch(() => ({ 
           detail: response.status === 403 
             ? 'You do not have permission to access this resource' 
             : response.status === 404
             ? 'Resource not found'
             : response.status === 503
-            ? 'Service temporarily unavailable. Please try again.'
+            ? 'Service temporarily unavailable. Please wait a moment and try again.'
+            : response.status === 400
+            ? 'Invalid request. Please check the data and try again.'
             : 'Request failed' 
         }));
         
@@ -293,6 +303,16 @@ class ApiClient {
 
   async deleteHoliday(id: number): Promise<void> {
     return this.fetch(`/holidays/${id}`, { method: 'DELETE' });
+  }
+
+  // Diagnostic methods
+  async testConnection(): Promise<{ status: string; message: string }> {
+    try {
+      const response = await this.fetch('/docs');
+      return { status: 'ok', message: 'Backend is responding' };
+    } catch (error) {
+      return { status: 'error', message: String(error) };
+    }
   }
 }
 
