@@ -21,7 +21,12 @@ from app.routes import auth, leave, webhook, users, holidays, account_requests
 settings = get_settings()
 
 # Detect if running on Vercel (serverless environment)
-IS_VERCEL = os.getenv("VERCEL") == "1" or os.getenv("VERCEL_ENV") is not None
+# Check multiple Vercel-specific environment variables for robustness
+IS_VERCEL = (
+    os.getenv("VERCEL") == "1" or 
+    os.getenv("VERCEL_ENV") is not None or 
+    os.getenv("VERCEL_URL") is not None
+)
 
 
 @asynccontextmanager
