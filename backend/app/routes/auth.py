@@ -67,7 +67,7 @@ async def register(
             )
     
     # HR and Manager accounts require admin approval
-    account_status = AccountStatus.PENDING if user_data.role in ["hr", "manager"] else AccountStatus.ACTIVE
+    account_status = AccountStatus.pending if user_data.role in ["hr", "manager"] else AccountStatus.active
     
     # Create user
     user = User(

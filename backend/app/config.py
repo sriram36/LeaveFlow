@@ -1,10 +1,22 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+import os
 
 
 class Settings(BaseSettings):
     # Database
     database_url: str = "postgresql+asyncpg://user:password@localhost:5432/leaveflow"
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Clean up DATABASE_URL if it has the variable name prefix
+        if self.database_url.startswith("DATABASE_URL="):
+            self.database_url = self.database_url.replace("DATABASE_URL=", "", 1)
+        # Convert postgres:// to postgresql+asyncpg://
+        if self.database_url.startswith("postgres://"):
+            self.database_url = self.database_url.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif self.database_url.startswith("postgresql://"):
+            self.database_url = self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
     
     # JWT Auth
     secret_key: str = "your-secret-key-change-in-production"
