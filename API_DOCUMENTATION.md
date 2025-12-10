@@ -3,7 +3,7 @@
 ## Base URL
 ```
 Local: http://localhost:8000
-Production: https://your-app.railway.app
+Production: https://your-app.vercel.app
 ```
 
 ## Authentication

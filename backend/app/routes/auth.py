@@ -12,7 +12,7 @@ from app.auth import (
     get_user_by_email, get_current_user_required
 )
 from app.schemas import Token, LoginRequest, UserResponse, UserCreate
-from app.models import User
+from app.models import User, AccountStatus
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -49,6 +49,13 @@ async def register(
     db: AsyncSession = Depends(get_db)
 ):
     """Register a new user (for dashboard access)."""
+    # Workers cannot create accounts through signup
+    if user_data.role == "worker":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Workers cannot create accounts through signup. Please contact your manager or HR."
+        )
+    
     # Check if email already exists
     if user_data.email:
         existing = await get_user_by_email(db, user_data.email)
@@ -58,6 +65,9 @@ async def register(
                 detail="Email already registered"
             )
     
+    # HR and Manager accounts require admin approval
+    account_status = AccountStatus.PENDING if user_data.role in ["hr", "manager"] else AccountStatus.ACTIVE
+    
     # Create user
     user = User(
         name=user_data.name,
@@ -65,7 +75,8 @@ async def register(
         email=user_data.email,
         password_hash=get_password_hash(user_data.password) if user_data.password else None,
         role=user_data.role,
-        manager_id=user_data.manager_id
+        manager_id=user_data.manager_id,
+        account_status=account_status
     )
     
     db.add(user)

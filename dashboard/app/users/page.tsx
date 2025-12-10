@@ -110,11 +110,11 @@ export default function UsersPage() {
 function roleColor(role: string) {
   switch (role) {
     case 'admin':
-      return 'bg-purple-100 text-purple-800';
+      return 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-400';
     case 'hr':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400';
     case 'manager':
-      return 'bg-green-100 text-green-800';
+      return 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400';
     case 'worker':
       return 'bg-muted text-muted-foreground';
     default:

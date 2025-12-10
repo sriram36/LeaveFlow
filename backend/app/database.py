@@ -4,7 +4,7 @@ from app.config import get_settings
 
 settings = get_settings()
 
-# Normalize database URL for cloud compatibility (Render/Railway use postgres://)
+# Normalize database URL for cloud compatibility (some providers use postgres://)
 url = settings.database_url.replace("postgres://", "postgresql+asyncpg://")
 
 engine = create_async_engine(url, echo=False)

@@ -16,14 +16,16 @@ export default function SignupPage() {
     phone: "",
     password: "",
     confirmPassword: "",
-    role: "manager" as "worker" | "manager" | "hr" | "admin",
+    role: "manager" as "manager" | "hr" | "admin",
   });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
@@ -53,10 +55,18 @@ export default function SignupPage() {
         role: formData.role,
       });
 
-      // Auto-login after successful registration
-      await login(formData.email, formData.password);
+      // Show success message - account pending approval
+      setSuccess("Account created successfully! Your account is pending admin approval. You'll be able to login once approved.");
       
-      router.push("/requests");
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+        role: "manager",
+      });
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || "Registration failed");
     } finally {
@@ -79,8 +89,19 @@ export default function SignupPage() {
                 Get Started in Minutes
               </div>
               <h1 className="text-3xl font-bold mb-2">Create Your Account</h1>
-              <p className="text-muted-foreground">Join LeaveFlow to streamline your leave management</p>
+              <p className="text-muted-foreground">Manager and HR accounts require admin approval</p>
             </div>
+
+            {success && (
+              <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <div className="flex items-start gap-2 text-green-600 dark:text-green-400">
+                  <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                  </svg>
+                  <span className="text-sm font-medium">{success}</span>
+                </div>
+              </div>
+            )}
 
             {error && (
               <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
@@ -157,7 +178,7 @@ export default function SignupPage() {
                     <option value="hr">HR</option>
                     <option value="admin">Admin</option>
                   </select>
-                  <p className="text-xs text-muted-foreground">Dashboard is only for managers, HR, and admin</p>
+                  <p className="text-xs text-muted-foreground">Account will require admin approval</p>
                 </div>
               </div>
 

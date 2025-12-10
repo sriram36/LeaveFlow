@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import date, datetime
 from typing import Optional, List
-from app.models import UserRole, LeaveType, LeaveStatus, DurationType, AccountCreationRequestStatus
+from app.models import UserRole, LeaveType, LeaveStatus, DurationType, AccountCreationRequestStatus, AccountStatus
 
 
 # ========== Auth Schemas ==========
@@ -44,6 +44,9 @@ class UserUpdate(BaseModel):
 class UserResponse(UserBase):
     id: int
     manager_id: Optional[int] = None
+    account_status: Optional[str] = "active"
+    approved_by: Optional[int] = None
+    approved_at: Optional[datetime] = None
     created_at: datetime
     
     class Config:

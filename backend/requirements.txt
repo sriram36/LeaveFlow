@@ -3,7 +3,7 @@ fastapi==0.109.0
 uvicorn[standard]==0.27.0
 python-multipart==0.0.6
 
-# Database - use compatible versions for Railway deployment
+# Database - use compatible versions for cloud deployment
 sqlalchemy==2.0.25
 asyncpg==0.28.0
 aiosqlite==0.19.0

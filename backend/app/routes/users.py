@@ -62,6 +62,25 @@ async def get_my_team(
     return result.scalars().all()
 
 
+@router.get("/managers", response_model=List[UserResponse])
+async def get_managers(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user_required)
+):
+    """Get all active managers for dropdown (HR/Admin can access)."""
+    # Only HR and Admin can access this
+    if user.role not in [UserRole.hr, UserRole.admin]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    result = await db.execute(
+        select(User)
+        .where(User.role == UserRole.manager)
+        .where(User.account_status == "active")
+        .order_by(User.name)
+    )
+    return result.scalars().all()
+
+
 @router.get("/{user_id}", response_model=UserWithBalance)
 async def get_user(
     user_id: int,
@@ -94,6 +113,24 @@ async def create_user(
 ):
     """Create a new user (HR and admin only)."""
     from app.auth import get_password_hash
+    from app.models import AccountStatus
+    
+    # Determine account status based on role and creator
+    account_status = AccountStatus.active  # Default for workers
+    approved_by = None
+    approved_at = None
+    
+    # Manager and HR accounts need admin approval
+    if user_data.role in [UserRole.manager, UserRole.hr]:
+        if admin.role == UserRole.admin:
+            # Admin creating manager/HR - auto-approve
+            account_status = AccountStatus.active
+            approved_by = admin.id
+            from datetime import datetime
+            approved_at = datetime.utcnow()
+        else:
+            # HR creating manager/HR - needs admin approval
+            account_status = AccountStatus.pending
     
     user = User(
         name=user_data.name,
@@ -101,7 +138,10 @@ async def create_user(
         email=user_data.email,
         password_hash=get_password_hash(user_data.password) if user_data.password else None,
         role=user_data.role,
-        manager_id=user_data.manager_id
+        manager_id=user_data.manager_id,
+        account_status=account_status,
+        approved_by=approved_by,
+        approved_at=approved_at
     )
     
     db.add(user)
@@ -111,7 +151,76 @@ async def create_user(
     return user
 
 
-@router.put("/{user_id}", response_model=UserResponse)
+@router.get("/pending-accounts", response_model=List[UserResponse])
+async def get_pending_accounts(
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin)
+):
+    """Get all users with pending account status (Admin only)."""
+    from app.models import AccountStatus
+    
+    result = await db.execute(
+        select(User)
+        .where(User.account_status == AccountStatus.pending)
+        .order_by(User.created_at.desc())
+    )
+    return result.scalars().all()
+
+
+@router.post("/{user_id}/approve", response_model=UserResponse)
+async def approve_account(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin)
+):
+    """Approve a pending account (Admin only)."""
+    from app.models import AccountStatus
+    from datetime import datetime
+    
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.account_status != AccountStatus.pending:
+        raise HTTPException(status_code=400, detail="Account is not pending approval")
+    
+    user.account_status = AccountStatus.active
+    user.approved_by = admin.id
+    user.approved_at = datetime.utcnow()
+    
+    await db.commit()
+    await db.refresh(user)
+    
+    return user
+
+
+@router.post("/{user_id}/reject", response_model=dict)
+async def reject_account(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin)
+):
+    """Reject and delete a pending account (Admin only)."""
+    from app.models import AccountStatus
+    
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.account_status != AccountStatus.pending:
+        raise HTTPException(status_code=400, detail="Account is not pending approval")
+    
+    await db.delete(user)
+    await db.commit()
+    
+    return {"message": "Account rejected and deleted"}
+
+
+@router.delete("/{user_id}", response_model=dict)
 async def update_user(
     user_id: int,
     user_data: UserUpdate,

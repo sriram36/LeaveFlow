@@ -135,30 +135,34 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 ## 🚢 Deployment
 
-### Backend (Render/Railway)
+### Backend (Vercel)
 
 #### 1. Create PostgreSQL Database
-**Render**: Dashboard → New → PostgreSQL (Free tier available)
-**Railway**: New Project → Add PostgreSQL
+Recommended cloud PostgreSQL providers:
+- **Neon**: https://neon.tech (Serverless Postgres)
+- **Supabase**: https://supabase.com (Free tier available)
+- **Vercel Postgres**: https://vercel.com/storage/postgres
 
 Copy the **DATABASE_URL** (will look like `postgres://user:pass@host:5432/db`)
 
-#### 2. Deploy Backend
-**Render**:
-1. Dashboard → New → Web Service
-2. Connect your GitHub repo
-3. Root Directory: `backend`
-4. Build Command: `pip install -r requirements.txt`
-5. Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+#### 2. Deploy Backend to Vercel
+1. Install Vercel CLI: `npm install -g vercel`
+2. Login: `vercel login`
+3. Go to backend folder: `cd backend`
+4. Deploy: `vercel`
+5. Follow prompts to link/create project
+6. Vercel will automatically detect Python and use `vercel.json` config
 
-**Railway**:
-1. New Project → Deploy from GitHub
-2. Select `backend` folder
-3. Add Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+Or deploy via Vercel Dashboard:
+1. Go to vercel.com → Import Project
+2. Select your GitHub repository
+3. Framework Preset: Other
+4. Root Directory: `backend`
+5. Deploy
 
 #### 3. Set Environment Variables
 
-Add these in your platform dashboard:
+Add these in Vercel Project Settings → Environment Variables:
 
 ```env
 DATABASE_URL=<your-postgres-url-from-step-1>
@@ -230,31 +234,9 @@ LeaveFlow/
 
 ## 📚 Documentation
 
-### For Users
-- **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - Complete testing procedures for all features
-  - 12 feature testing sections
-  - Step-by-step test cases
-  - Manual and automated testing
-  - Test report template
-
-### For Developers
-- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Complete API reference
-  - All endpoints with examples
-  - Request/response formats
-  - Authentication flow
-  - Postman collection
-  
+- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Complete API reference with examples
 - **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Common issues and solutions
-  - 20+ common problems
-  - Step-by-step fixes
-  - Diagnostic scripts
-  - Emergency reset procedures
-
-- **[ERROR_PREVENTION_SUMMARY.md](ERROR_PREVENTION_SUMMARY.md)** - Error handling overview
-  - Backend error handlers
-  - Frontend error handling
-  - Validation strategies
-  - Production readiness checklist
+- **[VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)** - Step-by-step Vercel deployment guide
 
 ## 🧪 Testing
 ```bash
@@ -262,17 +244,26 @@ LeaveFlow/
 cd backend
 pip install -r tests/requirements-test.txt
 pytest tests/ -v --cov=app
+```
 
-# For complete testing guide, see TESTING_GUIDE.md
+## 🚀 Quick Deploy to Vercel
+
+```bash
+# 1. Install Vercel CLI
+npm install -g vercel
+
+# 2. Deploy backend
+cd backend && vercel
+
+# 3. Deploy frontend
+cd dashboard && vercel
+
+# 4. Set environment variables in Vercel dashboard
+# See VERCEL_DEPLOYMENT.md for complete guide
 ```
 
 ## 🔧 Troubleshooting
-Having issues? Check **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** for:
-- Module not found errors
-- Database connection issues
-- WhatsApp webhook problems
-- Deployment failures
-- And 20+ more common issues
+Having issues? Check **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** for common problems and solutions.
 
 ## 📄 License
 MIT

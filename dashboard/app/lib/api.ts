@@ -244,6 +244,26 @@ class ApiClient {
     });
   }
 
+  async getPendingAccounts(): Promise<User[]> {
+    return this.fetch('/users/pending-accounts');
+  }
+
+  async approveAccount(userId: number): Promise<User> {
+    return this.fetch(`/users/${userId}/approve`, {
+      method: 'POST',
+    });
+  }
+
+  async rejectAccount(userId: number): Promise<void> {
+    return this.fetch(`/users/${userId}/reject`, {
+      method: 'POST',
+    });
+  }
+
+  async getManagers(): Promise<User[]> {
+    return this.fetch('/users/managers');
+  }
+
   // Registration
   async register(userData: {
     name: string;

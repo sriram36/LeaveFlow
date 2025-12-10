@@ -35,7 +35,7 @@ export default function UserDetailPage() {
   const { data: managers } = useQuery({
     queryKey: ['managers'],
     queryFn: async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/users/?role=manager`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/users/managers`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }

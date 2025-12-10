@@ -152,7 +152,7 @@ async def health():
     """Health check endpoint - Always returns 200 OK for deployment.
     
     This endpoint is designed to always pass, even if dependencies fail.
-    Railway/Render/other platforms use this for deployment health checks.
+    Railway, Render, Vercel, and other platforms use this for deployment health checks.
     """
     try:
         import os

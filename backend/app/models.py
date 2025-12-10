@@ -12,6 +12,12 @@ class UserRole(str, enum.Enum):
     admin = "admin"
 
 
+class AccountStatus(str, enum.Enum):
+    pending = "pending"  # Awaiting admin approval
+    active = "active"    # Approved and active
+    suspended = "suspended"  # Temporarily disabled
+
+
 class LeaveType(str, enum.Enum):
     casual = "casual"
     sick = "sick"
@@ -41,6 +47,9 @@ class User(Base):
     password_hash = Column(String(255), nullable=True)  # For dashboard login
     role = Column(SQLEnum(UserRole), default=UserRole.worker, nullable=False)
     manager_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    account_status = Column(SQLEnum(AccountStatus), default=AccountStatus.active, nullable=False)
+    approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # Admin who approved
+    approved_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

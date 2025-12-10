@@ -149,7 +149,7 @@ export default function RequestDetail() {
                         href={attachment.file_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 rounded transition-colors"
+                        className="px-3 py-1.5 text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-500/20 hover:bg-purple-200 dark:hover:bg-purple-500/30 rounded transition-colors"
                       >
                         View
                       </a>

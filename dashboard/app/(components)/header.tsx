@@ -66,6 +66,11 @@ export function Header() {
                   👥 Users
                 </Link>
               )}
+              {user?.role === 'admin' && (
+                <Link href="/pending-accounts" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm">
+                  ⏳ Approvals
+                </Link>
+              )}
               {(user?.role === 'hr' || user?.role === 'admin') && (
                 <Link href="/holidays" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm">
                   🎉 Holidays
@@ -187,6 +192,15 @@ export function Header() {
                   >
                     👥 Users
                   </Link>
+                  {user?.role === 'admin' && (
+                    <Link 
+                      href="/pending-accounts" 
+                      onClick={closeMobileMenu}
+                      className="px-4 py-3 rounded-lg hover:bg-accent transition-all font-medium text-sm flex items-center gap-2"
+                    >
+                      ⏳ Approvals
+                    </Link>
+                  )}
                   <Link 
                     href="/holidays" 
                     onClick={closeMobileMenu}
