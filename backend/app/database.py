@@ -6,6 +6,14 @@ import ssl
 
 settings = get_settings()
 
+# Validate database URL
+if not settings.database_url or settings.database_url == "":
+    raise ValueError(
+        "DATABASE_URL is not configured! "
+        "Please set the DATABASE_URL environment variable. "
+        "Example: postgresql://user:pass@host/db"
+    )
+
 # Normalize database URL for cloud compatibility
 url = settings.database_url.replace("postgres://", "postgresql+asyncpg://")
 
@@ -31,6 +39,9 @@ if not is_local:
 else:
     # Explicitly disable SSL for local connections
     connect_args["ssl"] = False
+
+print(f"[Database] Connecting to: {parsed.netloc}")
+print(f"[Database] SSL enabled: {not is_local}")
 
 engine = create_async_engine(
     url,

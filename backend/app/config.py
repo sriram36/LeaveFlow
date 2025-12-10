@@ -4,18 +4,33 @@ import os
 
 
 class Settings(BaseSettings):
-    # Database
-    database_url: str = "postgresql+asyncpg://user:password@localhost:5432/leaveflow"
+    # Database - reads from DATABASE_URL env var
+    database_url: str = ""
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        
+        # If DATABASE_URL is empty, try to read from env
+        if not self.database_url:
+            db_url = os.getenv("DATABASE_URL", "")
+            if db_url:
+                self.database_url = db_url
+        
+        # Fail loudly if no database URL is set
+        if not self.database_url:
+            print("[CRITICAL] DATABASE_URL environment variable is not set!")
+            print("[CRITICAL] Please set DATABASE_URL in Vercel or .env file")
+            # For local dev, use default
+            self.database_url = "postgresql+asyncpg://user:password@localhost:5432/leaveflow"
+        
         # Clean up DATABASE_URL if it has the variable name prefix
         if self.database_url.startswith("DATABASE_URL="):
             self.database_url = self.database_url.replace("DATABASE_URL=", "", 1)
+        
         # Convert postgres:// to postgresql+asyncpg://
         if self.database_url.startswith("postgres://"):
             self.database_url = self.database_url.replace("postgres://", "postgresql+asyncpg://", 1)
-        elif self.database_url.startswith("postgresql://"):
+        elif self.database_url.startswith("postgresql://") and "asyncpg" not in self.database_url:
             self.database_url = self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
     
     # JWT Auth
