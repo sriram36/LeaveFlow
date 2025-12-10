@@ -24,10 +24,10 @@ class AIService:
             )
             # Use Mistral 7B (reliable free model)
             self.model = "mistralai/mistral-7b-instruct:free"
-            print(f"[AI] ✅ Initialized with OpenRouter ({self.model})")
+            print(f"[AI] [OK] Initialized with OpenRouter ({self.model})")
         else:
             self.client = None
-            print("[AI] ⚠️ No OpenRouter API key - using fallback mode")
+            print("[AI] [WARN] No OpenRouter API key - using fallback mode")
             print("[AI] Get FREE key at: https://openrouter.ai/keys")
     
     async def parse_leave_request(self, user_message: str, user_name: str) -> Dict[str, Any]:

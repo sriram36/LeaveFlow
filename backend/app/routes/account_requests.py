@@ -4,7 +4,7 @@ Account Creation Request Routes
 Managers/HR submit requests to create accounts, admins approve/reject.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
@@ -83,21 +83,7 @@ async def create_account_request(
     
     # Notify requester of successful submission
     from app.services.whatsapp import whatsapp
-    print(f"[AccountRequests] 📝 New account request #{account_request.id} created by {requester.name}")
-    await whatsapp.send_text(
-        requester.phone,
-        f"✅ *Account Request Submitted*\n\n"
-        f"Your request has been submitted for approval:\n"
-        f"👤 Name: {request_data.name}\n"
-        f"📱 Phone: {request_data.phone}\n"
-        f"👔 Role: {request_data.requested_role.value.capitalize()}\n\n"
-        f"Request ID: #{account_request.id}\n"
-        f"Status: Pending Admin Approval"
-    )
-    
-    return account_request
-    from app.services.whatsapp import whatsapp
-    print(f"[AccountRequests] 📝 New account request #{account_request.id} created by {requester.name}")
+    print(f"[AccountRequests] [OK] New account request #{account_request.id} created by {requester.name}")
     await whatsapp.send_text(
         requester.phone,
         f"✅ *Account Request Submitted*\n\n"
@@ -236,7 +222,7 @@ async def approve_account_request(
         requester = requester_result.scalar_one_or_none()
         
         if requester:
-            print(f"[AccountRequests] ✅ Account request #{request_id} approved by {admin.name}")
+            print(f"[AccountRequests] [OK] Account request #{request_id} approved by {admin.name}")
             await whatsapp.send_text(
                 requester.phone,
                 f"✅ *Account Request Approved*\n\n"
@@ -265,7 +251,7 @@ async def approve_account_request(
         requester = requester_result.scalar_one_or_none()
         
         if requester:
-            print(f"[AccountRequests] ❌ Account request #{request_id} rejected by {admin.name}")
+            print(f"[AccountRequests] [REJECTED] Account request #{request_id} rejected by {admin.name}")
             await whatsapp.send_text(
                 requester.phone,
                 f"❌ *Account Request Rejected*\n\n"

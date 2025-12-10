@@ -65,9 +65,10 @@ async def get_my_team(
 @router.get("/managers", response_model=List[UserResponse])
 async def get_managers(
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user_required)
+    user: User = Depends(require_hr_admin)
 ):
     """Get all active managers for dropdown (HR/Admin can access)."""
+    from app.models import AccountStatus
     # Only HR and Admin can access this
     if user.role not in [UserRole.hr, UserRole.admin]:
         raise HTTPException(status_code=403, detail="Access denied")
@@ -75,7 +76,7 @@ async def get_managers(
     result = await db.execute(
         select(User)
         .where(User.role == UserRole.manager)
-        .where(User.account_status == "active")
+        .where(User.account_status == AccountStatus.active)
         .order_by(User.name)
     )
     return result.scalars().all()

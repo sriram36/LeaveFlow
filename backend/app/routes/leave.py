@@ -24,8 +24,9 @@ router = APIRouter(prefix="/leave", tags=["Leave Management"])
 
 def check_leave_request_access(user: User, request: LeaveRequest) -> bool:
     """Check if user has access to view a leave request."""
+    from app.models import UserRole
     # Workers can only see their own requests
-    if user.role == "worker":
+    if user.role == UserRole.worker:
         return request.user_id == user.id
     # Managers, HR, and Admin can see all requests
     return True
@@ -66,11 +67,12 @@ async def get_leave_history(
 ):
     """Get leave request history."""
     service = LeaveService(db)
+    from app.models import UserRole
     
     status_enum = LeaveStatus(status) if status else None
     
     # Non-managers can only see their own history
-    if user.role == "worker":
+    if user.role == UserRole.worker:
         user_id = user.id
     
     requests = await service.get_history(user_id=user_id, status=status_enum, limit=limit)
@@ -317,9 +319,10 @@ async def advanced_search(
     )
     
     # Role-based filtering
-    if user.role == "worker":
+    from app.models import UserRole
+    if user.role == UserRole.worker:
         query = query.where(LeaveRequest.user_id == user.id)
-    elif user.role == "manager":
+    elif user.role == UserRole.manager:
         # Managers see their team's requests
         query = query.join(User).where(
             or_(

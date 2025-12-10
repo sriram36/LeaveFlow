@@ -27,27 +27,27 @@ async def lifespan(app: FastAPI):
     print("[Startup] Initializing LeaveFlow API...")
     try:
         await init_db()
-        print("[Startup] ✅ Database initialized")
+        print("[Startup] [OK] Database initialized")
     except Exception as e:
-        print(f"[Startup] ⚠️ Database initialization failed: {e}")
+        print(f"[Startup] [WARN] Database initialization failed: {e}")
         print("[Startup] Continuing without database - health endpoint will still work")
     
     try:
         start_scheduler()
-        print("[Startup] ✅ Scheduler started")
+        print("[Startup] [OK] Scheduler started")
     except Exception as e:
-        print(f"[Startup] ⚠️ Scheduler failed: {e}")
+        print(f"[Startup] [WARN] Scheduler failed: {e}")
     
-    print("[Startup] ✅ Application ready!")
+    print("[Startup] [OK] Application ready!")
     yield
     
     # Shutdown
     print("[Shutdown] Stopping services...")
     try:
         stop_scheduler()
-        print("[Shutdown] ✅ Scheduler stopped")
+        print("[Shutdown] [OK] Scheduler stopped")
     except Exception as e:
-        print(f"[Shutdown] ⚠️ Scheduler stop failed: {e}")
+        print(f"[Shutdown] [WARN] Scheduler stop failed: {e}")
 
 
 app = FastAPI(

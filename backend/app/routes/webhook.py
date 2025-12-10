@@ -424,10 +424,11 @@ async def handle_media_message(db: AsyncSession, user: User, message: dict, medi
         return
     
     # Get the latest pending leave request from this user
+    from app.models import LeaveStatus
     result = await db.execute(
         select(LeaveRequest)
         .where(LeaveRequest.user_id == user.id)
-        .where(LeaveRequest.status == "pending")
+        .where(LeaveRequest.status == LeaveStatus.pending)
         .order_by(LeaveRequest.created_at.desc())
     )
     latest_request = result.scalar_one_or_none()

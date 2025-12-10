@@ -49,8 +49,9 @@ async def register(
     db: AsyncSession = Depends(get_db)
 ):
     """Register a new user (for dashboard access)."""
+    from app.models import UserRole
     # Workers cannot create accounts through signup
-    if user_data.role == "worker":
+    if user_data.role == UserRole.worker:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Workers cannot create accounts through signup. Please contact your manager or HR."

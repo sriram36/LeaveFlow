@@ -77,7 +77,7 @@ class WhatsAppService:
     async def send_text(self, to: str, message: str) -> bool:
         """Send a text message."""
         if not self.token or not self.phone_id:
-            print(f"[WhatsApp] ❌ MISSING CREDENTIALS!")
+            print(f"[WhatsApp] [ERROR] MISSING CREDENTIALS!")
             print(f"[WhatsApp] Token present: {bool(self.token)}")
             print(f"[WhatsApp] Phone ID present: {bool(self.phone_id)}")
             print(f"[WhatsApp] Would send to {to}: {message[:50]}...")
@@ -101,15 +101,15 @@ class WhatsAppService:
                 response = await client.post(url, json=payload, headers=self.headers, timeout=30.0)
                 response.raise_for_status()
                 result = response.json()
-                print(f"[WhatsApp] ✅ Message sent successfully to {to}")
+                print(f"[WhatsApp] [OK] Message sent successfully to {to}")
                 print(f"[WhatsApp] Response: {result}")
                 print(f"[WhatsApp] Response: {result}")
                 return True
             except httpx.HTTPStatusError as e:
-                print(f"[WhatsApp] ❌ HTTP Error {e.response.status_code}: {e.response.text}")
+                print(f"[WhatsApp] [ERROR] HTTP Error {e.response.status_code}: {e.response.text}")
                 return False
             except Exception as e:
-                print(f"[WhatsApp] ❌ Error sending message to {to}: {str(e)}")
+                print(f"[WhatsApp] [ERROR] Error sending message to {to}: {str(e)}")
                 return False
     
     async def send_interactive_buttons(
