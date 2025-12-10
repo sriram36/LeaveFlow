@@ -279,18 +279,29 @@ Generate ONLY the response message:"""
             print(f"[AI] Error generating natural response: {e}")
             return self._fallback_response(action, details)
     
+    def _fallback_response(self, action: str, details: Dict[str, Any]) -> str:
         """Fallback responses if AI is unavailable."""
         if action == "leave_submitted":
             return f"""✅ Got it! Your leave request is in.
 
-📋 Request #{details.get('id')} for {details.get('date')}
-🏷️ {details.get('type', '').capitalize()} - {details.get('duration')}
+📋 Request #{details.get('id')} for {details.get('start_date')} to {details.get('end_date')}
+🏷️ {details.get('type', '').capitalize()} - {details.get('days')} days
 
 Your manager will review it shortly. I'll let you know once they respond! 👍"""
         elif action == "leave_approved":
             return f"🎉 Great news! Your leave request #{details.get('id')} has been approved. Enjoy your time off!"
         elif action == "leave_rejected":
             return f"Hey, your leave request #{details.get('id')} wasn't approved. Reason: {details.get('reason', 'Not specified')}. Feel free to discuss with your manager."
+        elif action == "balance_check":
+            return f"""📊 Your Leave Balance
+
+🏖️ Casual: {details.get('casual')} days
+🏥 Sick: {details.get('sick')} days
+⭐ Special: {details.get('special')} days
+
+Ready to apply for leave?"""
+        elif action == "balance_updated":
+            return f"📍 Balance updated: {details.get('days')} {details.get('type')} days deducted. Your new balance is {details.get('new_balance')} days."
         else:
             return "✅ All done!"
     
