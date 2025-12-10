@@ -22,9 +22,10 @@ settings = get_settings()
 
 # Detect if running on Vercel (serverless environment)
 # Check multiple Vercel-specific environment variables for robustness
+# VERCEL_ENV is set to 'production', 'preview', or 'development' on Vercel
 IS_VERCEL = (
     os.getenv("VERCEL") == "1" or 
-    os.getenv("VERCEL_ENV") is not None or 
+    os.getenv("VERCEL_ENV") in ["production", "preview", "development"] or 
     os.getenv("VERCEL_URL") is not None
 )
 

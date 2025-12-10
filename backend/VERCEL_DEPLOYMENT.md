@@ -86,6 +86,11 @@ To handle scheduled tasks on Vercel, you have two options:
 
 2. **External Cron Service**
    - Use services like cron-job.org or EasyCron to hit your API endpoints on a schedule
+   - ⚠️ **Security Note**: Ensure proper authentication for any endpoints called by external services:
+     - Use API keys or tokens to verify the request source
+     - Implement IP whitelisting if possible
+     - Add rate limiting to prevent abuse
+     - Consider using Vercel's built-in cron jobs (option 1) for better security
 
 ### Database Connections
 - Use connection pooling carefully in serverless environments
