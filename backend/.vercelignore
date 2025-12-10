@@ -1,0 +1,45 @@
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Testing
+.pytest_cache
+tests/
+test_*.py
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# Demo and seed data
+seed_demo_data.py
+
+# Railway specific
+railway.json
+Procfile
+start.sh
+
+# Migration scripts (run manually or via Vercel CLI)
+migrate.py
+
+# Local environment
+.env
+.env.example

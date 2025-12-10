@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.py"
+    }
+  ],
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "SECRET_KEY": "@secret_key",
+    "WHATSAPP_TOKEN": "@whatsapp_token",
+    "WHATSAPP_PHONE_NUMBER_ID": "@whatsapp_phone_number_id",
+    "WHATSAPP_VERIFY_TOKEN": "@whatsapp_verify_token",
+    "CORS_ORIGINS": "@cors_origins",
+    "OPENROUTER_API_KEY": "@openrouter_api_key"
+  }
+}

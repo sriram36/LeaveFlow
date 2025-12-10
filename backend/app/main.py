@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 import traceback
+import os
 
 from app.config import get_settings
 from app.database import init_db
@@ -19,12 +20,17 @@ from app.routes import auth, leave, webhook, users, holidays, account_requests
 
 settings = get_settings()
 
+# Detect if running on Vercel (serverless environment)
+IS_VERCEL = os.getenv("VERCEL") == "1" or os.getenv("VERCEL_ENV") is not None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
     # Startup
     print("[Startup] Initializing LeaveFlow API...")
+    print(f"[Startup] Environment: {'Vercel (Serverless)' if IS_VERCEL else 'Traditional Server'}")
+    
     try:
         await init_db()
         print("[Startup] ✅ Database initialized")
@@ -32,22 +38,28 @@ async def lifespan(app: FastAPI):
         print(f"[Startup] ⚠️ Database initialization failed: {e}")
         print("[Startup] Continuing without database - health endpoint will still work")
     
-    try:
-        start_scheduler()
-        print("[Startup] ✅ Scheduler started")
-    except Exception as e:
-        print(f"[Startup] ⚠️ Scheduler failed: {e}")
+    # Skip scheduler on Vercel (serverless doesn't support persistent background jobs)
+    if not IS_VERCEL:
+        try:
+            start_scheduler()
+            print("[Startup] ✅ Scheduler started")
+        except Exception as e:
+            print(f"[Startup] ⚠️ Scheduler failed: {e}")
+    else:
+        print("[Startup] ℹ️ Scheduler skipped (Vercel serverless mode)")
+        print("[Startup] ℹ️ Use Vercel Cron Jobs for scheduled tasks")
     
     print("[Startup] ✅ Application ready!")
     yield
     
     # Shutdown
     print("[Shutdown] Stopping services...")
-    try:
-        stop_scheduler()
-        print("[Shutdown] ✅ Scheduler stopped")
-    except Exception as e:
-        print(f"[Shutdown] ⚠️ Scheduler stop failed: {e}")
+    if not IS_VERCEL:
+        try:
+            stop_scheduler()
+            print("[Shutdown] ✅ Scheduler stopped")
+        except Exception as e:
+            print(f"[Shutdown] ⚠️ Scheduler stop failed: {e}")
 
 
 app = FastAPI(
