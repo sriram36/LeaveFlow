@@ -143,6 +143,51 @@ Keep it under 100 words."""
             print(f"[AI] Error generating response: {e}")
             return self._fallback_response(action, details)
     
+    async def process_greeting(self, user_message: str, user_name: str) -> str:
+        """Process casual greetings and polite messages with LLM."""
+        if not self.client:
+            return self._fallback_greeting(user_message)
+        
+        prompt = f"""You are a friendly WhatsApp chat assistant for a leave management system called LeaveFlow.
+User ({user_name}) just sent a casual message. Respond warmly and briefly.
+
+User message: "{user_message}"
+
+Your response should:
+- Be conversational and warm (like chatting with a colleague)
+- Include 1-2 emojis max
+- Be 1-2 sentences only
+- If they said hi/hello/hey: greet them back and ask how you can help with leaves
+- If they said thanks/thank you: say you're welcome and ask if they need help
+- If they said bye/goodbye: say goodbye warmly and invite them back
+- If they asked for help: give a brief intro to what you can do with leaves
+- Match their tone (casual for casual, etc)
+
+Generate ONLY the response message, no explanations:"""
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.9,  # More natural/conversational
+                max_tokens=100
+            )
+            
+            msg = response.choices[0].message.content.strip()
+            
+            # Clean up any markdown
+            msg = msg.replace("```", "").replace("**", "").strip()
+            
+            # Remove quotes if wrapped
+            if msg.startswith('"') and msg.endswith('"'):
+                msg = msg[1:-1]
+            
+            return msg or self._fallback_greeting(user_message)
+            
+        except Exception as e:
+            print(f"[AI] Error processing greeting: {e}")
+            return self._fallback_greeting(user_message)
+    
     def _fallback_response(self, action: str, details: Dict[str, Any]) -> str:
         """Fallback responses if AI is unavailable."""
         if action == "leave_submitted":
@@ -158,6 +203,21 @@ Your manager will review it shortly. I'll let you know once they respond! 👍""
             return f"Hey, your leave request #{details.get('id')} wasn't approved. Reason: {details.get('reason', 'Not specified')}. Feel free to discuss with your manager."
         else:
             return "✅ All done!"
+    
+    def _fallback_greeting(self, user_message: str) -> str:
+        """Fallback greeting if AI is unavailable."""
+        message_lower = user_message.lower().strip()
+        
+        if any(word in message_lower for word in ["hi", "hello", "hey", "hola"]):
+            return "Hey there! 👋 How can I help you with your leaves today?"
+        elif any(word in message_lower for word in ["thank", "tq", "ty", "thx"]):
+            return "You're welcome! 😊 Anything else I can help with?"
+        elif any(word in message_lower for word in ["bye", "goodbye", "cya"]):
+            return "Goodbye! 👋 Talk soon!"
+        elif any(word in message_lower for word in ["help", "how"]):
+            return "I can help you apply for leaves, check your balance, and manage requests. Just ask naturally! 📋"
+        else:
+            return "Hey! 😊 How can I assist you today?"
 
 
 # Global instance

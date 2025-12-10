@@ -12,20 +12,24 @@ class Settings(BaseSettings):
         
         # If DATABASE_URL is empty, try to read from env
         if not self.database_url:
-            db_url = os.getenv("DATABASE_URL", "")
+            db_url = os.getenv("DATABASE_URL", "").strip()
             if db_url:
                 self.database_url = db_url
+        
+        # Strip quotes if present (can come from .env files)
+        if self.database_url:
+            self.database_url = self.database_url.strip('\'"')
         
         # Fail loudly if no database URL is set
         if not self.database_url:
             print("[CRITICAL] DATABASE_URL environment variable is not set!")
-            print("[CRITICAL] Please set DATABASE_URL in Vercel or .env file")
+            print("[CRITICAL] Please set DATABASE_URL in .env file or Vercel")
             # For local dev, use default
-            self.database_url = "postgresql+asyncpg://user:password@localhost:5432/leaveflow"
+            self.database_url = "postgresql+asyncpg://postgres:sriram@localhost:5432/leaveflow"
         
         # Clean up DATABASE_URL if it has the variable name prefix
         if self.database_url.startswith("DATABASE_URL="):
-            self.database_url = self.database_url.replace("DATABASE_URL=", "", 1)
+            self.database_url = self.database_url.replace("DATABASE_URL=", "", 1).strip()
         
         # Convert postgres:// to postgresql+asyncpg://
         if self.database_url.startswith("postgres://"):

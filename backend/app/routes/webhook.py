@@ -159,10 +159,11 @@ async def handle_webhook(
 
 async def process_text_message(db: AsyncSession, user: User, text: str):
     """Process a text message from a user."""
-    # Handle casual greetings and polite messages first
-    greeting_response = check_for_greeting(text)
-    if greeting_response:
-        await whatsapp.send_text(user.phone, greeting_response)
+    # Check if it's a casual greeting - send to LLM for natural response
+    is_greeting = check_if_greeting(text)
+    if is_greeting:
+        response = await ai_service.process_greeting(text, user.name)
+        await whatsapp.send_text(user.phone, response)
         return
     
     parsed = parse_message(text)
@@ -198,7 +199,7 @@ async def process_text_message(db: AsyncSession, user: User, text: str):
             await handle_team_today_command(service, user)
         
         else:
-            # Try natural language processing with Gemini
+            # Try natural language processing with LLM
             await handle_natural_language_request(db, user, text)
     
     except LeaveValidationError as e:
@@ -488,135 +489,30 @@ async def handle_media_message(db: AsyncSession, user: User, message: dict, medi
         )
 
 
-def check_for_greeting(text: str) -> Optional[str]:
-    """Check if message is a greeting/polite message and return appropriate response."""
+def check_if_greeting(text: str) -> bool:
+    """Check if message is a casual greeting or polite message."""
     text = text.strip().lower()
     
-    # Greetings - Hi, Hello, Hola, etc.
-    greetings = {
-        "hi": "Hey there! 👋 How can I help with your leaves today?",
-        "hello": "Hello! 👋 Welcome to LeaveFlow. What do you need help with?",
-        "hey": "Hey! 👋 Ready to manage your leaves?",
-        "hola": "¡Hola! 👋 ¿Cómo puedo ayudarte?",
-        "howdy": "Howdy! 🤠 What can I do for you?",
-        "yo": "Yo! 👋 What's up? Need help with leaves?",
-    }
+    # Greeting keywords
+    greeting_keywords = [
+        "hi", "hello", "hey", "hola", "howdy", "yo",
+        "thank", "thanks", "thankyou", "thnks", "tq", "ty", "thx",
+        "bye", "goodbye", "see you", "see ya", "cya", "ttyl", "gotta go",
+        "help", "how", "ok", "okay", "understood", "got it",
+        "yes", "yep", "yeah", "aye", "absolutely", "definitely", "of course",
+        "no", "nope", "nah", "not now", "later"
+    ]
     
-    # Thank you variations
-    thank_yous = {
-        "thank you": "You're welcome! 😊 Anything else I can help with?",
-        "thanks": "Thanks for using LeaveFlow! 😊 Need anything else?",
-        "thankyou": "You're welcome! 😊 Anything else I can help with?",
-        "thnks": "You're welcome! 😊 Anything else I can help with?",
-        "tq": "You're welcome! 😊 Anything else I can help with?",
-        "ty": "You're welcome! 😊 Anything else I can help with?",
-        "thx": "You're welcome! 😊 Anything else I can help with?",
-    }
-    
-    # Goodbye variations
-    goodbyes = {
-        "bye": "Goodbye! 👋 See you soon!",
-        "bye bye": "Bye bye! 👋 Take care!",
-        "goodbye": "Goodbye! 👋 Have a great day!",
-        "see you": "See you! 👋 Talk soon!",
-        "see ya": "See ya! 👋 Catch you later!",
-        "gotta go": "No problem! 👋 Come back anytime!",
-        "catch you later": "Catch you later! 👋",
-        "cya": "See you! 👋",
-        "ttyl": "Talk to you later! 👋",
-    }
-    
-    # Help/Info requests
-    help_requests = {
-        "help": (
-            "Here's how I can help! 📋\n\n"
-            "Apply for leave:\n"
-            "_'I need sick leave tomorrow'_\n"
-            "_'Taking 2 days off from Dec 15'_\n\n"
-            "Quick commands:\n"
-            "• `balance` - Check your leaves\n"
-            "• `pending` - See your requests\n"
-            "• `team today` - Your team's leaves\n\n"
-            "What would you like to do?"
-        ),
-        "how to use": (
-            "Nice question! Here's what I can do:\n\n"
-            "🎯 Apply for leave - Just tell me naturally:\n"
-            "_'I need sick leave tomorrow'_\n\n"
-            "📊 Check balance - Type `balance`\n\n"
-            "⏳ Check pending - Type `pending`\n\n"
-            "👥 See team's leaves - Type `team today`\n\n"
-            "Try any of these! 😊"
-        ),
-        "how": (
-            "Let me help! 😊\n\n"
-            "You can ask me:\n"
-            "• _'I need casual leave tomorrow'_\n"
-            "• _'Half day on Friday morning'_\n"
-            "• _'Taking 3 days off next week'_\n\n"
-            "Or use quick commands:\n"
-            "• `balance`, `pending`, `help`"
-        ),
-    }
-    
-    # Polite acknowledgments
-    polite_acks = {
-        "ok": "Got it! 👍 Anything else?",
-        "okay": "Got it! 👍 What next?",
-        "understood": "Perfect! 👍 What would you like to do?",
-        "got it": "Great! 👍 How can I help further?",
-        "yep": "Perfect! 👍 What else?",
-        "yeah": "Great! 👍 Anything else?",
-        "sure": "Sure thing! 👍 What do you need?",
-        "np": "No problem! 👍 Anything else?",
-        "no problem": "No problem at all! 👍 What else?",
-    }
-    
-    # Affirmative responses
-    affirmatives = {
-        "yes": "Awesome! 👍 What would you like to do?",
-        "yep": "Great! 👍 Let's do it!",
-        "yeah": "Perfect! 👍 How can I help?",
-        "aye": "Aye aye! 👍 Ready to go!",
-        "absolutely": "Absolutely! 👍 Let's make it happen!",
-        "definitely": "Definitely! 👍 What do you need?",
-        "of course": "Of course! 👍 Happy to help!",
-    }
-    
-    # Negative responses
-    negatives = {
-        "no": "No problem! 👍 Anything else I can help with?",
-        "nope": "No worries! 👍 Let me know if you need anything!",
-        "nah": "All good! 👍 Hit me up if you need help!",
-        "not now": "No problem! 👍 Come back anytime!",
-        "later": "Sure! 👍 See you later!",
-    }
-    
-    # Combine all response dictionaries
-    all_responses = {
-        **greetings,
-        **thank_yous,
-        **goodbyes,
-        **help_requests,
-        **polite_acks,
-        **affirmatives,
-        **negatives,
-    }
-    
-    # Check for exact or close matches
-    for keyword, response in all_responses.items():
+    # Check if text matches or starts with any greeting keyword
+    for keyword in greeting_keywords:
         if text == keyword or text.startswith(keyword):
-            return response
+            return True
     
-    # Check if text contains multiple keywords from different categories
-    if any(word in text for word in greetings.keys()):
-        return "Hey there! 👋 How can I help you with your leaves today?"
+    # Check if text contains greeting keywords
+    for keyword in greeting_keywords:
+        if keyword in text:
+            return True
     
-    if any(word in text for word in thank_yous.keys()):
-        return "You're welcome! 😊 Is there anything else you need?"
-    
-    if any(word in text for word in goodbyes.keys()):
-        return "Goodbye! 👋 Have a great day!"
-    
-    return None
+    return False
+
 
