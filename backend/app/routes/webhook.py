@@ -36,9 +36,15 @@ async def verify_webhook(request: Request):
     token = params.get("hub.verify_token")
     challenge = params.get("hub.challenge")
     
+    # Debug logging
+    print(f"[Webhook Verify] Mode: {mode}, Token match: {token == settings.whatsapp_verify_token}")
+    print(f"[Webhook Verify] Received token: {token}, Expected: {settings.whatsapp_verify_token}")
+    
     if mode == "subscribe" and token == settings.whatsapp_verify_token:
+        print(f"[Webhook Verify] ✓ Verification successful")
         return Response(content=challenge, media_type="text/plain")
     
+    print(f"[Webhook Verify] ✗ Verification failed")
     raise HTTPException(status_code=403, detail="Verification failed")
 
 

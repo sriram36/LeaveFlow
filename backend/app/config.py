@@ -1,9 +1,16 @@
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 from functools import lru_cache
 import os
 
 
 class Settings(BaseSettings):
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False
+    )
+    
     # Database - reads from DATABASE_URL env var
     database_url: str = ""
     
@@ -57,11 +64,6 @@ class Settings(BaseSettings):
     
     # AI Service (OpenRouter - Free models available)
     openrouter_api_key: str = ""
-    
-    class Config:
-        env_file = ".env"  # still works in local
-        env_file_encoding = 'utf-8'
-        case_sensitive = False
 
 
 @lru_cache()
