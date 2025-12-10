@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     # WhatsApp
     whatsapp_token: str = ""
     whatsapp_phone_number_id: str = ""
-    whatsapp_verify_token: str = "leaveflow-verify"
+    whatsapp_verify_token: str = ""
     
     # Storage (optional)
     supabase_url: str = ""

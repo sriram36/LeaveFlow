@@ -188,7 +188,97 @@ Generate ONLY the response message, no explanations:"""
             print(f"[AI] Error processing greeting: {e}")
             return self._fallback_greeting(user_message)
     
-    def _fallback_response(self, action: str, details: Dict[str, Any]) -> str:
+    async def generate_natural_response(self, action: str, details: Dict[str, Any], user_name: str) -> str:
+        """Generate natural, conversational responses using LLM."""
+        if not self.client:
+            return self._fallback_response(action, details)
+        
+        # Create a natural language prompt based on the action
+        if action == "leave_submitted":
+            prompt = f"""You are a friendly WhatsApp chat assistant for a leave management system. 
+User {user_name} just submitted a leave request. Generate a warm, encouraging response.
+
+Request details:
+- Request ID: {details.get('id')}
+- From: {details.get('start_date')}
+- To: {details.get('end_date')}
+- Type: {details.get('type', 'casual')}
+- Duration: {details.get('days')} days
+- Reason: {details.get('reason', 'Not specified')}
+
+Your response should:
+- Acknowledge their request warmly
+- Mention the request ID for reference
+- Let them know their manager will review it
+- Use 2-3 emojis max
+- Be encouraging and positive
+- Keep it to 2-3 sentences
+
+Generate ONLY the response message:"""
+        
+        elif action == "leave_approved":
+            prompt = f"""You are a friendly WhatsApp chat assistant. {user_name}'s leave request #{details.get('id')} was just approved.
+Generate a warm, celebratory response saying their leave is approved and they can enjoy their time off.
+
+Keep it to 1-2 sentences with 1-2 emojis.
+Generate ONLY the response message:"""
+        
+        elif action == "leave_rejected":
+            prompt = f"""You are a friendly WhatsApp chat assistant. {user_name}'s leave request #{details.get('id')} was rejected.
+Reason: {details.get('reason', 'Not specified')}
+
+Generate a respectful, empathetic response explaining the rejection and encouraging them to discuss with their manager.
+Keep it to 2 sentences with 1 emoji.
+Generate ONLY the response message:"""
+        
+        elif action == "balance_check":
+            prompt = f"""You are a friendly WhatsApp chat assistant. {user_name} just checked their leave balance.
+
+Current Balance:
+- Casual: {details.get('casual')} days
+- Sick: {details.get('sick')} days  
+- Special: {details.get('special')} days
+
+Generate a brief, friendly message presenting this information naturally.
+Use emojis to make it visually clear (like 📅 for casual, 🏥 for sick, ⭐ for special).
+Keep it conversational.
+Generate ONLY the response message:"""
+        
+        elif action == "balance_updated":
+            prompt = f"""You are a friendly WhatsApp chat assistant. {user_name}'s leave balance was just updated because a leave request was approved.
+
+Leave approved:
+- Type: {details.get('type', 'casual')}
+- Days deducted: {details.get('days')}
+- New balance: {details.get('new_balance')} days
+
+Generate a brief, neutral update message informing them of the balance change.
+Keep it to 1-2 sentences with 1 emoji.
+Generate ONLY the response message:"""
+        
+        else:
+            return self._fallback_response(action, details)
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.8,  # Natural but consistent
+                max_tokens=150
+            )
+            
+            msg = response.choices[0].message.content.strip()
+            msg = msg.replace("```", "").replace("**", "").strip()
+            
+            if msg.startswith('"') and msg.endswith('"'):
+                msg = msg[1:-1]
+            
+            return msg or self._fallback_response(action, details)
+            
+        except Exception as e:
+            print(f"[AI] Error generating natural response: {e}")
+            return self._fallback_response(action, details)
+    
         """Fallback responses if AI is unavailable."""
         if action == "leave_submitted":
             return f"""✅ Got it! Your leave request is in.

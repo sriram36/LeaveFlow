@@ -297,7 +297,7 @@ async def handle_leave_command(service: LeaveService, user: User, parsed):
         await whatsapp.send_text(user.phone, f"❌ {parsed.error}")
         return
     
-    await service.create_leave_request(
+    leave_request = await service.create_leave_request(
         user_id=user.id,
         start_date=parsed.start_date,
         end_date=parsed.end_date,
@@ -306,15 +306,63 @@ async def handle_leave_command(service: LeaveService, user: User, parsed):
         is_half_day=parsed.is_half_day,
         half_day_period=parsed.half_day_period
     )
+    
+    # Generate natural response using LLM
+    response = await ai_service.generate_natural_response(
+        action="leave_submitted",
+        details={
+            "id": leave_request.id,
+            "start_date": str(parsed.start_date),
+            "end_date": str(parsed.end_date),
+            "type": parsed.leave_type or "casual",
+            "days": leave_request.days,
+            "duration": "Full Day" if not parsed.is_half_day else f"Half Day ({parsed.half_day_period})",
+            "reason": parsed.reason
+        },
+        user_name=user.name
+    )
+    await whatsapp.send_text(user.phone, response)
+    
+    # Send notification to manager if assigned
+    if user.manager_id:
+        # Get manager from database
+        from sqlalchemy import select
+        db_session = service.db  # LeaveService has db session
+        manager_result = await db_session.execute(
+            select(User).where(User.id == user.manager_id)
+        )
+        manager = manager_result.scalar_one_or_none()
+        
+        if manager and manager.phone:
+            # Send manager notification
+            manager_message = (
+                f"📋 New Leave Request\n\n"
+                f"👤 *{user.name}* has applied for {leave_request.days}-day(s) {parsed.leave_type or 'casual'} leave\n\n"
+                f"📅 *Dates:* {parsed.start_date} to {parsed.end_date}\n"
+                f"💬 *Reason:* {parsed.reason or 'No reason provided'}\n"
+                f"📌 *Request ID:* #{leave_request.id}\n\n"
+                f"Reply with:\n"
+                f"• `approve {leave_request.id}` to approve\n"
+                f"• `reject {leave_request.id} reason` to reject"
+            )
+            await whatsapp.send_text(manager.phone, manager_message)
 
 
 async def handle_balance_command(service: LeaveService, user: User):
     """Handle balance check command."""
     balance = await service.get_balance(user.id)
-    await whatsapp.send_text(
-        user.phone,
-        format_balance_message(balance["casual"], balance["sick"], balance["special"])
+    
+    # Generate natural response using LLM
+    response = await ai_service.generate_natural_response(
+        action="balance_check",
+        details={
+            "casual": balance["casual"],
+            "sick": balance["sick"],
+            "special": balance["special"]
+        },
+        user_name=user.name
     )
+    await whatsapp.send_text(user.phone, response)
 
 
 async def handle_status_command(service: LeaveService, user: User, request_id: Optional[int]):
@@ -370,7 +418,14 @@ async def handle_approve_command(service: LeaveService, user: User, request_id: 
         return
     
     request = await service.approve_leave(request_id, user.id)
-    await whatsapp.send_text(user.phone, f"✅ Leave #{request_id} approved by {user.name}!")
+    
+    # Generate natural response using LLM
+    response = await ai_service.generate_natural_response(
+        action="leave_approved",
+        details={"id": request_id},
+        user_name=user.name
+    )
+    await whatsapp.send_text(user.phone, response)
 
 
 async def handle_reject_command(service: LeaveService, user: User, request_id: Optional[int], reason: Optional[str]):
@@ -388,7 +443,14 @@ async def handle_reject_command(service: LeaveService, user: User, request_id: O
         return
     
     request = await service.reject_leave(request_id, user.id, reason)
-    await whatsapp.send_text(user.phone, f"❌ Leave #{request_id} rejected by {user.name}")
+    
+    # Generate natural response using LLM
+    response = await ai_service.generate_natural_response(
+        action="leave_rejected",
+        details={"id": request_id, "reason": reason or "Not specified"},
+        user_name=user.name
+    )
+    await whatsapp.send_text(user.phone, response)
 
 
 async def handle_pending_command(service: LeaveService, user: User):
