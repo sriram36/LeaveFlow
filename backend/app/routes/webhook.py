@@ -23,6 +23,21 @@ from app.services.whatsapp import (
 from app.services.ai_service import ai_service
 from app.auth import get_user_by_phone, normalize_phone_number
 
+
+def normalize_token(value: str | None) -> str:
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        value = str(value)
+    return value.strip().strip('"\'')
+
+
+def debug_print_query(params: dict):
+    try:
+        print(f"[Webhook Debug] Query params: {params}")
+    except Exception:
+        pass
+
 settings = get_settings()
 router = APIRouter(prefix="/webhook", tags=["WhatsApp Webhook"])
 
@@ -37,15 +52,42 @@ async def verify_webhook(request: Request):
     challenge = params.get("hub.challenge")
     
     # Debug logging
-    print(f"[Webhook Verify] Mode: {mode}, Token match: {token == settings.whatsapp_verify_token}")
-    print(f"[Webhook Verify] Received token: {token}, Expected: {settings.whatsapp_verify_token}")
+    debug_print_query(dict(params))
+    print(f"[Webhook Verify] Client: {request.client}")
+
+    received_token = normalize_token(token)
+    expected_token = normalize_token(settings.whatsapp_verify_token)
+    print(f"[Webhook Verify] Mode: {mode}, Token match: {received_token == expected_token}")
+    print(f"[Webhook Verify] Received token: {received_token!r}, Expected: {expected_token!r}")
     
-    if mode == "subscribe" and token == settings.whatsapp_verify_token:
+    if mode == "subscribe" and received_token and received_token == expected_token:
         print(f"[Webhook Verify] ✓ Verification successful")
         return Response(content=challenge, media_type="text/plain")
     
-    print(f"[Webhook Verify] ✗ Verification failed")
+    # Detailed failure reasons for debugging
+    if mode != "subscribe":
+        print(f"[Webhook Verify] ✗ Verification failed: wrong mode ({mode})")
+    elif not expected_token:
+        print(f"[Webhook Verify] ✗ Verification failed: server verify token not configured")
+    else:
+        print(f"[Webhook Verify] ✗ Verification failed: token mismatch")
+
     raise HTTPException(status_code=403, detail="Verification failed")
+
+
+@router.get("/whatsapp/inspect-token")
+async def inspect_whatsapp_verify_token():
+    # Returns whether a verify token is configured (masked) to help diagnose production issues
+    token = settings.whatsapp_verify_token
+    length = len(token) if token else 0
+    configured = bool(token)
+    masked = None
+    if configured:
+        if length <= 4:
+            masked = "*" * length
+        else:
+            masked = token[:2] + "*" * (length - 4) + token[-2:]
+    return {"configured": configured, "length": length, "mask": masked}
 
 
 @router.post("/whatsapp")

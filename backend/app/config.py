@@ -43,6 +43,15 @@ class Settings(BaseSettings):
             self.database_url = self.database_url.replace("postgres://", "postgresql+asyncpg://", 1)
         elif self.database_url.startswith("postgresql://") and "asyncpg" not in self.database_url:
             self.database_url = self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+        # Normalize WhatsApp tokens and phone ID (strip quotes & whitespace)
+        # This prevents mismatches if env vars are set with quotes or surrounding whitespace
+        if getattr(self, "whatsapp_verify_token", None):
+            self.whatsapp_verify_token = self.whatsapp_verify_token.strip().strip('\'"')
+        if getattr(self, "whatsapp_token", None):
+            self.whatsapp_token = self.whatsapp_token.strip().strip('\'"')
+        if getattr(self, "whatsapp_phone_number_id", None):
+            self.whatsapp_phone_number_id = self.whatsapp_phone_number_id.strip().strip('\'"')
     
     # JWT Auth
     secret_key: str = "your-secret-key-change-in-production"
