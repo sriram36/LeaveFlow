@@ -18,34 +18,34 @@ else:
     # Normalize database URL for cloud compatibility
     url = settings.database_url.strip()
 
-# Handle both postgres:// and postgresql:// formats
-if url.startswith("postgres://"):
-    url = url.replace("postgres://", "postgresql+asyncpg://", 1)
-elif url.startswith("postgresql://") and "asyncpg" not in url:
-    url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    # Handle both postgres:// and postgresql:// formats
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif url.startswith("postgresql://") and "asyncpg" not in url:
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-# Parse to get host info for SSL decision
-parsed = urlparse(url)
+    # Parse to get host info for SSL decision
+    parsed = urlparse(url)
 
-# Remove query parameters that asyncpg doesn't understand (sslmode, channel_binding)
-query_params = parse_qs(parsed.query, keep_blank_values=True)
-query_params.pop("sslmode", None)
-query_params.pop("channel_binding", None)
+    # Remove query parameters that asyncpg doesn't understand (sslmode, channel_binding)
+    query_params = parse_qs(parsed.query, keep_blank_values=True)
+    query_params.pop("sslmode", None)
+    query_params.pop("channel_binding", None)
 
-# Rebuild query string
-new_query = urlencode({k: v[0] if isinstance(v, list) else v for k, v in query_params.items()})
-url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
+    # Rebuild query string
+    new_query = urlencode({k: v[0] if isinstance(v, list) else v for k, v in query_params.items()})
+    url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
 
-# asyncpg specific SSL configuration
-connect_args = {"timeout": 10, "command_timeout": 10}
-is_local = "localhost" in parsed.netloc or "127.0.0.1" in parsed.netloc
+    # asyncpg specific SSL configuration
+    connect_args = {"timeout": 10, "command_timeout": 10}
+    is_local = "localhost" in parsed.netloc or "127.0.0.1" in parsed.netloc
 
-if not is_local:
-    # Cloud database - use SSL
-    ssl_context = ssl.create_default_context()
-    ssl_context.check_hostname = True
-    connect_args["ssl"] = ssl_context
-    print(f"[Database] Cloud database detected: {parsed.hostname}")
+    if not is_local:
+        # Cloud database - use SSL
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = True
+        connect_args["ssl"] = ssl_context
+        print(f"[Database] Cloud database detected: {parsed.hostname}")
     else:
         # Local database - no SSL
         connect_args["ssl"] = False
