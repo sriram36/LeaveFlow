@@ -1,21 +1,22 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+from fastapi import HTTPException
 from app.config import get_settings
 import ssl
 
 settings = get_settings()
 
-# Validate database URL
-if not settings.database_url or settings.database_url.strip() == "":
-    raise ValueError(
-        "DATABASE_URL is not configured! "
-        "Please set the DATABASE_URL environment variable in your .env file or Vercel settings. "
-        "Example: postgresql+asyncpg://user:pass@host/db"
-    )
+# Validate database URL - but don't crash in serverless
+engine = None
+async_session_maker = None
 
-# Normalize database URL for cloud compatibility
-url = settings.database_url.strip()
+if not settings.database_url or settings.database_url.strip() == "":
+    print("[WARN] DATABASE_URL is not configured!")
+    print("[WARN] Database features will not be available.")
+else:
+    # Normalize database URL for cloud compatibility
+    url = settings.database_url.strip()
 
 # Handle both postgres:// and postgresql:// formats
 if url.startswith("postgres://"):
@@ -45,19 +46,19 @@ if not is_local:
     ssl_context.check_hostname = True
     connect_args["ssl"] = ssl_context
     print(f"[Database] Cloud database detected: {parsed.hostname}")
-else:
-    # Local database - no SSL
-    connect_args["ssl"] = False
-    print(f"[Database] Local database detected: {parsed.hostname}")
+    else:
+        # Local database - no SSL
+        connect_args["ssl"] = False
+        print(f"[Database] Local database detected: {parsed.hostname}")
 
-print(f"[Database] URL configured successfully")
+    print(f"[Database] URL configured successfully")
 
-engine = create_async_engine(
-    url,
-    echo=False,
-    connect_args=connect_args
-)
-async_session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    engine = create_async_engine(
+        url,
+        echo=False,
+        connect_args=connect_args
+    )
+    async_session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
 class Base(DeclarativeBase):
@@ -65,6 +66,11 @@ class Base(DeclarativeBase):
 
 
 async def get_db():
+    if not async_session_maker:
+        raise HTTPException(
+            status_code=503,
+            detail="Database not configured. Please set DATABASE_URL environment variable."
+        )
     async with async_session_maker() as session:
         try:
             yield session
@@ -73,5 +79,8 @@ async def get_db():
 
 
 async def init_db():
+    if not engine:
+        print("[WARN] Cannot initialize database - no engine configured")
+        return
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

@@ -4,65 +4,27 @@ LeaveFlow API - WhatsApp-Native Leave Automation System
 FastAPI backend for leave management with WhatsApp integration.
 """
 
-from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 import traceback
 
 from app.config import get_settings
-from app.database import init_db
-from app.scheduler import start_scheduler, stop_scheduler
 from app.routes import auth, leave, webhook, users, holidays, account_requests
 
 settings = get_settings()
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Application lifespan events."""
-    # Startup
-    print("[Startup] Initializing LeaveFlow API...")
-    try:
-        await init_db()
-        print("[Startup] [OK] Database initialized")
-    except Exception as e:
-        print(f"[Startup] [WARN] Database initialization failed: {e}")
-        print("[Startup] Continuing without database - health endpoint will still work")
-    
-    try:
-        start_scheduler()
-        print("[Startup] [OK] Scheduler started")
-    except Exception as e:
-        print(f"[Startup] [WARN] Scheduler failed: {e}")
-    
-    print("[Startup] [OK] Application ready!")
-    yield
-    
-    # Shutdown
-    print("[Shutdown] Stopping services...")
-    try:
-        stop_scheduler()
-        print("[Shutdown] [OK] Scheduler stopped")
-    except Exception as e:
-        print(f"[Shutdown] [WARN] Scheduler stop failed: {e}")
-
-
+# Initialize FastAPI app without lifespan (for serverless compatibility)
 app = FastAPI(
     title="LeaveFlow API",
     description="WhatsApp-Native Leave Automation & Approval System",
     version="1.0.0",
-    lifespan=lifespan,
     swagger_ui_init_oauth={
         "usePkceWithAuthorizationCodeGrant": True,
     }
 )
-
-# Mount static files
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # CORS middleware
 cors_origins = settings.cors_origins or "*"
