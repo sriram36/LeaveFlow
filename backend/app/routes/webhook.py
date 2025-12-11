@@ -4,7 +4,7 @@ WhatsApp Webhook Routes
 Handles incoming WhatsApp messages and webhook verification.
 """
 
-from fastapi import APIRouter, Request, Response, Depends, HTTPException
+from fastapi import APIRouter, Request, Response, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
@@ -43,18 +43,28 @@ router = APIRouter(prefix="/webhook", tags=["WhatsApp Webhook"])
 
 
 @router.get("/whatsapp")
-async def verify_webhook(request: Request):
-    """Verify webhook for WhatsApp Cloud API."""
+async def verify_webhook(
+    request: Request,
+    hub_mode: str = Query(..., description="Verification mode, must be 'subscribe'"),
+    hub_verify_token: str = Query(..., description="Verification token provided by WhatsApp"),
+    hub_challenge: str = Query(..., description="Challenge string to echo back")
+):
+    """Verify webhook for WhatsApp Cloud API.
+    
+    This endpoint is called by Meta (WhatsApp) to verify webhook ownership.
+    It must return the challenge string when verification succeeds.
+    
+    Required query parameters:
+    - hub.mode: Must be "subscribe"
+    - hub.verify_token: Must match the configured WHATSAPP_VERIFY_TOKEN
+    - hub.challenge: Random string to echo back on success
+    """
     params = request.query_params
     
-    mode = params.get("hub.mode")
-    token = params.get("hub.verify_token")
-    challenge = params.get("hub.challenge")
+    mode = hub_mode
+    token = hub_verify_token
+    challenge = hub_challenge
     
-    # If verification parameters are missing, return a clear 400 so docs show helpful error
-    if not mode or not token:
-        print(f"[Webhook Verify] ✗ Missing required query params: hub.mode={mode}, hub.verify_token={token}")
-        raise HTTPException(status_code=400, detail="Missing required query parameters: hub.mode and hub.verify_token")
     # Debug logging
     debug_print_query(dict(params))
     print(f"[Webhook Verify] Client: {request.client}")
