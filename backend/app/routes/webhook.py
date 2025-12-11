@@ -12,7 +12,7 @@ import json
 
 from app.database import get_db
 from app.config import get_settings
-from app.models import User, ProcessedMessage, LeaveType, UserRole
+from app.models import User, ProcessedMessage, LeaveType, UserRole, ConversationHistory
 from app.services.parser import parse_message, CommandType
 from app.services.leave import LeaveService
 from app.services.validator import LeaveValidationError
@@ -229,11 +229,49 @@ async def handle_webhook(
 
 async def process_text_message(db: AsyncSession, user: User, text: str):
     """Process a text message from a user."""
+    
+    # Load conversation history (last 10 messages)
+    history_result = await db.execute(
+        select(ConversationHistory)
+        .where(ConversationHistory.user_id == user.id)
+        .order_by(ConversationHistory.created_at.desc())
+        .limit(10)
+    )
+    history_rows = history_result.scalars().all()
+    
+    # Build conversation context (reverse to chronological order)
+    conversation_history = [
+        {"message": h.message, "is_from_user": h.is_from_user}
+        for h in reversed(history_rows)
+    ]
+    
+    # Save user's message to conversation history
+    user_msg = ConversationHistory(
+        user_id=user.id,
+        phone=user.phone,
+        message=text,
+        is_from_user=1
+    )
+    db.add(user_msg)
+    await db.commit()
+    
+    response_text = ""  # Store bot response to save later
+    
     # Check if it's a casual greeting - send to LLM for natural response
     is_greeting = check_if_greeting(text)
     if is_greeting:
-        response = await ai_service.process_greeting(text, user.name)
-        await whatsapp.send_text(user.phone, response)
+        response_text = await ai_service.process_greeting(text, user.name, conversation_history)
+        await whatsapp.send_text(user.phone, response_text)
+        
+        # Save bot response to conversation history
+        bot_msg = ConversationHistory(
+            user_id=user.id,
+            phone=user.phone,
+            message=response_text,
+            is_from_user=0
+        )
+        db.add(bot_msg)
+        await db.commit()
         return
     
     parsed = parse_message(text)
@@ -242,71 +280,102 @@ async def process_text_message(db: AsyncSession, user: User, text: str):
     try:
         # First try command-based parsing
         if parsed.command_type == CommandType.LEAVE:
-            await handle_leave_command(service, user, parsed)
+            response_text = await handle_leave_command(service, user, parsed, conversation_history)
         
         elif parsed.command_type == CommandType.HALF_LEAVE:
-            await handle_leave_command(service, user, parsed)
+            response_text = await handle_leave_command(service, user, parsed, conversation_history)
         
         elif parsed.command_type == CommandType.BALANCE:
-            await handle_balance_command(service, user)
+            response_text = await handle_balance_command(service, user, conversation_history)
         
         elif parsed.command_type == CommandType.STATUS:
-            await handle_status_command(service, user, parsed.request_id)
+            response_text = await handle_status_command(service, user, parsed.request_id, conversation_history)
         
         elif parsed.command_type == CommandType.CANCEL:
-            await handle_cancel_command(service, user, parsed.request_id)
+            response_text = await handle_cancel_command(service, user, parsed.request_id, conversation_history)
         
         elif parsed.command_type == CommandType.APPROVE:
-            await handle_approve_command(service, user, parsed.request_id)
+            response_text = await handle_approve_command(service, user, parsed.request_id, conversation_history)
         
         elif parsed.command_type == CommandType.REJECT:
-            await handle_reject_command(service, user, parsed.request_id, parsed.reason)
+            response_text = await handle_reject_command(service, user, parsed.request_id, parsed.reason, conversation_history)
         
         elif parsed.command_type == CommandType.PENDING:
-            await handle_pending_command(service, user)
+            response_text = await handle_pending_command(service, user, conversation_history)
         
         elif parsed.command_type == CommandType.TEAM_TODAY:
-            await handle_team_today_command(service, user)
+            response_text = await handle_team_today_command(service, user, conversation_history)
         
         else:
             # Try natural language processing with LLM
-            await handle_natural_language_request(db, user, text)
+            response_text = await handle_natural_language_request(db, user, text, conversation_history)
+        
+        # Save bot response to conversation history (if response was sent)
+        if response_text:
+            bot_msg = ConversationHistory(
+                user_id=user.id,
+                phone=user.phone,
+                message=response_text,
+                is_from_user=0
+            )
+            db.add(bot_msg)
+            await db.commit()
     
     except LeaveValidationError as e:
-        await whatsapp.send_text(user.phone, f"❌ {e.message}")
+        response_text = f"❌ {e.message}"
+        await whatsapp.send_text(user.phone, response_text)
+        
+        # Save error response
+        bot_msg = ConversationHistory(
+            user_id=user.id,
+            phone=user.phone,
+            message=response_text,
+            is_from_user=0
+        )
+        db.add(bot_msg)
+        await db.commit()
     
     except Exception as e:
         import traceback
         print(f"Error processing message: {e}")
         print(traceback.format_exc())
-        await whatsapp.send_text(
-            user.phone,
-            "Oops, something went wrong on my end! 😅\n\n"
-            "Let's try again. Here are some things you can do:\n"
-            "• Type `balance` to check your leaves\n"
-            "• Type `pending` to see your requests\n"
-            "• Or just tell me: _'I need sick leave tomorrow'_\n\n"
-            "Need help? Just ask!"
+        
+        # Generate error response using LLM for professional tone
+        response_text = await ai_service.generate_natural_response(
+            "error",
+            {"message": "I encountered an issue processing your request"},
+            user.name,
+            conversation_history
         )
+        
+        await whatsapp.send_text(user.phone, response_text)
+        
+        # Save error response
+        bot_msg = ConversationHistory(
+            user_id=user.id,
+            phone=user.phone,
+            message=response_text,
+            is_from_user=0
+        )
+        db.add(bot_msg)
+        await db.commit()
 
 
-async def handle_natural_language_request(db: AsyncSession, user: User, text: str):
+async def handle_natural_language_request(db: AsyncSession, user: User, text: str, conversation_history: list = None):
     """Handle natural language leave requests using AI."""
-    # Parse with AI service
-    parsed_data = await ai_service.parse_leave_request(text, user.name)
+    # Parse with AI service (now with conversation context)
+    parsed_data = await ai_service.parse_leave_request(text, user.name, conversation_history)
     
     if "error" in parsed_data:
-        # Provide friendly, conversational help
-        await whatsapp.send_text(
-            user.phone,
-            "Hey! I'm not quite sure what you mean. 🤔\n\n"
-            "Here are some ways you can ask:\n"
-            "• _'I need sick leave tomorrow'_\n"
-            "• _'Taking 2 days off from Dec 15'_\n"
-            "• _'Half day on Monday morning'_\n\n"
-            "Or just type `balance` or `help` anytime!"
+        # Generate friendly, conversational error response using LLM
+        error_response = await ai_service.generate_natural_response(
+            "error",
+            {"message": parsed_data.get("error", "I couldn't understand your request")},
+            user.name,
+            conversation_history
         )
-        return
+        await whatsapp.send_text(user.phone, error_response)
+        return error_response
     
     # Create leave request with parsed data
     service = LeaveService(db)
@@ -319,39 +388,46 @@ async def handle_natural_language_request(db: AsyncSession, user: User, text: st
             end_date=datetime.strptime(parsed_data["end_date"], "%Y-%m-%d").date(),
             leave_type=parsed_data["leave_type"],
             reason=parsed_data["reason"],
-            is_half_day=parsed_data["duration_type"] != "full",
-            half_day_period=parsed_data["duration_type"] if parsed_data["duration_type"] != "full" else None
+            is_half_day=parsed_data.get("is_half_day", False),
+            half_day_period=parsed_data.get("half_day_period")
         )
         
-        # Generate friendly confirmation using AI
-        duration = "Half day" if parsed_data.get("duration_type", "full") != "full" else f"{request.days} day(s)"
-        
-        # Try to generate human-like response
-        friendly_msg = await ai_service.generate_friendly_response(
+        # Generate friendly confirmation using AI with conversation context
+        confirmation = await ai_service.generate_natural_response(
             "leave_submitted",
             {
                 "id": request.id,
-                "date": parsed_data['start_date'],
+                "start_date": parsed_data['start_date'],
+                "end_date": parsed_data['end_date'],
+                "days": request.days,
                 "type": parsed_data['leave_type'],
-                "duration": duration,
                 "reason": parsed_data.get('reason', '')
-            }
+            },
+            user.name,
+            conversation_history
         )
         
-        await whatsapp.send_text(user.phone, friendly_msg)
+        await whatsapp.send_text(user.phone, confirmation)
+        return confirmation
     
     except Exception as e:
-        await whatsapp.send_text(
-            user.phone,
-            f"❌ Error: {str(e)}\n\nTry: _'sick leave tomorrow'_"
+        # Generate error response using LLM
+        error_response = await ai_service.generate_natural_response(
+            "error",
+            {"message": str(e)},
+            user.name,
+            conversation_history
         )
+        await whatsapp.send_text(user.phone, error_response)
+        return error_response
 
 
-async def handle_leave_command(service: LeaveService, user: User, parsed):
+async def handle_leave_command(service: LeaveService, user: User, parsed, conversation_history: list = None):
     """Handle leave application command."""
     if parsed.error:
-        await whatsapp.send_text(user.phone, f"❌ {parsed.error}")
-        return
+        error_msg = f"❌ {parsed.error}"
+        await whatsapp.send_text(user.phone, error_msg)
+        return error_msg
     
     leave_request = await service.create_leave_request(
         user_id=user.id,
@@ -363,7 +439,7 @@ async def handle_leave_command(service: LeaveService, user: User, parsed):
         half_day_period=parsed.half_day_period
     )
     
-    # Generate natural response using LLM
+    # Generate natural response using LLM with conversation context
     response = await ai_service.generate_natural_response(
         action="leave_submitted",
         details={
@@ -375,7 +451,8 @@ async def handle_leave_command(service: LeaveService, user: User, parsed):
             "duration": "Full Day" if not parsed.is_half_day else f"Half Day ({parsed.half_day_period})",
             "reason": parsed.reason
         },
-        user_name=user.name
+        user_name=user.name,
+        conversation_history=conversation_history
     )
     await whatsapp.send_text(user.phone, response)
     
@@ -390,134 +467,215 @@ async def handle_leave_command(service: LeaveService, user: User, parsed):
         manager = manager_result.scalar_one_or_none()
         
         if manager and manager.phone:
-            # Send manager notification
-            manager_message = (
-                f"📋 New Leave Request\n\n"
-                f"👤 *{user.name}* has applied for {leave_request.days}-day(s) {parsed.leave_type or 'casual'} leave\n\n"
-                f"📅 *Dates:* {parsed.start_date} to {parsed.end_date}\n"
-                f"💬 *Reason:* {parsed.reason or 'No reason provided'}\n"
-                f"📌 *Request ID:* #{leave_request.id}\n\n"
-                f"Reply with:\n"
-                f"• `approve {leave_request.id}` to approve\n"
-                f"• `reject {leave_request.id} reason` to reject"
+            # Generate manager notification using LLM for professional tone
+            manager_message = await ai_service.generate_natural_response(
+                action="manager_notification",
+                details={
+                    "employee_name": user.name,
+                    "request_id": leave_request.id,
+                    "start_date": str(parsed.start_date),
+                    "end_date": str(parsed.end_date),
+                    "days": leave_request.days,
+                    "type": parsed.leave_type or "casual",
+                    "reason": parsed.reason or "No reason provided"
+                },
+                user_name=manager.name
             )
             await whatsapp.send_text(manager.phone, manager_message)
+    
+    return response
 
 
-async def handle_balance_command(service: LeaveService, user: User):
+async def handle_balance_command(service: LeaveService, user: User, conversation_history: list = None):
     """Handle balance check command."""
     balance = await service.get_balance(user.id)
     
-    # Generate natural response using LLM
+    # Generate natural response using LLM with conversation context
     response = await ai_service.generate_natural_response(
-        action="balance_check",
+        action="balance_info",
         details={
             "casual": balance["casual"],
             "sick": balance["sick"],
             "special": balance["special"]
         },
-        user_name=user.name
+        user_name=user.name,
+        conversation_history=conversation_history
     )
     await whatsapp.send_text(user.phone, response)
+    return response
 
 
-async def handle_status_command(service: LeaveService, user: User, request_id: Optional[int]):
+async def handle_status_command(service: LeaveService, user: User, request_id: Optional[int], conversation_history: list = None):
     """Handle status check command."""
     if not request_id:
-        await whatsapp.send_text(user.phone, "❌ Please provide a request ID: `status 32`")
-        return
+        error_msg = await ai_service.generate_natural_response(
+            "error",
+            {"message": "Please provide a request ID (e.g., 'status 32')"},
+            user.name,
+            conversation_history
+        )
+        await whatsapp.send_text(user.phone, error_msg)
+        return error_msg
     
     request = await service.get_status(request_id)
     
     if not request:
-        await whatsapp.send_text(user.phone, f"❌ Request #{request_id} not found")
-        return
+        error_msg = await ai_service.generate_natural_response(
+            "error",
+            {"message": f"Request #{request_id} not found"},
+            user.name,
+            conversation_history
+        )
+        await whatsapp.send_text(user.phone, error_msg)
+        return error_msg
     
     if request.user_id != user.id and user.role == UserRole.worker:
-        await whatsapp.send_text(user.phone, "❌ You can only check your own requests")
-        return
-    
-    await whatsapp.send_text(
-        user.phone,
-        format_status_message(
-            request_id=request.id,
-            status=request.status.value,
-            start_date=str(request.start_date),
-            end_date=str(request.end_date),
-            leave_type=request.leave_type.value,
-            reason=request.reason
+        error_msg = await ai_service.generate_natural_response(
+            "error",
+            {"message": "You can only check your own requests"},
+            user.name,
+            conversation_history
         )
+        await whatsapp.send_text(user.phone, error_msg)
+        return error_msg
+    
+    # Generate status response using LLM
+    response = await ai_service.generate_natural_response(
+        "status_check",
+        {
+            "requests": [{
+                "id": request.id,
+                "status": request.status.value,
+                "start_date": str(request.start_date),
+                "end_date": str(request.end_date),
+                "type": request.leave_type.value,
+                "reason": request.reason or "No reason provided"
+            }]
+        },
+        user.name,
+        conversation_history
     )
+    await whatsapp.send_text(user.phone, response)
+    return response
 
 
-async def handle_cancel_command(service: LeaveService, user: User, request_id: Optional[int]):
+async def handle_cancel_command(service: LeaveService, user: User, request_id: Optional[int], conversation_history: list = None):
     """Handle cancel command."""
     if not request_id:
-        await whatsapp.send_text(user.phone, "❌ Please provide a request ID: `cancel 32`")
-        return
+        error_msg = await ai_service.generate_natural_response(
+            "error",
+            {"message": "Please provide a request ID (e.g., 'cancel 32')"},
+            user.name,
+            conversation_history
+        )
+        await whatsapp.send_text(user.phone, error_msg)
+        return error_msg
     
     await service.cancel_leave(request_id, user.id)
+    
+    # Generate cancellation confirmation using LLM
+    response = await ai_service.generate_natural_response(
+        "leave_cancelled",
+        {"request_id": request_id},
+        user.name,
+        conversation_history
+    )
+    await whatsapp.send_text(user.phone, response)
+    return response
 
 
-async def handle_approve_command(service: LeaveService, user: User, request_id: Optional[int]):
+async def handle_approve_command(service: LeaveService, user: User, request_id: Optional[int], conversation_history: list = None):
     """Handle approve command (managers only)."""
     # Verify user is a manager, HR, or admin
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
-        await whatsapp.send_text(
-            user.phone, 
-            f"❌ *Access Denied*\n\nYou're registered as _{user.role.value}_. Only managers can approve.\n\nContact HR if incorrect."
+        error_msg = await ai_service.generate_natural_response(
+            "error",
+            {"message": f"Access denied. Only managers can approve. You're registered as {user.role.value}. Contact HR if this is incorrect."},
+            user.name,
+            conversation_history
         )
-        return
+        await whatsapp.send_text(user.phone, error_msg)
+        return error_msg
     
     if not request_id:
-        await whatsapp.send_text(user.phone, "❌ Please provide a request ID: `approve 32`")
-        return
+        error_msg = await ai_service.generate_natural_response(
+            "error",
+            {"message": "Please provide a request ID (e.g., 'approve 32')"},
+            user.name,
+            conversation_history
+        )
+        await whatsapp.send_text(user.phone, error_msg)
+        return error_msg
     
     request = await service.approve_leave(request_id, user.id)
     
-    # Generate natural response using LLM
+    # Generate approval confirmation using LLM
     response = await ai_service.generate_natural_response(
-        action="leave_approved",
-        details={"id": request_id},
-        user_name=user.name
+        action="approval_done",
+        details={
+            "request_id": request_id,
+            "employee_name": request.user.name if request.user else "Employee",
+            "dates": f"{request.start_date} to {request.end_date}"
+        },
+        user_name=user.name,
+        conversation_history=conversation_history
     )
     await whatsapp.send_text(user.phone, response)
+    return response
 
 
-async def handle_reject_command(service: LeaveService, user: User, request_id: Optional[int], reason: Optional[str]):
+async def handle_reject_command(service: LeaveService, user: User, request_id: Optional[int], reason: Optional[str], conversation_history: list = None):
     """Handle reject command (managers only)."""
     # Verify user is a manager, HR, or admin
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
-        await whatsapp.send_text(
-            user.phone, 
-            f"❌ *Access Denied*\n\nYou're registered as _{user.role.value}_. Only managers can reject.\n\nContact HR if incorrect."
+        error_msg = await ai_service.generate_natural_response(
+            "error",
+            {"message": f"Access denied. Only managers can reject. You're registered as {user.role.value}. Contact HR if this is incorrect."},
+            user.name,
+            conversation_history
         )
-        return
+        await whatsapp.send_text(user.phone, error_msg)
+        return error_msg
     
     if not request_id:
-        await whatsapp.send_text(user.phone, "❌ Please provide a request ID: `reject 32 reason`")
-        return
+        error_msg = await ai_service.generate_natural_response(
+            "error",
+            {"message": "Please provide a request ID (e.g., 'reject 32 reason')"},
+            user.name,
+            conversation_history
+        )
+        await whatsapp.send_text(user.phone, error_msg)
+        return error_msg
     
     request = await service.reject_leave(request_id, user.id, reason)
     
-    # Generate natural response using LLM
+    # Generate rejection confirmation using LLM
     response = await ai_service.generate_natural_response(
-        action="leave_rejected",
-        details={"id": request_id, "reason": reason or "Not specified"},
-        user_name=user.name
+        action="rejection_done",
+        details={
+            "request_id": request_id,
+            "employee_name": request.user.name if request.user else "Employee",
+            "reason": reason or "Not specified"
+        },
+        user_name=user.name,
+        conversation_history=conversation_history
     )
     await whatsapp.send_text(user.phone, response)
+    return response
 
 
-async def handle_pending_command(service: LeaveService, user: User):
+async def handle_pending_command(service: LeaveService, user: User, conversation_history: list = None):
     """Handle pending list command (managers only)."""
     # Verify user is a manager, HR, or admin
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
-        await whatsapp.send_text(
-            user.phone, 
-            f"❌ *Access Denied*\n\nYou're registered as _{user.role.value}_. Only managers can view pending.\n\nContact HR if incorrect."
+        error_msg = await ai_service.generate_natural_response(
+            "error",
+            {"message": f"Access denied. Only managers can view pending requests. You're registered as {user.role.value}. Contact HR if this is incorrect."},
+            user.name,
+            conversation_history
         )
-        return
+        await whatsapp.send_text(user.phone, error_msg)
+        return error_msg
     
     requests = await service.get_pending_requests(manager_id=user.id)
     
@@ -526,27 +684,41 @@ async def handle_pending_command(service: LeaveService, user: User):
             "id": r.id,
             "name": r.user.name if r.user else "Unknown",
             "start_date": str(r.start_date),
+            "end_date": str(r.end_date),
             "type": r.leave_type.value
         }
         for r in requests
     ]
     
-    await whatsapp.send_text(user.phone, format_pending_list(pending_list))
+    # Generate pending list response using LLM
+    response = await ai_service.generate_natural_response(
+        "pending_list",
+        {"requests": pending_list},
+        user.name,
+        conversation_history
+    )
+    await whatsapp.send_text(user.phone, response)
+    return response
 
 
-async def handle_team_today_command(service: LeaveService, user: User):
+async def handle_team_today_command(service: LeaveService, user: User, conversation_history: list = None):
     """Handle team today command."""
     leaves = await service.get_today_leaves()
     
-    if not leaves:
-        await whatsapp.send_text(user.phone, "✅ No one is on leave today")
-        return
-    
-    lines = ["📅 *On Leave Today*\n"]
-    for leave in leaves:
-        lines.append(f"• {leave['name']} ({leave['type'].capitalize()})")
-    
-    await whatsapp.send_text(user.phone, "\n".join(lines))
+    # Generate team status response using LLM
+    response = await ai_service.generate_natural_response(
+        "team_today",
+        {
+            "leaves": [
+                {"name": leave['name'], "type": leave['type'].capitalize()}
+                for leave in leaves
+            ] if leaves else []
+        },
+        user.name,
+        conversation_history
+    )
+    await whatsapp.send_text(user.phone, response)
+    return response
 
 
 async def handle_media_message(db: AsyncSession, user: User, message: dict, media_type: str):

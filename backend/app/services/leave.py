@@ -71,10 +71,12 @@ class LeaveService:
         )
         
         self.db.add(leave_request)
-        # Log the action before commit
-        await self._log_action(leave_request.id, "created", user_id)
         await self.db.commit()
         await self.db.refresh(leave_request)
+        
+        # Log the action AFTER commit (so leave_request.id exists)
+        await self._log_action(leave_request.id, "created", user_id)
+        await self.db.commit()
         
         # Get user and manager info for notifications
         user = await self._get_user(user_id)

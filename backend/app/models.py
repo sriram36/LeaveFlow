@@ -193,3 +193,18 @@ class ProcessedMessage(Base):
     id = Column(Integer, primary_key=True, index=True)
     message_id = Column(String(100), unique=True, nullable=False, index=True)
     processed_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class ConversationHistory(Base):
+    """Store WhatsApp conversation history for context-aware responses"""
+    __tablename__ = "conversation_history"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    phone = Column(String(20), nullable=False, index=True)
+    message = Column(Text, nullable=False)
+    is_from_user = Column(Integer, nullable=False)  # 1 = user sent, 0 = bot replied
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    
+    # Relationships
+    user = relationship("User")
