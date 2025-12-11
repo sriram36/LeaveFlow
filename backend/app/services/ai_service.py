@@ -540,6 +540,15 @@ Generate ONLY the response message, nothing else:"""
         except Exception as e:
             print(f"[AI] Error processing greeting: {e}")
             return self._fallback_greeting(user_message)
+    
+    def generate_natural_response(self, action: str, details: Dict[str, Any] = None, user_name: str = "user") -> str:
+        """Generate natural, context-aware responses using AI."""
+        if details is None:
+            details = {}
+        
+        # Create prompt based on action type
+        if action == "leave_submitted":
+            prompt = f"""You are a friendly WhatsApp chat assistant. {user_name} just submitted a leave request.
 
 Request details:
 - Request ID: {details.get('id')}
