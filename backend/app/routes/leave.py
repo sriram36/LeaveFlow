@@ -95,6 +95,34 @@ async def get_my_balance(
     )
 
 
+@router.get("/balance/history", response_model=List[LeaveBalanceHistoryResponse])
+async def get_balance_history(
+    user_id: Optional[int] = Query(None, description="Filter by user (admin/HR only)"),
+    leave_type: Optional[LeaveType] = Query(None, description="Filter by leave type"),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user_required)
+):
+    """Get leave balance change history for audit trail."""
+    query = select(LeaveBalanceHistory).order_by(LeaveBalanceHistory.created_at.desc())
+    
+    # If user_id provided, check permissions
+    if user_id:
+        # Only HR/Admin can view others' history
+        if user.role not in ["hr", "admin"] and user_id != user.id:
+            raise HTTPException(status_code=403, detail="Cannot view other users' balance history")
+        query = query.where(LeaveBalanceHistory.user_id == user_id)
+    else:
+        # Regular users can only see their own
+        if user.role not in ["hr", "admin", "manager"]:
+            query = query.where(LeaveBalanceHistory.user_id == user.id)
+    
+    if leave_type:
+        query = query.where(LeaveBalanceHistory.leave_type == leave_type)
+    
+    result = await db.execute(query.limit(100))
+    return result.scalars().all()
+
+
 @router.get("/balance/{user_id}", response_model=LeaveBalanceResponse)
 async def get_user_balance(
     user_id: int,
@@ -237,63 +265,46 @@ async def carry_forward_leaves(
     """
     Carry forward unused leaves to next year (Admin only).
     Run this at year end. Max 5 casual days can be carried forward.
+    NOTE: Due to database constraint (user_id is unique), this updates
+    existing balances instead of creating new year records.
     """
     try:
         current_year = datetime.now().year
-        next_year = current_year + 1
         
-        # Get all balances for current year
-        result = await db.execute(
-            select(LeaveBalance).where(LeaveBalance.year == current_year)
-        )
+        # Get all balances
+        result = await db.execute(select(LeaveBalance))
         balances = result.scalars().all()
         
         carried_forward_count = 0
         
         for balance in balances:
-            # Check if next year balance already exists
-            existing = await db.execute(
-                select(LeaveBalance).where(
-                    and_(
-                        LeaveBalance.user_id == balance.user_id,
-                        LeaveBalance.year == next_year
-                    )
-                )
-            )
-            if existing.scalar_one_or_none():
-                continue  # Skip if already exists
-            
             # Calculate carry forward (max 5 casual days)
             casual_carryover = min(balance.casual, 5.0) if balance.casual > 0 else 0.0
             
-            # Create new year balance with carried forward leave
-            new_balance = LeaveBalance(
-                user_id=balance.user_id,
-                casual=12.0 + casual_carryover,
-                sick=12.0,
-                special=5.0,
-                year=next_year
-            )
-            db.add(new_balance)
-            
-            # Record in history
             if casual_carryover > 0:
+                # Update existing balance with carried forward leave
+                balance.casual = 12.0 + casual_carryover
+                balance.sick = 12.0
+                balance.special = 5.0
+                balance.year = current_year
+                
+                # Record in history
                 history = LeaveBalanceHistory(
                     user_id=balance.user_id,
                     leave_type=LeaveType.casual,
                     days_changed=casual_carryover,
                     balance_after=12.0 + casual_carryover,
-                    reason=f"Carried forward from {current_year}"
+                    reason=f"Carried forward from {current_year - 1}"
                 )
                 db.add(history)
-            
-            carried_forward_count += 1
+                
+                carried_forward_count += 1
         
         await db.commit()
         
         return {
             "message": f"Carry forward completed for {carried_forward_count} employees",
-            "year": next_year,
+            "year": current_year,
             "carried_forward_count": carried_forward_count
         }
     except Exception as e:

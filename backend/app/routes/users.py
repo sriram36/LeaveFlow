@@ -82,6 +82,22 @@ async def get_managers(
     return result.scalars().all()
 
 
+@router.get("/pending-accounts", response_model=List[UserResponse])
+async def get_pending_accounts(
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin)
+):
+    """Get all users with pending account status (Admin only)."""
+    from app.models import AccountStatus
+    
+    result = await db.execute(
+        select(User)
+        .where(User.account_status == AccountStatus.pending)
+        .order_by(User.created_at.desc())
+    )
+    return result.scalars().all()
+
+
 @router.get("/{user_id}", response_model=UserWithBalance)
 async def get_user(
     user_id: int,
@@ -150,22 +166,6 @@ async def create_user(
     await db.refresh(user)
     
     return user
-
-
-@router.get("/pending-accounts", response_model=List[UserResponse])
-async def get_pending_accounts(
-    db: AsyncSession = Depends(get_db),
-    admin: User = Depends(require_admin)
-):
-    """Get all users with pending account status (Admin only)."""
-    from app.models import AccountStatus
-    
-    result = await db.execute(
-        select(User)
-        .where(User.account_status == AccountStatus.pending)
-        .order_by(User.created_at.desc())
-    )
-    return result.scalars().all()
 
 
 @router.post("/{user_id}/approve", response_model=UserResponse)
