@@ -45,9 +45,9 @@ router = APIRouter(prefix="/webhook", tags=["WhatsApp Webhook"])
 @router.get("/whatsapp")
 async def verify_webhook(
     request: Request,
-    hub_mode: str = Query(..., description="Verification mode, must be 'subscribe'"),
-    hub_verify_token: str = Query(..., description="Verification token provided by WhatsApp"),
-    hub_challenge: str = Query(..., description="Challenge string to echo back")
+    hub_mode: str = Query(..., alias="hub.mode", description="Verification mode, must be 'subscribe'"),
+    hub_verify_token: str = Query(..., alias="hub.verify_token", description="Verification token provided by WhatsApp"),
+    hub_challenge: str = Query(..., alias="hub.challenge", description="Challenge string to echo back")
 ):
     """Verify webhook for WhatsApp Cloud API.
     
