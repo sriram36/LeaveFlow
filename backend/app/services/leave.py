@@ -298,16 +298,8 @@ class LeaveService:
         )
         
         requests = result.scalars().all()
-        return [
-            {
-                "id": r.id,
-                "name": r.user.name if r.user else "Unknown",
-                "type": r.leave_type.value,
-                "start_date": str(r.start_date),
-                "end_date": str(r.end_date)
-            }
-            for r in requests
-        ]
+        # Return user objects instead of limited dict
+        return [r.user for r in requests if r.user]
     
     async def get_history(
         self,

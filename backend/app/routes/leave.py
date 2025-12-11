@@ -50,10 +50,10 @@ async def get_today_leaves(
 ):
     """Get employees on leave today."""
     service = LeaveService(db)
-    leaves = await service.get_today_leaves()
+    employees = await service.get_today_leaves()
     return TodayLeaveResponse(
-        employees=[UserResponse(**l) for l in leaves] if leaves else [],
-        count=len(leaves)
+        employees=[UserResponse.from_orm(emp) for emp in employees],
+        count=len(employees)
     )
 
 
@@ -238,63 +238,67 @@ async def carry_forward_leaves(
     Carry forward unused leaves to next year (Admin only).
     Run this at year end. Max 5 casual days can be carried forward.
     """
-    current_year = datetime.now().year
-    next_year = current_year + 1
-    
-    # Get all balances for current year
-    result = await db.execute(
-        select(LeaveBalance).where(LeaveBalance.year == current_year)
-    )
-    balances = result.scalars().all()
-    
-    carried_forward_count = 0
-    
-    for balance in balances:
-        # Check if next year balance already exists
-        existing = await db.execute(
-            select(LeaveBalance).where(
-                and_(
-                    LeaveBalance.user_id == balance.user_id,
-                    LeaveBalance.year == next_year
+    try:
+        current_year = datetime.now().year
+        next_year = current_year + 1
+        
+        # Get all balances for current year
+        result = await db.execute(
+            select(LeaveBalance).where(LeaveBalance.year == current_year)
+        )
+        balances = result.scalars().all()
+        
+        carried_forward_count = 0
+        
+        for balance in balances:
+            # Check if next year balance already exists
+            existing = await db.execute(
+                select(LeaveBalance).where(
+                    and_(
+                        LeaveBalance.user_id == balance.user_id,
+                        LeaveBalance.year == next_year
+                    )
                 )
             )
-        )
-        if existing.scalar_one_or_none():
-            continue  # Skip if already exists
-        
-        # Calculate carry forward (max 5 casual days)
-        casual_carryover = min(balance.casual, 5.0) if balance.casual > 0 else 0.0
-        
-        # Create new year balance with carried forward leave
-        new_balance = LeaveBalance(
-            user_id=balance.user_id,
-            casual=12.0 + casual_carryover,
-            sick=12.0,
-            special=5.0,
-            year=next_year
-        )
-        db.add(new_balance)
-        
-        # Record in history
-        if casual_carryover > 0:
-            history = LeaveBalanceHistory(
+            if existing.scalar_one_or_none():
+                continue  # Skip if already exists
+            
+            # Calculate carry forward (max 5 casual days)
+            casual_carryover = min(balance.casual, 5.0) if balance.casual > 0 else 0.0
+            
+            # Create new year balance with carried forward leave
+            new_balance = LeaveBalance(
                 user_id=balance.user_id,
-                leave_type=LeaveType.casual,
-                days_changed=casual_carryover,
-                balance_after=12.0 + casual_carryover,
-                reason=f"Carried forward from {current_year}"
+                casual=12.0 + casual_carryover,
+                sick=12.0,
+                special=5.0,
+                year=next_year
             )
-            db.add(history)
+            db.add(new_balance)
+            
+            # Record in history
+            if casual_carryover > 0:
+                history = LeaveBalanceHistory(
+                    user_id=balance.user_id,
+                    leave_type=LeaveType.casual,
+                    days_changed=casual_carryover,
+                    balance_after=12.0 + casual_carryover,
+                    reason=f"Carried forward from {current_year}"
+                )
+                db.add(history)
+            
+            carried_forward_count += 1
         
-        carried_forward_count += 1
-    
-    await db.commit()
-    
-    return {
-        "message": f"Carry forward completed for {carried_forward_count} employees",
-        "year": next_year,
-        "carried_forward_count": carried_forward_count
-    }
+        await db.commit()
+        
+        return {
+            "message": f"Carry forward completed for {carried_forward_count} employees",
+            "year": next_year,
+            "carried_forward_count": carried_forward_count
+        }
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Carry forward failed: {str(e)}")
 
 
 @router.get("/requests/search", response_model=List[LeaveRequestResponse])

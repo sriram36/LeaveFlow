@@ -108,10 +108,7 @@ async def list_account_requests(
     HR and Admin can view all account creation requests.
     Can filter by status (pending, approved, rejected).
     """
-    query = select(AccountCreationRequest).options(
-        selectinload(AccountCreationRequest.requester),
-        selectinload(AccountCreationRequest.assigned_manager)
-    )
+    query = select(AccountCreationRequest)
     
     if status:
         query = query.where(AccountCreationRequest.status == status)

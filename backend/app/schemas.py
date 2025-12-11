@@ -44,7 +44,7 @@ class UserUpdate(BaseModel):
 class UserResponse(UserBase):
     id: int
     manager_id: Optional[int] = None
-    account_status: Optional[str] = "active"
+    account_status: AccountStatus = AccountStatus.active
     approved_by: Optional[int] = None
     approved_at: Optional[datetime] = None
     created_at: datetime
@@ -126,12 +126,6 @@ class LeaveBalanceHistoryResponse(BaseModel):
     reason: str
     leave_request_id: Optional[int]
     created_at: datetime
-    
-    class Config:
-        from_attributes = True
-    id: int
-    user_id: int
-    year: int
     
     class Config:
         from_attributes = True
