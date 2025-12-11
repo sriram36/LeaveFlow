@@ -51,6 +51,10 @@ async def verify_webhook(request: Request):
     token = params.get("hub.verify_token")
     challenge = params.get("hub.challenge")
     
+    # If verification parameters are missing, return a clear 400 so docs show helpful error
+    if not mode or not token:
+        print(f"[Webhook Verify] ✗ Missing required query params: hub.mode={mode}, hub.verify_token={token}")
+        raise HTTPException(status_code=400, detail="Missing required query parameters: hub.mode and hub.verify_token")
     # Debug logging
     debug_print_query(dict(params))
     print(f"[Webhook Verify] Client: {request.client}")
