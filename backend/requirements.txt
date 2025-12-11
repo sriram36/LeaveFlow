@@ -30,8 +30,8 @@ python-dateutil==2.8.2
 # Scheduling
 apscheduler==3.10.4
 
-# Storage (optional)
-python-magic==0.4.27
+# Storage (optional) - Commented out for serverless
+# python-magic==0.4.27
 
 # Testing
 pytest==7.4.4
