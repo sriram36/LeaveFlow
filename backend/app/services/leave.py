@@ -329,6 +329,29 @@ class LeaveService:
         result = await self.db.execute(query)
         return result.scalars().all()
     
+    async def get_team_history(
+        self,
+        team_member_ids: List[int],
+        status: Optional[LeaveStatus] = None,
+        limit: int = 100
+    ) -> List[LeaveRequest]:
+        """Get leave request history for a manager's team."""
+        if not team_member_ids:
+            return []
+        
+        query = select(LeaveRequest).options(
+            selectinload(LeaveRequest.user),
+            selectinload(LeaveRequest.attachments)
+        ).where(
+            LeaveRequest.user_id.in_(team_member_ids)
+        ).order_by(LeaveRequest.created_at.desc()).limit(limit)
+        
+        if status:
+            query = query.where(LeaveRequest.status == status)
+        
+        result = await self.db.execute(query)
+        return result.scalars().all()
+    
     async def _get_user(self, user_id: int) -> Optional[User]:
         """Get user by ID."""
         result = await self.db.execute(

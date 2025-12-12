@@ -37,14 +37,19 @@ async def get_pending_requests(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_manager)
 ):
-    """Get all pending leave requests (for managers)."""
+    """Get pending leave requests.
+    
+    - Managers: Only see their own team's pending requests
+    - HR/Admin: See all pending requests
+    """
     service = LeaveService(db)
-    # HR and Admin can see all pending requests, managers only see their team's
     from app.models import UserRole
+    
+    # HR and Admin see all, managers only see their team's
     if user.role in [UserRole.hr, UserRole.admin]:
         requests = await service.get_pending_requests(manager_id=None)  # No filter
     else:
-        requests = await service.get_pending_requests(manager_id=user.id)
+        requests = await service.get_pending_requests(manager_id=user.id)  # Only team members
     return requests
 
 
@@ -70,15 +75,29 @@ async def get_leave_history(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user_required)
 ):
-    """Get leave request history."""
+    """Get leave request history.
+    
+    - Workers: Only see their own history
+    - Managers: Only see their team's history
+    - HR/Admin: See all history
+    """
     service = LeaveService(db)
     from app.models import UserRole
     
     status_enum = LeaveStatus(status) if status else None
     
-    # Non-managers can only see their own history
+    # Workers only see their own history
     if user.role == UserRole.worker:
         user_id = user.id
+    # Managers only see their team's history
+    elif user.role == UserRole.manager:
+        result = await db.execute(
+            select(User.id).where(User.manager_id == user.id)
+        )
+        team_member_ids = result.scalars().all()
+        requests = await service.get_team_history(team_member_ids, status=status_enum, limit=limit)
+        return requests
+    # HR/Admin see all (user_id remains None)
     
     requests = await service.get_history(user_id=user_id, status=status_enum, limit=limit)
     return requests
