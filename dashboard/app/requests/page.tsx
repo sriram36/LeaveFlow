@@ -25,8 +25,9 @@ export default function RequestsPage() {
     queryKey: ['pending-requests'],
     queryFn: () => api.getPendingRequests(),
     enabled: isAuthenticated,
-    staleTime: 0,  // Always refetch
-    refetchInterval: 5000,  // Refetch every 5 seconds
+    staleTime: 10000,  // Consider data fresh for 10 seconds
+    refetchInterval: 30000,  // Refetch every 30 seconds
+    refetchOnWindowFocus: true,  // Refetch when window regains focus
   });
 
   useEffect(() => {

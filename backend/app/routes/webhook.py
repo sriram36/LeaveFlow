@@ -260,7 +260,12 @@ async def process_text_message(db: AsyncSession, user: User, text: str):
     # Check if it's a casual greeting - send to LLM for natural response
     is_greeting = check_if_greeting(text)
     if is_greeting:
-        response_text = await ai_service.process_greeting(text, user.name, conversation_history)
+        response_text = await ai_service.generate_natural_response(
+            "greeting",
+            {"message": text},
+            user.name,
+            conversation_history
+        )
         await whatsapp.send_text(user.phone, response_text)
         
         # Save bot response to conversation history
