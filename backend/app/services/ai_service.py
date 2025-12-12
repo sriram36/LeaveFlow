@@ -108,10 +108,21 @@ If information is missing or ambiguous, respond:
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.2,  # Lower for more accurate extraction
-                max_tokens=400
+                max_tokens=400,
+                timeout=15.0
             )
             
             text = response.choices[0].message.content.strip()
+            
+            # Handle empty response
+            if not text or text.isspace():
+                print("[AI] Empty response from API")
+                return {"error": "Could you be more specific about your leave dates and reason?"}
+            
+            # Remove HTML tags (like <s>, <div>, etc.)
+            import re
+            text = re.sub(r'<[^>]+>', '', text)
+            text = text.strip()
             
             # Extract JSON from markdown code blocks if present
             if "```json" in text:
@@ -121,6 +132,10 @@ If information is missing or ambiguous, respond:
             
             # Remove any remaining markdown
             text = text.strip().strip('`').strip()
+            
+            if not text:
+                print("[AI] No valid JSON after cleanup")
+                return {"error": "Could you be more specific about your leave dates and reason?"}
             
             result = json.loads(text)
             
@@ -135,8 +150,8 @@ If information is missing or ambiguous, respond:
         
         except json.JSONDecodeError as e:
             print(f"[AI] JSON parse error: {e}")
-            print(f"[AI] Raw response: {text[:200]}")
-            return {"error": "I had trouble understanding that. Could you rephrase your leave request?"}
+            print(f"[AI] Raw response: {text[:200] if 'text' in locals() else 'N/A'}")
+            return {"error": "Could you rephrase your leave request? For example: 'I need leave from Dec 15-17' or 'Tomorrow off for personal reasons'"}
         except Exception as e:
             error_msg = str(e)
             print(f"[AI] Error parsing: {error_msg}")
@@ -243,6 +258,12 @@ Generate ONLY the message:"""
             )
             
             msg = response.choices[0].message.content.strip()
+            
+            # Remove HTML tags (like <s>, <div>, etc.)
+            import re
+            msg = re.sub(r'<[^>]+>', '', msg)
+            
+            # Clean markdown
             msg = msg.replace("```", "").replace("**", "").strip()
             
             if msg.startswith('"') and msg.endswith('"'):
