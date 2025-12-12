@@ -24,6 +24,9 @@ export default function HomePage() {
     queryKey: ['pending-requests'],
     queryFn: () => api.getPendingRequests(),
     enabled: isAuthenticated && mounted,
+    staleTime: 10000,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
   });
 
   const { data: balance } = useQuery({

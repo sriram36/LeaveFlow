@@ -31,10 +31,12 @@ export default function RequestsPage() {
   });
 
   useEffect(() => {
+    console.log('[Requests Page] Authentication:', { isAuthenticated, authLoading });
     console.log('[Requests Page] Data:', requests);
     console.log('[Requests Page] Loading:', isLoading);
     console.log('[Requests Page] Error:', error);
-  }, [requests, isLoading, error]);
+    console.log('[Requests Page] Query Key:', ['pending-requests']);
+  }, [requests, isLoading, error, isAuthenticated, authLoading]);
 
   if (authLoading) {
     return (
