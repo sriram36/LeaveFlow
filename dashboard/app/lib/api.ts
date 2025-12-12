@@ -177,7 +177,7 @@ class ApiClient {
     try {
       const data = await this.fetch('/leave/pending');
       console.log('[API] Pending requests:', data);
-      return data;
+      return data as LeaveRequest[];
     } catch (error) {
       console.error('[API] Error fetching pending requests:', error);
       throw error;
