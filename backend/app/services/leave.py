@@ -381,14 +381,27 @@ class LeaveService:
     ):
         """Notify manager of a new leave request."""
         try:
-            if not user or not user.manager_id:
-                print(f"[LeaveService] No manager assigned to user {user.id if user else 'unknown'}")
+            # Check if user has a manager assigned
+            if not user:
+                print(f"[LeaveService] [NOTIFY] User is None")
                 return
             
+            if not user.manager_id:
+                print(f"[LeaveService] [NOTIFY] No manager assigned to user {user.id} ({user.name})")
+                return
+            
+            # Get manager details
             manager = await self._get_user(user.manager_id)
             if not manager:
-                print(f"[LeaveService] Manager {user.manager_id} not found")
+                print(f"[LeaveService] [NOTIFY] Manager {user.manager_id} not found in database")
                 return
+            
+            # Check if manager has valid phone number
+            if not manager.phone:
+                print(f"[LeaveService] [NOTIFY] Manager {manager.name} (ID: {manager.id}) has no phone number configured")
+                return
+            
+            print(f"[LeaveService] [NOTIFY] Preparing notification for manager {manager.name} (Phone: {manager.phone})")
             
             # Send notification to manager
             notification_text = format_leave_request_notification(
@@ -401,10 +414,17 @@ class LeaveService:
                 reason=reason
             )
             
-            await whatsapp.send_text(manager.phone, notification_text)
-            print(f"[LeaveService] Notification sent to manager {manager.name}")
+            print(f"[LeaveService] [NOTIFY] Sending WhatsApp notification to manager {manager.phone}")
+            success = await whatsapp.send_text(manager.phone, notification_text)
+            
+            if success:
+                print(f"[LeaveService] [NOTIFY] ✓ Notification sent successfully to manager {manager.name}")
+            else:
+                print(f"[LeaveService] [NOTIFY] ✗ Failed to send notification to manager {manager.name}")
         except Exception as e:
-            print(f"[LeaveService] Error notifying manager: {e}")
+            print(f"[LeaveService] [NOTIFY] Exception while notifying manager: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
 
     async def _log_action(
         self,
