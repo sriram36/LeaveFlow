@@ -174,7 +174,14 @@ class ApiClient {
 
   // Leave requests
   async getPendingRequests(): Promise<LeaveRequest[]> {
-    return this.fetch('/leave/pending');
+    try {
+      const data = await this.fetch('/leave/pending');
+      console.log('[API] Pending requests:', data);
+      return data;
+    } catch (error) {
+      console.error('[API] Error fetching pending requests:', error);
+      throw error;
+    }
   }
 
   async getLeaveHistory(status?: string, userId?: number): Promise<LeaveRequest[]> {

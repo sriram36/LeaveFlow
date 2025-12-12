@@ -25,7 +25,15 @@ export default function RequestsPage() {
     queryKey: ['pending-requests'],
     queryFn: () => api.getPendingRequests(),
     enabled: isAuthenticated,
+    staleTime: 0,  // Always refetch
+    refetchInterval: 5000,  // Refetch every 5 seconds
   });
+
+  useEffect(() => {
+    console.log('[Requests Page] Data:', requests);
+    console.log('[Requests Page] Loading:', isLoading);
+    console.log('[Requests Page] Error:', error);
+  }, [requests, isLoading, error]);
 
   if (authLoading) {
     return (
