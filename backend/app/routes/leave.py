@@ -39,7 +39,12 @@ async def get_pending_requests(
 ):
     """Get all pending leave requests (for managers)."""
     service = LeaveService(db)
-    requests = await service.get_pending_requests(manager_id=user.id)
+    # HR and Admin can see all pending requests, managers only see their team's
+    from app.models import UserRole
+    if user.role in [UserRole.hr, UserRole.admin]:
+        requests = await service.get_pending_requests(manager_id=None)  # No filter
+    else:
+        requests = await service.get_pending_requests(manager_id=user.id)
     return requests
 
 

@@ -265,7 +265,12 @@ class LeaveService:
         return await self._get_leave_request(request_id)
     
     async def get_pending_requests(self, manager_id: Optional[int] = None) -> List[LeaveRequest]:
-        """Get pending leave requests."""
+        """Get pending leave requests.
+        
+        Args:
+            manager_id: If provided, only return requests from users with this manager.
+                       If None, return all pending requests (for HR/Admin).
+        """
         query = select(LeaveRequest).options(
             selectinload(LeaveRequest.user),
             selectinload(LeaveRequest.attachments)
@@ -273,7 +278,7 @@ class LeaveService:
             LeaveRequest.status == LeaveStatus.pending
         ).order_by(LeaveRequest.created_at.desc())
         
-        if manager_id:
+        if manager_id is not None:
             # Get requests from team members
             query = query.join(User, LeaveRequest.user_id == User.id).where(
                 User.manager_id == manager_id
