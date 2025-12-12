@@ -341,6 +341,43 @@ class LeaveService:
         )
         return result.scalar_one_or_none()
     
+    async def _notify_manager_of_new_request(
+        self,
+        leave_request_id: int,
+        user: User,
+        start_date: date,
+        end_date: date,
+        days: float,
+        leave_type: str,
+        reason: Optional[str] = None
+    ):
+        """Notify manager of a new leave request."""
+        try:
+            if not user or not user.manager_id:
+                print(f"[LeaveService] No manager assigned to user {user.id if user else 'unknown'}")
+                return
+            
+            manager = await self._get_user(user.manager_id)
+            if not manager:
+                print(f"[LeaveService] Manager {user.manager_id} not found")
+                return
+            
+            # Send notification to manager
+            notification_text = format_leave_request_notification(
+                request_id=leave_request_id,
+                user_name=user.name,
+                start_date=str(start_date),
+                end_date=str(end_date),
+                days=days,
+                leave_type=leave_type,
+                reason=reason
+            )
+            
+            await whatsapp.send_text(manager.phone, notification_text)
+            print(f"[LeaveService] Notification sent to manager {manager.name}")
+        except Exception as e:
+            print(f"[LeaveService] Error notifying manager: {e}")
+
     async def _log_action(
         self,
         request_id: int,

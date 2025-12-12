@@ -158,57 +158,14 @@ If information is missing or ambiguous, respond:
         user_name: str = "there",
         conversation_history: list = None
     ) -> str:
-        """Generate natural, conversational responses using LLM with conversation context."""
-        if not self.client:
-            return self._fallback_response(action, details)
+        """Generate natural, conversational responses using LLM with conversation context.
         
-        if action == "leave_submitted":
-            prompt = f"""Write a warm, friendly WhatsApp message confirming a leave request was submitted.
-
-Details:
-- Request ID: {details.get('id')}
-- Date: {details.get('date')}
-- Type: {details.get('type')}
-- Duration: {details.get('duration')}
-- Reason: {details.get('reason')}
-
-Tone: Like a helpful colleague, not a robot. Be encouraging and reassuring.
-Length: 2-3 sentences max.
-Include: 1-2 relevant emojis, mention their manager will review it.
-Format: Professional but friendly.
-
-Write the message:"""
-        else:
-            prompt = f"""Generate a friendly WhatsApp message for: {action}
-Details: {details}
-Tone: Professional but warm, like talking to a colleague.
-Keep it under 100 words."""
-
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.8,  # More creative/natural
-                max_tokens=200
-            )
-            
-            msg = response.choices[0].message.content.strip()
-            
-            # Remove any markdown artifacts
-            msg = msg.replace("```", "").replace("**Message:**", "").strip()
-            
-            # Ensure it has proper line breaks
-            if "\\n" in msg:
-                msg = msg.replace("\\n", "\n")
-            
-            return msg
-            
-        except Exception as e:
-            print(f"[AI] Error generating response: {e}")
-            return self._fallback_response(action, details)
-    
-    async def generate_natural_response(self, action: str, details: Dict[str, Any], user_name: str = "there", conversation_history: list = None) -> str:
-        """Generate natural, conversational responses using LLM with conversation context."""
+        Args:
+            action: Type of action (leave_submitted, balance_info, etc.)
+            details: Dict with relevant details for the action
+            user_name: Name of the user
+            conversation_history: Previous conversation context
+        """
         if not self.client:
             return self._fallback_response(action, details)
         
@@ -216,407 +173,73 @@ Keep it under 100 words."""
         context_text = ""
         if conversation_history and len(conversation_history) > 0:
             context_text = "\n\nRecent conversation context:\n"
-            for msg in conversation_history[-10:]:
+            for msg in conversation_history[-5:]:  # Last 5 messages
                 sender = "User" if msg.get('is_from_user') else "Assistant"
                 context_text += f"{sender}: {msg.get('message')}\n"
         
         # Create a natural language prompt based on the action
         if action == "leave_submitted":
-            prompt = f"""You are a professional and friendly WhatsApp assistant for LeaveFlow (leave management system).
-{user_name} just submitted a leave request successfully. Generate a warm confirmation message.
+            prompt = f"""You are a professional and friendly WhatsApp assistant for LeaveFlow.
+{user_name} just submitted a leave request. Write a warm confirmation message.
 {context_text}
 
-Leave request details:
-- Request ID: #{details.get('id')}
-- Dates: {details.get('start_date')} to {details.get('end_date')}
-- Duration: {details.get('days')} day(s)
-- Type: {details.get('type', 'casual')}
-- Reason: {details.get('reason', 'Not specified')}
+Request: #{details.get('id')} | {details.get('start_date')} to {details.get('end_date')} | {details.get('days')} days | {details.get('type', 'casual')}
 
-Your message should:
-1. Confirm the submission with enthusiasm
-2. Include the request ID and dates clearly
-3. Mention their manager has been notified
-4. Be encouraging and professional
-5. Use 1-2 relevant emojis (✅ or 📅 work well)
-6. Keep it concise (3-4 lines max)
-7. Sound natural, not robotic
+Message must:
+- Confirm with enthusiasm  
+- Include request ID and dates
+- Mention manager will review
+- Use 1-2 emojis max (✅ 📅)
+- Be 3-4 lines max
+- Sound natural, not robotic
 
-Generate ONLY the WhatsApp message, no explanations:"""
+Generate ONLY the message:"""
 
         elif action == "balance_info":
-            prompt = f"""You are a helpful WhatsApp assistant for LeaveFlow.
-{user_name} asked about their leave balance. Present it clearly and professionally.
+            prompt = f"""You are a helpful WhatsApp assistant. {user_name} checked their leave balance.
+Present it clearly and professionally.
 {context_text}
 
-Current balance:
-- Casual Leave: {details.get('casual')} days
-- Sick Leave: {details.get('sick')} days  
-- Special Leave: {details.get('special')} days
-
-Your message should:
-1. Present the balance in a clear, organized way
-2. Be positive and helpful
-3. Use emojis to make it visually clear (📊, 🏖️, 🏥, ⭐)
-4. Offer to help with leave requests if they want
-5. Keep it friendly and professional
-
-Generate ONLY the WhatsApp message:"""
-
-        elif action == "status_check":
-            prompt = f"""You are a friendly WhatsApp assistant for LeaveFlow.
-{user_name} checked their leave request status. Present the information clearly.
-{context_text}
-
-Leave requests:
-{json.dumps(details.get('requests', []), indent=2)}
-
-Your message should:
-1. List each request with ID, dates, and status
-2. Use emojis for status (⏳ pending, ✅ approved, ❌ rejected)
-3. Be clear and organized
-4. Sound encouraging
-5. Keep it scannable and easy to read
-
-Generate ONLY the WhatsApp message:"""
-
-        elif action == "approval_done":
-            prompt = f"""You are a professional WhatsApp assistant for LeaveFlow.
-{user_name} (a manager) just approved a leave request. Confirm the action warmly.
-{context_text}
-
-Approval details:
-- Request ID: #{details.get('request_id')}
-- Employee: {details.get('employee_name')}
-- Dates: {details.get('dates')}
-
-Your message should:
-1. Confirm the approval
-2. Thank them for the quick action
-3. Mention the employee has been notified
-4. Be brief and professional
-5. Use 1 emoji (✅)
-
-Generate ONLY the WhatsApp message:"""
-
-        elif action == "rejection_done":
-            prompt = f"""You are a professional WhatsApp assistant for LeaveFlow.
-{user_name} (a manager) just rejected a leave request. Confirm the action professionally.
-{context_text}
-
-Rejection details:
-- Request ID: #{details.get('request_id')}
-- Employee: {details.get('employee_name')}
-- Reason: {details.get('reason')}
-
-Your message should:
-1. Confirm the rejection sensitively
-2. Acknowledge this is a difficult decision
-3. Mention the employee has been notified
-4. Be professional and empathetic
-5. Use 1 emoji (📋)
-
-Generate ONLY the WhatsApp message:"""
-
-        elif action == "leave_cancelled":
-            prompt = f"""You are a friendly WhatsApp assistant for LeaveFlow.
-{user_name} just cancelled their leave request. Confirm the cancellation.
-{context_text}
-
-Cancellation details:
-- Request ID: #{details.get('request_id')}
-
-Your message should:
-1. Confirm the cancellation clearly
-2. Reassure them it's okay to change plans
-3. Offer to help with future requests
-4. Be positive and supportive
-5. Use 1-2 emojis (✅, 📋)
-
-Generate ONLY the WhatsApp message:"""
-
-        elif action == "manager_notification":
-            prompt = f"""You are a professional WhatsApp assistant for LeaveFlow.
-You're notifying {user_name} (a manager) about a new leave request from their team member.
-{context_text}
-
-Leave request details:
-- Employee: {details.get('employee_name')}
-- Request ID: #{details.get('request_id')}
-- Dates: {details.get('start_date')} to {details.get('end_date')}
-- Duration: {details.get('days')} day(s)
-- Type: {details.get('type')}
-- Reason: {details.get('reason')}
-
-Your message should:
-1. Present the information clearly and organized
-2. Use professional formatting (bold for headers)
-3. Include all key details (employee, dates, type, reason)
-4. Explain how to approve or reject
-5. Use relevant emojis (📋, 👤, 📅, 💬)
-6. Keep it scannable and actionable
-
-Example actions to include:
-- Reply 'approve {details.get('request_id')}' to approve
-- Reply 'reject {details.get('request_id')} reason' to reject
-
-Generate ONLY the WhatsApp message:"""
-
-        elif action == "pending_list":
-            requests = details.get('requests', [])
-            if not requests or len(requests) == 0:
-                prompt = f"""You are a friendly WhatsApp assistant for LeaveFlow.
-{user_name} (a manager) checked for pending leave requests but there are none.
-{context_text}
-
-Your message should:
-1. Inform them there are no pending requests
-2. Sound positive and light
-3. Mention they can relax for now
-4. Use 1-2 emojis (✅, 🎉)
-
-Generate ONLY the WhatsApp message:"""
-            else:
-                prompt = f"""You are a professional WhatsApp assistant for LeaveFlow.
-{user_name} (a manager) requested the list of pending leave approvals.
-{context_text}
-
-Pending requests:
-{json.dumps(requests, indent=2)}
-
-Your message should:
-1. List all pending requests clearly
-2. Include: ID, employee name, dates, leave type for each
-3. Use emojis for organization (📋, 👤, 📅)
-4. Remind how to approve/reject
-5. Keep it organized and scannable
-6. Sound professional and helpful
-
-Generate ONLY the WhatsApp message:"""
-
-        elif action == "team_today":
-            leaves = details.get('leaves', [])
-            if not leaves or len(leaves) == 0:
-                prompt = f"""You are a friendly WhatsApp assistant for LeaveFlow.
-{user_name} checked who's on leave today but nobody is absent.
-{context_text}
-
-Your message should:
-1. Inform them everyone is in
-2. Sound positive
-3. Keep it brief and cheerful
-4. Use 1 emoji (✅ or 👥)
-
-Generate ONLY the WhatsApp message:"""
-            else:
-                prompt = f"""You are a friendly WhatsApp assistant for LeaveFlow.
-{user_name} checked who's on leave today.
-{context_text}
-
-People on leave today:
-{json.dumps(leaves, indent=2)}
-
-Your message should:
-1. List everyone on leave with their leave type
-2. Use clear formatting
-3. Sound professional and informative
-4. Use emojis (📅, 🏖️, 🏥 for different types)
-5. Keep it organized
-
-Generate ONLY the WhatsApp message:"""
-
-        elif action == "error":
-            prompt = f"""You are a helpful WhatsApp assistant for LeaveFlow.
-{user_name} encountered an issue. Provide a helpful, friendly error message.
-{context_text}
-
-Error context: {details.get('message', 'Unknown error')}
-
-Your message should:
-1. Acknowledge the issue politely
-2. Explain what went wrong (if known)
-3. Suggest next steps or how to fix it
-4. Be empathetic and solution-focused
-5. Keep it conversational, not technical
-6. Use a friendly emoji if appropriate (🤔, 💡)
-
-Generate ONLY the WhatsApp message:"""
-
-        else:
-            # Generic response
-            prompt = f"""You are a professional and friendly WhatsApp assistant for LeaveFlow.
-Generate a helpful response for: {action}
-{context_text}
-
-Context: {json.dumps(details, indent=2)}
-
-Your message should:
-1. Be professional yet warm
-2. Address {user_name} naturally
-3. Be clear and actionable
-4. Use appropriate emojis (1-2 max)
-5. Keep it concise
-
-Generate ONLY the WhatsApp message:"""
-
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.7,  # Balanced creativity and consistency
-                max_tokens=250
-            )
-            
-            msg = response.choices[0].message.content.strip()
-            
-            # Clean up markdown and formatting
-            msg = msg.replace("```", "").replace("**Message:**", "").replace("**", "")
-            msg = msg.strip().strip('"').strip()
-            
-            # Ensure proper line breaks
-            if "\\n" in msg:
-                msg = msg.replace("\\n", "\n")
-            
-            return msg if msg else self._fallback_response(action, details)
-            
-        except Exception as e:
-            print(f"[AI] Error generating response: {e}")
-            return self._fallback_response(action, details)
-    
-    async def process_greeting(self, user_message: str, user_name: str, conversation_history: list = None) -> str:
-        """Process casual greetings and messages with LLM, considering conversation context."""
-        if not self.client:
-            return self._fallback_greeting(user_message)
-        
-        # Build conversation context
-        context_text = ""
-        if conversation_history and len(conversation_history) > 0:
-            context_text = "\n\nRecent conversation:\n"
-            for msg in conversation_history[-10:]:
-                sender = "User" if msg.get('is_from_user') else "Assistant"
-                context_text += f"{sender}: {msg.get('message')}\n"
-        
-        prompt = f"""You are a friendly and professional WhatsApp assistant for LeaveFlow (leave management system).
-{user_name} just sent you a message. Respond naturally and helpfully.
-{context_text}
-
-Current message: "{user_message}"
-
-Your response should:
-- Be conversational and warm (professional colleague tone)
-- Consider the conversation history for context
-- Include 1-2 emojis max (use sparingly)
-- Be 2-3 sentences maximum
-- Handle these scenarios appropriately:
-  * Greetings (hi/hello): Greet back warmly and ask how you can help
-  * Thanks/gratitude: Say you're welcome and offer further assistance
-  * Goodbye: Wish them well and invite them back anytime
-  * Questions/help: Explain you can help with leave requests, balance checks, status
-  * Casual chat: Be friendly but gently guide toward leave management tasks
-- Match their energy (casual for casual, formal for formal)
-- If they seem stuck, offer specific examples
-
-Generate ONLY the response message, nothing else:"""
-
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.8,  # More natural/conversational
-                max_tokens=150
-            )
-            
-            msg = response.choices[0].message.content.strip()
-            
-            # Clean up any markdown or formatting
-            msg = msg.replace("```", "").replace("**", "").strip()
-            
-            # Remove surrounding quotes if present
-            if (msg.startswith('"') and msg.endswith('"')) or (msg.startswith("'") and msg.endswith("'")):
-                msg = msg[1:-1]
-            
-            return msg if msg else self._fallback_greeting(user_message)
-            
-        except Exception as e:
-            print(f"[AI] Error processing greeting: {e}")
-            return self._fallback_greeting(user_message)
-    
-    def generate_natural_response(self, action: str, details: Dict[str, Any] = None, user_name: str = "user") -> str:
-        """Generate natural, context-aware responses using AI."""
-        if details is None:
-            details = {}
-        
-        # Create prompt based on action type
-        if action == "leave_submitted":
-            prompt = f"""You are a friendly WhatsApp chat assistant. {user_name} just submitted a leave request.
-
-Request details:
-- Request ID: {details.get('id')}
-- From: {details.get('start_date')}
-- To: {details.get('end_date')}
-- Type: {details.get('type', 'casual')}
-- Duration: {details.get('days')} days
-- Reason: {details.get('reason', 'Not specified')}
-
-Your response should:
-- Acknowledge their request warmly
-- Mention the request ID for reference
-- Let them know their manager will review it
-- Use 2-3 emojis max
-- Be encouraging and positive
-- Keep it to 2-3 sentences
-
-Generate ONLY the response message:"""
-        
-        elif action == "leave_approved":
-            prompt = f"""You are a friendly WhatsApp chat assistant. {user_name}'s leave request #{details.get('id')} was just approved.
-Generate a warm, celebratory response saying their leave is approved and they can enjoy their time off.
-
-Keep it to 1-2 sentences with 1-2 emojis.
-Generate ONLY the response message:"""
-        
-        elif action == "leave_rejected":
-            prompt = f"""You are a friendly WhatsApp chat assistant. {user_name}'s leave request #{details.get('id')} was rejected.
-Reason: {details.get('reason', 'Not specified')}
-
-Generate a respectful, empathetic response explaining the rejection and encouraging them to discuss with their manager.
-Keep it to 2 sentences with 1 emoji.
-Generate ONLY the response message:"""
-        
-        elif action == "balance_check":
-            prompt = f"""You are a friendly WhatsApp chat assistant. {user_name} just checked their leave balance.
-
-Current Balance:
+Balance:
 - Casual: {details.get('casual')} days
 - Sick: {details.get('sick')} days  
 - Special: {details.get('special')} days
 
-Generate a brief, friendly message presenting this information naturally.
-Use emojis to make it visually clear (like 📅 for casual, 🏥 for sick, ⭐ for special).
-Keep it conversational.
-Generate ONLY the response message:"""
-        
-        elif action == "balance_updated":
-            prompt = f"""You are a friendly WhatsApp chat assistant. {user_name}'s leave balance was just updated because a leave request was approved.
+Make it clear, positive, helpful. Use emojis (🏖️ 🏥 ⭐).
 
-Leave approved:
-- Type: {details.get('type', 'casual')}
-- Days deducted: {details.get('days')}
-- New balance: {details.get('new_balance')} days
+Generate ONLY the message:"""
 
-Generate a brief, neutral update message informing them of the balance change.
-Keep it to 1-2 sentences with 1 emoji.
-Generate ONLY the response message:"""
-        
+        elif action == "error":
+            prompt = f"""You are a friendly WhatsApp assistant. Something went wrong.
+Write a brief, helpful error message for {user_name}.
+{context_text}
+
+Error: {details.get('message', 'Something went wrong')}
+
+Be apologetic, helpful, and encourage them to try again.
+Use 1 emoji. Keep to 2 lines.
+
+Generate ONLY the message:"""
+
         else:
-            return self._fallback_response(action, details)
-        
+            prompt = f"""You are a friendly WhatsApp assistant for LeaveFlow.
+Generate a natural response for {user_name}.
+{context_text}
+
+Context: {action}
+Details: {str(details)[:200]}
+
+Be friendly, helpful, professional. Keep it concise (under 100 words).
+
+Generate ONLY the message:"""
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.8,  # Natural but consistent
-                max_tokens=150
+                temperature=0.7,  # Balanced creativity
+                max_tokens=150,
+                timeout=10.0  # 10 second timeout to prevent slow responses
             )
             
             msg = response.choices[0].message.content.strip()
@@ -628,7 +251,7 @@ Generate ONLY the response message:"""
             return msg or self._fallback_response(action, details)
             
         except Exception as e:
-            print(f"[AI] Error generating natural response: {e}")
+            print(f"[AI] Error generating response: {e}")
             return self._fallback_response(action, details)
     
     def _fallback_response(self, action: str, details: Dict[str, Any]) -> str:
