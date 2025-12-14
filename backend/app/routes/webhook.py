@@ -279,6 +279,31 @@ async def process_text_message(db: AsyncSession, user: User, text: str):
         await db.commit()
         return
     
+    # Check if message is related to leave management
+    is_leave_related = await check_leave_related(text, conversation_history)
+    if not is_leave_related:
+        response_text = (
+            "I'm here to help with leave management! 😊\n\n"
+            "You can:\n"
+            "• Request leave: 'sick leave tomorrow' or 'casual leave from Monday to Wednesday'\n"
+            "• Check balance: 'balance'\n"
+            "• View pending requests: 'pending'\n"
+            "• Get help: 'help'\n\n"
+            "What would you like to do with your leaves?"
+        )
+        await whatsapp.send_text(user.phone, response_text)
+        
+        # Save bot response to conversation history
+        bot_msg = ConversationHistory(
+            user_id=user.id,
+            phone=user.phone,
+            message=response_text,
+            is_from_user=0
+        )
+        db.add(bot_msg)
+        await db.commit()
+        return
+    
     parsed = parse_message(text)
     service = LeaveService(db)
     
@@ -823,5 +848,33 @@ def check_if_greeting(text: str) -> bool:
             return True
     
     return False
+
+
+async def check_leave_related(text: str, conversation_history: list = None) -> bool:
+    """Check if a message is related to leave management using AI."""
+    text_lower = text.strip().lower()
+    
+    # Direct keyword checks for common leave-related terms
+    leave_keywords = [
+        "leave", "vacation", "holiday", "off", "absent", "sick", "casual", "annual",
+        "balance", "status", "pending", "approve", "reject", "cancel", "request",
+        "days", "date", "tomorrow", "today", "week", "month", "monday", "tuesday",
+        "wednesday", "thursday", "friday", "saturday", "sunday", "morning", "afternoon",
+        "half", "full", "team", "manager", "hr", "supervisor"
+    ]
+    
+    # Check for leave-related keywords
+    for keyword in leave_keywords:
+        if keyword in text_lower:
+            return True
+    
+    # Use AI to determine if message is leave-related
+    try:
+        result = await ai_service.classify_message_intent(text, conversation_history or [])
+        return result.get("is_leave_related", False)
+    except Exception as e:
+        print(f"Error checking leave relatedness: {e}")
+        # Fallback: assume it's leave-related if we can't determine
+        return True
 
 

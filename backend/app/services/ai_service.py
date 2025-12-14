@@ -301,6 +301,83 @@ Ready to apply for leave?"""
         else:
             return "✅ All done!"
     
+    async def classify_message_intent(self, user_message: str, conversation_history: list = None) -> Dict[str, Any]:
+        """Classify if a message is related to leave management."""
+        if not self.client:
+            # Fallback: check for leave keywords
+            leave_keywords = [
+                "leave", "vacation", "holiday", "off", "absent", "sick", "casual", "annual",
+                "balance", "status", "pending", "approve", "reject", "cancel", "request",
+                "days", "date", "tomorrow", "today", "week", "month", "monday", "tuesday",
+                "wednesday", "thursday", "friday", "saturday", "sunday", "morning", "afternoon",
+                "half", "full", "team", "manager", "hr", "supervisor"
+            ]
+            message_lower = user_message.lower()
+            is_related = any(keyword in message_lower for keyword in leave_keywords)
+            return {"is_leave_related": is_related}
+        
+        # Build conversation context
+        context_text = ""
+        if conversation_history and len(conversation_history) > 0:
+            context_text = "\n\nRecent conversation:\n"
+            for msg in conversation_history[-5:]:  # Last 5 messages for context
+                sender = "User" if msg.get('is_from_user') else "Assistant"
+                context_text += f"{sender}: {msg.get('message')}\n"
+        
+        prompt = f"""You are an HR assistant chatbot. Analyze this user message and determine if it's related to leave management, vacation, or time-off requests.
+
+Message: "{user_message}"{context_text}
+
+Respond with ONLY a JSON object in this exact format:
+{{"is_leave_related": true}} or {{"is_leave_related": false}}
+
+Consider these as leave-related:
+- Leave requests, applications, approvals
+- Balance inquiries, status checks
+- Cancellation, modification of requests
+- Team leave information
+- HR/Manager leave-related tasks
+
+Consider these as NOT leave-related:
+- Weather, news, sports
+- Personal questions
+- Jokes, random conversation
+- Technical issues unrelated to leave
+- General greetings (unless asking about leave)
+
+Be strict: only classify as leave-related if there's clear intent about leave management."""
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1,  # Low temperature for consistent classification
+                max_tokens=50,
+                timeout=10.0
+            )
+            
+            text = response.choices[0].message.content.strip()
+            
+            # Extract JSON
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0].strip()
+            elif "```" in text:
+                text = text.split("```")[1].split("```")[0].strip()
+            
+            result = json.loads(text)
+            return result
+            
+        except Exception as e:
+            print(f"[AI] Error classifying message intent: {e}")
+            # Fallback to keyword check
+            leave_keywords = [
+                "leave", "vacation", "holiday", "off", "absent", "sick", "casual", "annual",
+                "balance", "status", "pending", "approve", "reject", "cancel", "request"
+            ]
+            message_lower = user_message.lower()
+            is_related = any(keyword in message_lower for keyword in leave_keywords)
+            return {"is_leave_related": is_related}
+    
     def _fallback_greeting(self, user_message: str) -> str:
         """Fallback greeting if AI is unavailable."""
         message_lower = user_message.lower().strip()
