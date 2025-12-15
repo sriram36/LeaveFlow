@@ -43,79 +43,51 @@ import {
 
 const LandingPage = memo(() => {
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-8">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-slate-900 dark:text-white">
-                  LeaveFlow
-                </span>
-              </div>
-              <div className="hidden md:flex space-x-6">
-                <a href="#features" className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors text-sm font-medium">
-                  Features
-                </a>
-                <a href="#pricing" className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors text-sm font-medium">
-                  Pricing
-                </a>
-                <a href="#faq" className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors text-sm font-medium">
-                  FAQ
-                </a>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm" className="text-slate-600 dark:text-slate-400">
-                Sign In
-              </Button>
-              <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                Get Started
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
+    <div className="space-y-20">
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-24 sm:pt-32 sm:pb-32">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-slate-50 dark:from-indigo-950/20 dark:to-slate-900 -z-10"></div>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden pt-12 pb-24 sm:pt-28 sm:pb-32">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-slate-50 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900/80 -z-10"></div>
+        
+        {/* Animated background elements */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-200 dark:bg-indigo-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute -bottom-8 right-10 w-72 h-72 bg-teal-200 dark:bg-teal-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse animation-delay-2000"></div>
+        
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center space-y-8">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-indigo-100 to-teal-100 dark:from-indigo-900/40 dark:to-teal-900/40 text-indigo-700 dark:text-indigo-300 text-sm font-medium border border-indigo-200 dark:border-indigo-800 hover:shadow-lg transition-shadow duration-300">
               <Sparkles className="w-4 h-4 mr-2" />
               WhatsApp-powered leave management
             </div>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
-              Manage leaves effortlessly
+            
+            <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight bg-gradient-to-r from-indigo-600 to-teal-600 dark:from-indigo-400 dark:to-teal-400 bg-clip-text text-transparent">
+              Simplify Leaves,<br/>Empower Teams
             </h1>
-            <p className="max-w-2xl mx-auto text-xl text-slate-600 dark:text-slate-400">
-              WhatsApp-powered leave management. Approve requests in seconds, not days. AI-powered automation for busy teams.
+            
+            <p className="max-w-3xl mx-auto text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
+              WhatsApp-powered leave management that works the way teams think. Approve requests in seconds, not days. AI automates the rest.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 font-semibold">
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
+              <Button size="lg" className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-10 py-6 font-semibold rounded-lg shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                 Get Started Free
               </Button>
-              <Button size="lg" variant="outline" className="px-8 py-3 font-semibold">
+              <Button size="lg" variant="outline" className="px-10 py-6 font-semibold rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-2">
                 View Demo
               </Button>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-600 dark:text-slate-400">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                <span>No card required</span>
+            
+            <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-slate-600 dark:text-slate-400 pt-4">
+              <div className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-white transition-colors">
+                <CheckCircle className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                <span className="font-medium">No card required</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                <span>7-day free trial</span>
+              <div className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-white transition-colors">
+                <CheckCircle className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                <span className="font-medium">7-day free trial</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                <span>Cancel anytime</span>
+              <div className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-white transition-colors">
+                <CheckCircle className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                <span className="font-medium">Cancel anytime</span>
               </div>
             </div>
           </div>
@@ -123,104 +95,110 @@ const LandingPage = memo(() => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 border-t border-slate-200 dark:border-slate-800">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
-              Everything you need
+            <h2 className="text-5xl sm:text-6xl font-bold text-slate-900 dark:text-white mb-6">
+              Powerful features, simple interface
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-400">
-              Built for teams that value simplicity, speed, and reliability
+              Everything your team needs to manage leaves efficiently
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Feature 1 */}
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
-                <MessageSquare className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+            <div className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-transparent dark:from-indigo-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-900/50 dark:to-indigo-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <MessageSquare className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
                   WhatsApp Integration
                 </h3>
                 <p className="text-slate-600 dark:text-slate-400">
-                  Manage leave requests directly through WhatsApp. Real-time notifications, instant approvals, zero friction.
+                  Manage leaves directly via WhatsApp. Real-time notifications, instant approvals, zero friction.
                 </p>
               </div>
             </div>
 
             {/* Feature 2 */}
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
-                <Zap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                  AI-Powered
+            <div className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-teal-500 dark:hover:border-teal-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+              <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-transparent dark:from-teal-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-gradient-to-br from-teal-100 to-teal-50 dark:from-teal-900/50 dark:to-teal-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Zap className="w-7 h-7 text-teal-600 dark:text-teal-400" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                  AI-Powered Processing
                 </h3>
                 <p className="text-slate-600 dark:text-slate-400">
-                  Natural language processing understands requests. Smart validation, conflict detection, and automated workflows.
+                  Natural language understanding. Smart validation, conflict detection, and automated workflows.
                 </p>
               </div>
             </div>
 
             {/* Feature 3 */}
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+            <div className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-transparent dark:from-purple-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/50 dark:to-purple-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Calendar className="w-7 h-7 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
                   Team Calendar
                 </h3>
                 <p className="text-slate-600 dark:text-slate-400">
-                  Visual overview of who's on leave when. Prevent double-booking and plan team capacity effortlessly.
+                  Visual leave overview. Prevent double-booking and plan team capacity with ease.
                 </p>
               </div>
             </div>
 
             {/* Feature 4 */}
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                  Analytics & Reports
+            <div className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent dark:from-blue-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/50 dark:to-blue-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <BarChart3 className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                  Advanced Analytics
                 </h3>
                 <p className="text-slate-600 dark:text-slate-400">
-                  Insights into leave patterns, utilization rates, and team trends. Data-driven workforce planning.
+                  Leave patterns, utilization rates, team trends. Data-driven workforce planning.
                 </p>
               </div>
             </div>
 
             {/* Feature 5 */}
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+            <div className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-pink-500 dark:hover:border-pink-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-50 to-transparent dark:from-pink-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-gradient-to-br from-pink-100 to-pink-50 dark:from-pink-900/50 dark:to-pink-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Users className="w-7 h-7 text-pink-600 dark:text-pink-400" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
                   Role-Based Access
                 </h3>
                 <p className="text-slate-600 dark:text-slate-400">
-                  Worker, Manager, HR, Admin roles with granular permissions. Each team member sees what they need.
+                  Worker, Manager, HR, Admin. Granular permissions for every team member.
                 </p>
               </div>
             </div>
 
             {/* Feature 6 */}
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
-                <Shield className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+            <div className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-green-500 dark:hover:border-green-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-transparent dark:from-green-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-50 dark:from-green-900/50 dark:to-green-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Shield className="w-7 h-7 text-green-600 dark:text-green-400" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
                   Enterprise Security
                 </h3>
                 <p className="text-slate-600 dark:text-slate-400">
-                  End-to-end encryption, audit logs, compliance ready. Your data is protected at every step.
+                  End-to-end encryption, audit logs, compliance ready. Your data is protected.
                 </p>
               </div>
             </div>
@@ -228,82 +206,6 @@ const LandingPage = memo(() => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-indigo-600 dark:bg-indigo-900/20 border-t border-slate-200 dark:border-slate-800">
-        <div className="max-w-3xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-white dark:text-slate-50 mb-4">
-            Ready to simplify leave management?
-          </h2>
-          <p className="text-lg text-indigo-100 dark:text-slate-300 mb-8">
-            Join hundreds of teams that ship faster with LeaveFlow.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" className="bg-white text-indigo-600 hover:bg-slate-100 font-semibold px-8 py-3">
-              Start Free Trial
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-indigo-600 font-semibold px-8 py-3">
-              Schedule Demo
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-slate-950 text-slate-400 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-white" />
-                </div>
-                <span className="font-semibold text-white">LeaveFlow</span>
-              </div>
-              <p className="text-sm">
-                Modern leave management for modern teams.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-white mb-4 text-sm">Product</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-white mb-4 text-sm">Company</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-white mb-4 text-sm">Legal</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-slate-800 pt-8 flex flex-col sm:flex-row justify-between items-center">
-            <p className="text-sm">© 2024 LeaveFlow. All rights reserved.</p>
-            <div className="flex space-x-4 mt-4 sm:mt-0">
-              <a href="#" className="hover:text-white transition-colors">
-                <Github className="w-4 h-4" />
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
-                <Twitter className="w-4 h-4" />
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
-                <Linkedin className="w-4 h-4" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 });
