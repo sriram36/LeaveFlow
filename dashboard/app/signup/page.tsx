@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, memo, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth-context";
 import { api } from "../lib/api";
 
-export default function SignupPage() {
+export default memo(function SignupPage() {
   const router = useRouter();
   const { login } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,24 +22,22 @@ export default function SignupPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const isFormValid = useMemo(() => {
+    return formData.name.trim() &&
+           formData.email.trim() &&
+           formData.phone.trim() &&
+           formData.password.length >= 6 &&
+           formData.password === formData.confirmPassword &&
+           formData.phone.match(/^\+?[1-9]\d{1,14}$/);
+  }, [formData]);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    // Validation
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-
-    if (!formData.phone.match(/^\+?[1-9]\d{1,14}$/)) {
-      setError("Please enter a valid phone number (e.g., +1234567890)");
+    if (!isFormValid) {
+      setError("Please fill in all fields correctly");
       return;
     }
 
@@ -72,7 +70,7 @@ export default function SignupPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData, isFormValid]);
 
   return (
     <main className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12">
@@ -265,4 +263,4 @@ export default function SignupPage() {
       </div>
     </main>
   );
-}
+});

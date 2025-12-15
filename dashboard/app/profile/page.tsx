@@ -2,18 +2,18 @@
 
 import { useAuth } from "../lib/auth-context";
 import { api } from "../lib/api";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
-export default function ProfilePage() {
+export default memo(function ProfilePage() {
   const { user, refreshUser } = useAuth();
   const router = useRouter();
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,31 +30,22 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const isFormValid = useMemo(() => {
+    if (!formData.name.trim() || formData.name.length < 2) return false;
+    if (!formData.phone.trim()) return false;
+    const phoneDigits = formData.phone.replace(/\D/g, "");
+    if (phoneDigits.length < 10) return false;
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) return false;
+    return true;
+  }, [formData]);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    // Validate inputs
-    if (!formData.name.trim()) {
-      setError("Name is required");
-      return;
-    }
-    if (formData.name.length < 2) {
-      setError("Name must be at least 2 characters");
-      return;
-    }
-    if (!formData.phone.trim()) {
-      setError("Phone number is required");
-      return;
-    }
-    const phoneDigits = formData.phone.replace(/\D/g, "");
-    if (phoneDigits.length < 10) {
-      setError("Phone number must be at least 10 digits");
-      return;
-    }
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      setError("Invalid email format");
+    if (!isFormValid) {
+      setError("Please fill in all required fields correctly");
       return;
     }
 
@@ -65,19 +56,19 @@ export default function ProfilePage() {
 
       await api.updateUser(user.id, formData);
       await refreshUser();
-      
+
       setSuccess("Profile updated successfully!");
       setIsEditing(false);
-      
+
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || "Failed to update profile");
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData, user, refreshUser, isFormValid]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (user) {
       setFormData({
         name: user.name || "",
@@ -87,7 +78,7 @@ export default function ProfilePage() {
     }
     setIsEditing(false);
     setError("");
-  };
+  }, [user]);
 
   if (!user) {
     return (
@@ -310,4 +301,4 @@ export default function ProfilePage() {
       </div>
     </main>
   );
-}
+});

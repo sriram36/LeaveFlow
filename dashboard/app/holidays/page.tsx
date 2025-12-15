@@ -4,10 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, Holiday } from "../lib/api";
 import { useAuth } from "../lib/auth-context";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo, useCallback, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 
-export default function HolidaysPage() {
+export default memo(function HolidaysPage() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -31,7 +31,13 @@ export default function HolidaysPage() {
     queryKey: ['holidays', year],
     queryFn: () => api.getHolidays(year),
     enabled: isAuthenticated && (user?.role === 'hr' || user?.role === 'admin'),
+    staleTime: 300000, // 5 minutes
+    refetchInterval: 600000, // 10 minutes
+    refetchOnWindowFocus: false,
   });
+
+  const holidaysList = useMemo(() => holidays ?? [], [holidays]);
+  const holidayCount = useMemo(() => holidaysList.length, [holidaysList]);
 
   const addMutation = useMutation({
     mutationFn: () => api.createHoliday(newDate, newName, newDescription),
@@ -50,6 +56,22 @@ export default function HolidaysPage() {
       queryClient.invalidateQueries({ queryKey: ['holidays', year] });
     },
   });
+
+  const handleYearChange = useCallback((newYear: number) => {
+    setYear(newYear);
+  }, []);
+
+  const handleAddHoliday = useCallback(() => {
+    if (newDate && newName) {
+      addMutation.mutate();
+    }
+  }, [newDate, newName, addMutation]);
+
+  const handleDeleteHoliday = useCallback((id: number) => {
+    if (confirm('Are you sure you want to delete this holiday?')) {
+      deleteMutation.mutate(id);
+    }
+  }, [deleteMutation]);
 
   if (authLoading || isLoading) {
     return (
@@ -213,4 +235,4 @@ export default function HolidaysPage() {
       </div>
     </main>
   );
-}
+});

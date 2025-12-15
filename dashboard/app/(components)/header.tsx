@@ -6,6 +6,17 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../lib/api";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Bell, FileText, BarChart3, Calendar, Users, Clock, Gift, User, ClipboardList } from "lucide-react";
 
 export function Header() {
   const router = useRouter();
@@ -16,6 +27,18 @@ export function Header() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Fetch pending requests count for managers/HR/admin
+  const { data: pendingRequests } = useQuery({
+    queryKey: ['pending-requests-count'],
+    queryFn: () => api.getPendingRequests(),
+    enabled: isAuthenticated && mounted && (user?.role === 'manager' || user?.role === 'hr' || user?.role === 'admin'),
+    staleTime: 10000,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
+  });
+
+  const pendingCount = pendingRequests?.length || 0;
 
   const handleLogout = () => {
     logout();
@@ -32,8 +55,9 @@ export function Header() {
     return (
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/95 backdrop-blur-sm px-4 sm:px-6 py-4 shadow-md mb-8">
         <div className="flex items-center gap-4 sm:gap-8">
-          <Link href="/" className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent hover:from-blue-700 hover:to-indigo-700 transition-all">
-            📋 LeaveFlow
+          <Link href="/" className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center gap-2">
+            <ClipboardList className="w-6 h-6" />
+            <span>LeaveFlow</span>
           </Link>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
@@ -47,43 +71,122 @@ export function Header() {
     <>
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/95 backdrop-blur-sm px-4 sm:px-6 py-4 shadow-md mb-8">
         <div className="flex items-center gap-4 sm:gap-8">
-          <Link href="/" className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent hover:from-blue-700 hover:to-indigo-700 transition-all">
-            📋 LeaveFlow
+          <Link href="/" className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center gap-2">
+            <ClipboardList className="w-6 h-6" />
+            <span>LeaveFlow</span>
           </Link>
           {isAuthenticated && (
             <nav className="hidden md:flex gap-1">
-              <Link href="/requests" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm">
-                📋 Pending
+              <Link href="/requests" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                <span className="hidden xl:inline">Pending</span>
               </Link>
-              <Link href="/requests/history" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm">
-                📊 History
+              <Link href="/requests/history" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                <span className="hidden xl:inline">History</span>
               </Link>
-              <Link href="/requests/calendar" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm">
-                📅 Calendar
+              <Link href="/requests/calendar" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <span className="hidden xl:inline">Calendar</span>
               </Link>
               {(user?.role === 'hr' || user?.role === 'admin') && (
-                <Link href="/users" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm">
-                  👥 Users
+                <Link href="/users" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  <span className="hidden xl:inline">Users</span>
                 </Link>
               )}
               {user?.role === 'admin' && (
-                <Link href="/pending-accounts" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm">
-                  ⏳ Approvals
+                <Link href="/pending-accounts" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span className="hidden xl:inline">Approvals</span>
                 </Link>
               )}
               {(user?.role === 'hr' || user?.role === 'admin') && (
-                <Link href="/holidays" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm">
-                  🎉 Holidays
+                <Link href="/holidays" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm flex items-center gap-2">
+                  <Gift className="w-4 h-4" />
+                  <span className="hidden xl:inline">Holidays</span>
                 </Link>
               )}
-              <Link href="/profile" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm">
-                👤 Profile
+              <Link href="/profile" className="px-3 lg:px-4 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all font-medium text-sm flex items-center gap-2">
+                <User className="w-4 h-4" />
+                <span className="hidden xl:inline">Profile</span>
               </Link>
             </nav>
           )}
         </div>
         <div className="flex items-center gap-2 sm:gap-4 text-sm">
           <ThemeToggle />
+          
+          {/* Pending Requests Notification Dropdown - Only for managers/HR/admin */}
+          {isAuthenticated && (user?.role === 'manager' || user?.role === 'hr' || user?.role === 'admin') && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="relative p-2">
+                  <Bell className="w-5 h-5" />
+                  {pendingCount > 0 && (
+                    <Badge 
+                      variant="rejected" 
+                      className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                    >
+                      {pendingCount > 99 ? '99+' : pendingCount}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel className="flex items-center justify-between">
+                  <span>Pending Requests</span>
+                  <Badge variant="outline">{pendingCount}</Badge>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                
+                {pendingCount === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground">
+                    <div className="text-2xl mb-2">✅</div>
+                    <p className="text-sm">No pending requests</p>
+                  </div>
+                ) : (
+                  <>
+                    {pendingRequests?.slice(0, 5).map((req) => (
+                      <DropdownMenuItem 
+                        key={req.id} 
+                        className="flex flex-col items-start p-3 cursor-pointer"
+                        onClick={() => router.push(`/requests/${req.id}`)}
+                      >
+                        <div className="flex items-center justify-between w-full mb-1">
+                          <span className="font-medium text-sm">#{req.id} - {req.user?.name}</span>
+                          <Badge variant="outline" className="text-xs">
+                            {req.leave_type}
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {req.start_date} → {req.end_date} ({req.days} days)
+                        </div>
+                        {req.reason && (
+                          <div className="text-xs text-muted-foreground truncate w-full mt-1">
+                            {req.reason}
+                          </div>
+                        )}
+                      </DropdownMenuItem>
+                    ))}
+                    
+                    {pendingCount > 5 && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-center cursor-pointer"
+                          onClick={() => router.push('/requests')}
+                        >
+                          View all {pendingCount} requests →
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          
           {user && (
             <>
               <Link 
@@ -167,21 +270,24 @@ export function Header() {
                 onClick={closeMobileMenu}
                 className="px-4 py-3 rounded-lg hover:bg-accent transition-all font-medium text-sm flex items-center gap-2"
               >
-                📋 Pending Requests
+                <FileText className="w-4 h-4" />
+                Pending Requests
               </Link>
               <Link 
                 href="/requests/history" 
                 onClick={closeMobileMenu}
                 className="px-4 py-3 rounded-lg hover:bg-accent transition-all font-medium text-sm flex items-center gap-2"
               >
-                📊 History
+                <BarChart3 className="w-4 h-4" />
+                History
               </Link>
               <Link 
                 href="/requests/calendar" 
                 onClick={closeMobileMenu}
                 className="px-4 py-3 rounded-lg hover:bg-accent transition-all font-medium text-sm flex items-center gap-2"
               >
-                📅 Calendar
+                <Calendar className="w-4 h-4" />
+                Calendar
               </Link>
               {(user?.role === 'hr' || user?.role === 'admin') && (
                 <>
@@ -190,7 +296,8 @@ export function Header() {
                     onClick={closeMobileMenu}
                     className="px-4 py-3 rounded-lg hover:bg-accent transition-all font-medium text-sm flex items-center gap-2"
                   >
-                    👥 Users
+                    <Users className="w-4 h-4" />
+                    Users
                   </Link>
                   {user?.role === 'admin' && (
                     <Link 
@@ -198,7 +305,8 @@ export function Header() {
                       onClick={closeMobileMenu}
                       className="px-4 py-3 rounded-lg hover:bg-accent transition-all font-medium text-sm flex items-center gap-2"
                     >
-                      ⏳ Approvals
+                      <Clock className="w-4 h-4" />
+                      Approvals
                     </Link>
                   )}
                   <Link 
@@ -206,7 +314,8 @@ export function Header() {
                     onClick={closeMobileMenu}
                     className="px-4 py-3 rounded-lg hover:bg-accent transition-all font-medium text-sm flex items-center gap-2"
                   >
-                    🎉 Holidays
+                    <Gift className="w-4 h-4" />
+                    Holidays
                   </Link>
                 </>
               )}
@@ -215,7 +324,8 @@ export function Header() {
                 onClick={closeMobileMenu}
                 className="px-4 py-3 rounded-lg hover:bg-accent transition-all font-medium text-sm flex items-center gap-2"
               >
-                👤 Profile
+                <User className="w-4 h-4" />
+                Profile
               </Link>
 
               {/* Logout Button */}

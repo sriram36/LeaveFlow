@@ -22,8 +22,8 @@ class AIService:
                 base_url="https://openrouter.ai/api/v1",
                 api_key=settings.openrouter_api_key
             )
-            # Use Mistral 7B (reliable free model)
-            self.model = "mistralai/mistral-7b-instruct:free"
+            # Use Llama 2 70B (much more intelligent than Mistral 7B)
+            self.model = "meta-llama/llama-2-70b-chat:free"
             print(f"[AI] [OK] Initialized with OpenRouter ({self.model})")
         else:
             self.client = None

@@ -4,10 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { api, User } from "../lib/api";
 import { useAuth } from "../lib/auth-context";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo, useMemo, useCallback } from "react";
 import Link from "next/link";
 
-export default function UsersPage() {
+export default memo(function UsersPage() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const router = useRouter();
   const [roleFilter, setRoleFilter] = useState<string>('');
@@ -26,7 +26,17 @@ export default function UsersPage() {
     queryKey: ['users', roleFilter],
     queryFn: () => api.getUsers(roleFilter || undefined),
     enabled: isAuthenticated && (user?.role === 'hr' || user?.role === 'admin'),
+    staleTime: 60000,
+    refetchInterval: 300000,
+    refetchOnWindowFocus: false,
   });
+
+  const rows = useMemo(() => users ?? [], [users]);
+  const userCount = useMemo(() => rows.length, [rows]);
+
+  const handleRoleFilterChange = useCallback((value: string) => {
+    setRoleFilter(value);
+  }, []);
 
   if (authLoading || isLoading) {
     return (
@@ -40,19 +50,17 @@ export default function UsersPage() {
     return <div className="text-red-600">Failed to load users.</div>;
   }
 
-  const rows = users ?? [];
-
   return (
     <main className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Users</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage team members and their roles</p>
+          <p className="text-sm text-muted-foreground mt-1">Manage team members and their roles ({userCount} total)</p>
         </div>
         <div className="flex items-center gap-3">
           <select
             value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
+            onChange={(e) => handleRoleFilterChange(e.target.value)}
             className="text-sm border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-ring focus:border-ring"
           >
             <option value="">All Roles</option>
@@ -105,7 +113,7 @@ export default function UsersPage() {
       )}
     </main>
   );
-}
+});
 
 function roleColor(role: string) {
   switch (role) {

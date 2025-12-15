@@ -5,108 +5,307 @@ import { api, LeaveRequest } from "../lib/api";
 import { useAuth } from "../lib/auth-context";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { TableSkeleton } from "../components/skeleton";
-import { ErrorMessage } from "../components/loading";
+import { useEffect, useState, memo, useMemo, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Calendar,
+  User,
+  Clock,
+  CheckCircle,
+  XCircle,
+  History,
+  Grid3x3,
+} from "lucide-react";
 
-type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+type LeaveStatus = "pending" | "approved" | "rejected" | "cancelled";
 
-export default function RequestsPage() {
+function statusToBadgeVariant(status: LeaveStatus) {
+  switch (status) {
+    case "pending":
+      return "pending";
+    case "approved":
+      return "approved";
+    case "rejected":
+      return "rejected";
+    case "cancelled":
+      return "cancelled";
+    default:
+      return "default";
+  }
+}
+
+function statusIcon(status: LeaveStatus) {
+  switch (status) {
+    case "pending":
+      return <Clock className="w-4 h-4" />;
+    case "approved":
+      return <CheckCircle className="w-4 h-4" />;
+    case "rejected":
+      return <XCircle className="w-4 h-4" />;
+    default:
+      return null;
+  }
+}
+
+export default memo(function RequestsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
+  const [view, setView] = useState<"list" | "grid">("list");
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/');
+      router.push("/");
     }
   }, [authLoading, isAuthenticated, router]);
 
-  const { data: requests, isLoading, error, refetch } = useQuery({
-    queryKey: ['pending-requests'],
+  const {
+    data: requests,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["pending-requests"],
     queryFn: () => api.getPendingRequests(),
     enabled: isAuthenticated,
-    staleTime: 10000,  // Consider data fresh for 10 seconds
-    refetchInterval: 30000,  // Refetch every 30 seconds
-    refetchOnWindowFocus: true,  // Refetch when window regains focus
+    staleTime: 30000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false,
   });
 
-  useEffect(() => {
-    console.log('[Requests Page] Authentication:', { isAuthenticated, authLoading });
-    console.log('[Requests Page] Data:', requests);
-    console.log('[Requests Page] Loading:', isLoading);
-    console.log('[Requests Page] Error:', error);
-    console.log('[Requests Page] Query Key:', ['pending-requests']);
-  }, [requests, isLoading, error, isAuthenticated, authLoading]);
+  const rows = useMemo(() => requests ?? [], [requests]);
+  const requestCount = useMemo(() => rows.length, [rows]);
 
-  if (authLoading) {
+  const handleViewChange = useCallback((newView: "list" | "grid") => {
+    setView(newView);
+  }, []);
+
+  const handleRefetch = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  if (authLoading || isLoading) {
     return (
-      <main className="space-y-6">
-        <div className="h-10 bg-gray-200 rounded w-1/3 animate-pulse"></div>
-        <TableSkeleton rows={3} />
-      </main>
+      <div className="space-y-6">
+        {/* Title skeleton */}
+        <div className="space-y-2">
+          <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded w-1/2 animate-pulse"></div>
+          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/4 animate-pulse"></div>
+        </div>
+        {/* Header controls skeleton */}
+        <div className="flex gap-2 h-10">
+          <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-md w-20 animate-pulse"></div>
+          <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-md w-20 animate-pulse"></div>
+          <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-md w-24 animate-pulse"></div>
+        </div>
+        {/* Request cards skeleton */}
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="border border-slate-200 dark:border-slate-700 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/4 animate-pulse"></div>
+                </div>
+              </div>
+              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-2/3 animate-pulse"></div>
+            </div>
+          ))}
+        </div>
+      </div>
     );
   }
 
   if (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to load requests';
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to load requests";
     return (
-      <main className="space-y-6">
+      <div className="space-y-6">
         <h1 className="text-3xl font-bold">Pending Requests</h1>
-        <ErrorMessage message={errorMessage} onRetry={() => refetch()} />
-      </main>
+        <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+          <CardContent className="pt-6">
+            <p className="text-red-600 dark:text-red-400">{errorMessage}</p>
+            <Button onClick={handleRefetch} className="mt-4" size="sm">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
-  if (isLoading) {
-    return (
-      <main className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Pending Requests</h1>
-          <div className="flex gap-2">
-            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-        </div>
-        <TableSkeleton rows={5} />
-      </main>
-    );
-  }
-
-  const rows = requests ?? [];
-
+  // Use memoized rows for rendering
   return (
-    <main className="space-y-6">
+    <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Pending Requests</h1>
-          <p className="text-sm text-muted-foreground mt-1">Review and approve leave requests from your team</p>
+          <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
+            Leave Requests
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
+            {requestCount} {requestCount === 1 ? "request" : "requests"} pending
+            approval
+          </p>
         </div>
-        <div className="flex gap-3">
-          <Link href="/requests/history" className="btn btn-ghost border border-slate-300 text-sm">
-            📊 View History
-          </Link>
-          <Link href="/requests/calendar" className="btn btn-ghost border border-slate-300 text-sm">
-            📅 Calendar
+        <div className="flex gap-2">
+          <Button
+            variant={view === "list" ? "default" : "outline"}
+            size="sm"
+            onClick={() => handleViewChange("list")}
+            className="gap-2"
+          >
+            <Calendar className="w-4 h-4" />
+            List
+          </Button>
+          <Button
+            variant={view === "grid" ? "default" : "outline"}
+            size="sm"
+            onClick={() => handleViewChange("grid")}
+            className="gap-2"
+          >
+            <Grid3x3 className="w-4 h-4" />
+            Grid
+          </Button>
+          <Link href="/requests/history">
+            <Button variant="outline" size="sm" className="gap-2">
+              <History className="w-4 h-4" />
+              History
+            </Button>
           </Link>
         </div>
       </div>
 
       {!rows.length ? (
-        <div className="card text-center py-16 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-          <div className="text-6xl mb-4">✅</div>
-          <p className="text-xl font-semibold text-foreground mb-2">All caught up!</p>
-          <p className="text-muted-foreground">No pending requests right now.</p>
+        <Card className="border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-900/20">
+          <CardContent className="text-center py-16">
+            <div className="text-5xl mb-4">✓</div>
+            <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+              All caught up!
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400">
+              No pending requests right now.
+            </p>
+          </CardContent>
+        </Card>
+      ) : view === "list" ? (
+        /* List View */
+        <div className="space-y-3">
+          {rows.map((request: LeaveRequest) => (
+            <Card
+              key={request.id}
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => router.push(`/requests/${request.id}`)}
+            >
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between gap-4">
+                  {/* Left */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                        {request.user?.name?.charAt(0) || "U"}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-slate-900 dark:text-white">
+                          {request.user?.name || "Unknown User"}
+                        </p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          {request.leave_type}
+                        </p>
+                      </div>
+                    </div>
+                    {request.reason && (
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                        {request.reason}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Middle */}
+                  <div className="flex-shrink-0 text-right">
+                    <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                      <Calendar className="w-4 h-4" />
+                      <span>
+                        {request.start_date} to {request.end_date}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">
+                      {request.days || 0} days
+                    </p>
+                  </div>
+
+                  {/* Right */}
+                  <div className="flex-shrink-0">
+                    <Badge variant={statusToBadgeVariant(request.status as LeaveStatus)} className="gap-1">
+                      {statusIcon(request.status as LeaveStatus)}
+                      {request.status}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : (
-        <div className="space-y-3">
-          {rows.map((req) => (
-            <RequestCard key={req.id} req={req} />
+        /* Grid View */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {rows.map((request: LeaveRequest) => (
+            <Card
+              key={request.id}
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => router.push(`/requests/${request.id}`)}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                        {request.user?.name?.charAt(0) || "U"}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm text-slate-900 dark:text-white">
+                          {request.user?.name || "Unknown User"}
+                      </p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400">
+                        {request.leave_type}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge
+                    variant={statusToBadgeVariant(request.status as LeaveStatus)}
+                    className="text-xs"
+                  >
+                    {request.status}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {request.reason && (
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {request.reason}
+                  </p>
+                )}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="w-4 h-4 text-slate-400" />
+                    <span className="text-slate-900 dark:text-white">
+                      {request.start_date}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-white">
+                    <Clock className="w-4 h-4 text-slate-400" />
+                    {request.days || 0} days
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}
-    </main>
+    </div>
   );
-}
+});
 
 function RequestCard({ req }: { req: LeaveRequest }) {
   const badge = badgeForStatus(req.status);

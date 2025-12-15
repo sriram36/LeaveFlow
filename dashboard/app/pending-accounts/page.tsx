@@ -4,9 +4,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth-context";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo, useCallback, useMemo } from "react";
 
-export default function PendingAccountsPage() {
+export default memo(function PendingAccountsPage() {
   const { isAuthenticated, isLoading: authLoading, user: currentUser } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -26,7 +26,13 @@ export default function PendingAccountsPage() {
     queryKey: ['pending-accounts'],
     queryFn: () => api.getPendingAccounts(),
     enabled: isAuthenticated && currentUser?.role === 'admin',
+    staleTime: 30000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false,
   });
+
+  const accountsList = useMemo(() => pendingAccounts ?? [], [pendingAccounts]);
+  const accountCount = useMemo(() => accountsList.length, [accountsList]);
 
   const approveMutation = useMutation({
     mutationFn: (userId: number) => api.approveAccount(userId),
@@ -53,6 +59,14 @@ export default function PendingAccountsPage() {
       setMessage({ type: 'error', text: error.message || 'Failed to reject account' });
     },
   });
+
+  const handleApprove = useCallback((userId: number) => {
+    approveMutation.mutate(userId);
+  }, [approveMutation]);
+
+  const handleReject = useCallback((userId: number) => {
+    rejectMutation.mutate(userId);
+  }, [rejectMutation]);
 
   if (authLoading || isLoading) {
     return (
@@ -156,4 +170,4 @@ export default function PendingAccountsPage() {
       )}
     </main>
   );
-}
+});

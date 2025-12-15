@@ -154,7 +154,11 @@ Uses OpenRouter with free AI models for:
 **Setup:**
 1. Get API key at [OpenRouter](https://openrouter.ai/keys) (no credit card required)
 2. Add to `.env`: `OPENROUTER_API_KEY=sk-or-v1-...`
-3. Model: `mistralai/mistral-7b-instruct:free` (completely free!)
+3. **Model**: `meta-llama/llama-2-70b-chat:free` (more intelligent than Mistral!)
+   - Better at understanding context and nuance
+   - Improved conversation quality
+   - More accurate leave parsing
+   - Alternative: `nousresearch/nous-hermes-2-mixtral-8x7b-sft:free` (excellent reasoning)
 
 **Database Migration:**
 After updating code, run this SQL on your database to enable conversation memory:
