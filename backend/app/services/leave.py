@@ -271,21 +271,44 @@ class LeaveService:
             manager_id: If provided, only return requests from users with this manager.
                        If None, return all pending requests (for HR/Admin).
         """
-        query = select(LeaveRequest).options(
-            selectinload(LeaveRequest.user),
-            selectinload(LeaveRequest.attachments)
-        ).where(
-            LeaveRequest.status == LeaveStatus.pending
-        ).order_by(LeaveRequest.created_at.desc())
+        print(f"[LeaveService] get_pending_requests called with manager_id={manager_id}")
         
+        # Build query with proper join order for SQLAlchemy
         if manager_id is not None:
-            # Get requests from team members
-            query = query.join(User, LeaveRequest.user_id == User.id).where(
-                User.manager_id == manager_id
+            # For managers: filter by their team members
+            print(f"[LeaveService] Adding manager filter for manager_id={manager_id}")
+            query = (
+                select(LeaveRequest)
+                .join(User, LeaveRequest.user_id == User.id)
+                .where(LeaveRequest.status == LeaveStatus.pending)
+                .where(User.manager_id == manager_id)
+                .order_by(LeaveRequest.created_at.desc())
+                .options(
+                    selectinload(LeaveRequest.user),
+                    selectinload(LeaveRequest.attachments)
+                )
+            )
+        else:
+            # For HR/Admin: get all pending requests
+            print(f"[LeaveService] No manager filter - returning all pending requests")
+            query = (
+                select(LeaveRequest)
+                .where(LeaveRequest.status == LeaveStatus.pending)
+                .order_by(LeaveRequest.created_at.desc())
+                .options(
+                    selectinload(LeaveRequest.user),
+                    selectinload(LeaveRequest.attachments)
+                )
             )
         
+        print(f"[LeaveService] Executing query...")
         result = await self.db.execute(query)
-        return result.scalars().all()
+        requests = result.scalars().all()
+        print(f"[LeaveService] Query returned {len(requests)} pending requests")
+        for req in requests:
+            print(f"  - LeaveRequest ID: {req.id}, User: {req.user.name if req.user else 'Unknown'}, Status: {req.status}")
+        
+        return requests
     
     async def get_today_leaves(self) -> List[Dict[str, Any]]:
         """Get employees on leave today."""

@@ -53,7 +53,10 @@ async def get_pending_requests(
         print(f"[Leave API] Manager {user.name} (ID: {user.id}) requesting their team's pending requests")
         requests = await service.get_pending_requests(manager_id=user.id)  # Only team members
     
-    print(f"[Leave API] Returning {len(requests)} pending requests for {user.name}")
+    print(f"[Leave API] Query executed successfully. Returning {len(requests)} pending requests for {user.name}")
+    for req in requests:
+        print(f"  - Request ID: {req.id}, User: {req.user.name if req.user else 'Unknown'}, Status: {req.status}")
+    
     return requests
 
 
