@@ -32,18 +32,11 @@ export default function UserDetailPage() {
     enabled: isAuthenticated && !!id && (currentUser?.role === 'hr' || currentUser?.role === 'admin'),
   });
 
-  const { data: managers } = useQuery({
+  const { data: managers, isError: managersError } = useQuery({
     queryKey: ['managers'],
-    queryFn: async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/users/managers`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        }
-      });
-      if (!res.ok) throw new Error('Failed to fetch managers');
-      return res.json();
-    },
+    queryFn: () => api.getManagers(),
     enabled: isAuthenticated && (currentUser?.role === 'hr' || currentUser?.role === 'admin'),
+    retry: 1,
   });
 
   const { data: leaveHistory } = useQuery({
@@ -135,13 +128,18 @@ export default function UserDetailPage() {
         {user.role === 'worker' && (
           <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-border">
             <h3 className="font-semibold mb-3">Assign Manager</h3>
+            {managersError && (
+              <div className="mb-3 p-3 bg-red-500/10 border border-red-500/20 rounded-md text-sm text-red-700 dark:text-red-300">
+                Failed to load managers. Please refresh the page or contact support.
+              </div>
+            )}
             <div className="flex gap-3 items-end">
               <div className="flex-1">
                 <label className="block text-sm font-medium mb-2">Select Manager</label>
                 <select
                   value={selectedManager || ''}
                   onChange={(e) => setSelectedManager(e.target.value ? Number(e.target.value) : null)}
-                  disabled={isUpdating}
+                  disabled={isUpdating || managersError || !managers}
                   className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">-- No Manager --</option>
@@ -154,7 +152,7 @@ export default function UserDetailPage() {
               </div>
               <button
                 onClick={handleManagerUpdate}
-                disabled={isUpdating}
+                disabled={isUpdating || managersError || !managers}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 {isUpdating ? 'Updating...' : 'Update'}
