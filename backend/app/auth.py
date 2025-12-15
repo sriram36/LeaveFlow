@@ -104,9 +104,12 @@ async def get_current_user(
         )
     
     # Check account status
-    from app.models import AccountStatus
+    from app.models import AccountStatus, UserRole
     if hasattr(user, 'account_status'):
-        if user.account_status == AccountStatus.pending:
+        # Managers, HR, and Admin can access even if pending
+        # Only workers need to be fully approved
+        if (user.account_status == AccountStatus.pending and 
+            user.role == UserRole.worker):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Your account is pending admin approval"
