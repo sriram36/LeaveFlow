@@ -104,12 +104,14 @@ async def get_current_user(
         )
     
     # Check account status
-    from app.models import AccountStatus, UserRole
+    from app.models import AccountStatus
     if hasattr(user, 'account_status'):
         # Managers, HR, and Admin can access even if pending
-        # Only workers need to be fully approved
+        # Only workers (role='worker') need to be fully approved
+        user_role_str = str(user.role).lower() if user.role else ""
+        
         if (user.account_status == AccountStatus.pending and 
-            user.role in [UserRole.worker, 'worker']):  # Check both enum and string
+            user_role_str == 'worker'):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Your account is pending admin approval"
