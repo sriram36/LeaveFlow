@@ -339,10 +339,9 @@ const DashboardHome = memo(() => {
   const totalBalance = useMemo(() => (balanceData.casual || 0) + (balanceData.sick || 0) + (balanceData.special || 0), [balanceData]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="space-y-8">
+      {/* Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
@@ -452,7 +451,6 @@ const DashboardHome = memo(() => {
             </CardContent>
           </Card>
         </div>
-      </div>
     </div>
   );
 });
