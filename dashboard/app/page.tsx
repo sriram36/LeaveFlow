@@ -38,56 +38,184 @@ import {
   X,
   Github,
   Twitter,
-  Linkedin
+  Linkedin,
+  ArrowRightCircle,
+  CheckIcon,
+  LucideIcon
 } from "lucide-react";
 
 const LandingPage = memo(() => {
   return (
-    <div className="space-y-20">
+    <div className="space-y-0">
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-24 sm:pt-28 sm:pb-32">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-slate-50 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900/80 -z-10"></div>
+      <section className="relative overflow-hidden pt-20 pb-32 sm:pt-32 sm:pb-48">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-indigo-50 to-white dark:from-slate-950 dark:via-indigo-950/20 dark:to-slate-900 -z-10"></div>
         
-        {/* Animated background elements */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-200 dark:bg-indigo-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-8 right-10 w-72 h-72 bg-teal-200 dark:bg-teal-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse animation-delay-2000"></div>
+        {/* Animated background blobs */}
+        <div className="absolute top-40 left-0 w-96 h-96 bg-indigo-200/30 dark:bg-indigo-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
+        <div className="absolute top-20 right-10 w-80 h-80 bg-teal-200/30 dark:bg-teal-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-indigo-300/20 dark:bg-indigo-800/20 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-4000"></div>
         
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center space-y-8">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-indigo-100 to-teal-100 dark:from-indigo-900/40 dark:to-teal-900/40 text-indigo-700 dark:text-indigo-300 text-sm font-medium border border-indigo-200 dark:border-indigo-800 hover:shadow-lg transition-shadow duration-300">
-              <Sparkles className="w-4 h-4 mr-2" />
-              WhatsApp-powered leave management
-            </div>
+          <div className="text-center space-y-10">
+            {/* Badge */}
+            <Link href="/signup" className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-indigo-100 to-teal-100 dark:from-indigo-900/40 dark:to-teal-900/40 text-indigo-700 dark:text-indigo-300 text-sm font-semibold border border-indigo-200 dark:border-indigo-800 hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 cursor-pointer group">
+              <Sparkles className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
+              <span>Manage leaves the WhatsApp way</span>
+              <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Link>
             
-            <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight bg-gradient-to-r from-indigo-600 to-teal-600 dark:from-indigo-400 dark:to-teal-400 bg-clip-text text-transparent">
-              Simplify Leaves,<br/>Empower Teams
+            {/* Main Heading */}
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tighter text-slate-900 dark:text-white leading-tight">
+              <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-teal-600 dark:from-indigo-400 dark:via-purple-400 dark:to-teal-400 bg-clip-text text-transparent">
+                Leave Management,
+              </span>
+              <br />
+              <span className="text-slate-900 dark:text-white">Reimagined for Teams</span>
             </h1>
             
-            <p className="max-w-3xl mx-auto text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
-              WhatsApp-powered leave management that works the way teams think. Approve requests in seconds, not days. AI automates the rest.
+            {/* Subheading */}
+            <p className="max-w-3xl mx-auto text-xl sm:text-2xl text-slate-700 dark:text-slate-300 leading-relaxed font-light">
+              Approve requests in seconds, not days. AI-powered processing, WhatsApp integration, and powerful analytics—all in one platform.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-              <Button size="lg" className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-10 py-6 font-semibold rounded-lg shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                Get Started Free
-              </Button>
-              <Button size="lg" variant="outline" className="px-10 py-6 font-semibold rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-2">
-                View Demo
-              </Button>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+              <Link href="/signup" className="inline-block">
+                <Button size="lg" className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-12 py-7 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group">
+                  Get Started Free
+                  <ArrowRightCircle className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+              <Link href="/requests" className="inline-block">
+                <Button size="lg" variant="outline" className="px-12 py-7 text-lg font-semibold rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:border-indigo-400 dark:hover:border-indigo-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-2 group">
+                  <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                  View Demo
+                </Button>
+              </Link>
             </div>
             
-            <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-slate-600 dark:text-slate-400 pt-4">
-              <div className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-white transition-colors">
-                <CheckCircle className="w-5 h-5 text-teal-600 dark:text-teal-400" />
-                <span className="font-medium">No card required</span>
+            {/* Trust Indicators */}
+            <div className="pt-6 space-y-4">
+              <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8">
+                <div className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer group">
+                  <div className="p-2 bg-teal-100 dark:bg-teal-900/30 rounded-full group-hover:bg-teal-200 dark:group-hover:bg-teal-900/50 transition-colors">
+                    <CheckIcon className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                  </div>
+                  <span className="font-medium">No card required</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer group">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-full group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors">
+                    <CheckIcon className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <span className="font-medium">7-day free trial</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer group">
+                  <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-full group-hover:bg-indigo-200 dark:group-hover:bg-indigo-900/50 transition-colors">
+                    <CheckIcon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <span className="font-medium">Cancel anytime</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-white transition-colors">
-                <CheckCircle className="w-5 h-5 text-teal-600 dark:text-teal-400" />
-                <span className="font-medium">7-day free trial</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How it Works Section */}
+      <section className="py-24 bg-white dark:bg-slate-950/50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-6">
+              An end-to-end solution
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+              Everything you need to streamline leave management, from submission to analytics
+            </p>
+          </div>
+
+          <div className="space-y-16">
+            {/* Step 1 */}
+            <div className="flex flex-col md:flex-row items-center gap-12">
+              <div className="flex-1">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-900/50 dark:to-indigo-800/30 rounded-2xl mb-6">
+                  <span className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">01</span>
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                  Request via WhatsApp
+                </h3>
+                <p className="text-lg text-slate-600 dark:text-slate-400 mb-6">
+                  Employees submit leave requests directly through WhatsApp. Natural language processing understands what they need, instantly validates against policies, and checks team availability.
+                </p>
+                <Link href="/signup" className="inline-flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold group">
+                  Learn more <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </div>
-              <div className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-white transition-colors">
-                <CheckCircle className="w-5 h-5 text-teal-600 dark:text-teal-400" />
-                <span className="font-medium">Cancel anytime</span>
+              <div className="flex-1 h-64 bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-900/20 dark:to-indigo-900/10 rounded-2xl flex items-center justify-center border border-indigo-200 dark:border-indigo-900">
+                <MessageSquare className="w-24 h-24 text-indigo-300 dark:text-indigo-800" />
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex flex-col md:flex-row-reverse items-center gap-12">
+              <div className="flex-1">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-teal-100 to-teal-50 dark:from-teal-900/50 dark:to-teal-800/30 rounded-2xl mb-6">
+                  <span className="text-3xl font-bold text-teal-600 dark:text-teal-400">02</span>
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                  Intelligent Processing
+                </h3>
+                <p className="text-lg text-slate-600 dark:text-slate-400 mb-6">
+                  AI analyzes requests for policy compliance, detects conflicts, checks leave balances, and identifies potential issues—all automatically. Managers see smart recommendations for faster decisions.
+                </p>
+                <Link href="/requests" className="inline-flex items-center text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-semibold group">
+                  Explore features <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+              <div className="flex-1 h-64 bg-gradient-to-br from-teal-100 to-teal-50 dark:from-teal-900/20 dark:to-teal-900/10 rounded-2xl flex items-center justify-center border border-teal-200 dark:border-teal-900">
+                <Zap className="w-24 h-24 text-teal-300 dark:text-teal-800" />
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex flex-col md:flex-row items-center gap-12">
+              <div className="flex-1">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/50 dark:to-purple-800/30 rounded-2xl mb-6">
+                  <span className="text-3xl font-bold text-purple-600 dark:text-purple-400">03</span>
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                  Instant Approvals
+                </h3>
+                <p className="text-lg text-slate-600 dark:text-slate-400 mb-6">
+                  Managers approve or reject requests instantly via WhatsApp. Employees get immediate confirmation, HR maintains complete audit trails, and the team calendar updates automatically.
+                </p>
+                <Link href="/requests/calendar" className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold group">
+                  View calendar <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+              <div className="flex-1 h-64 bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/20 dark:to-purple-900/10 rounded-2xl flex items-center justify-center border border-purple-200 dark:border-purple-900">
+                <CheckCircle className="w-24 h-24 text-purple-300 dark:text-purple-800" />
+              </div>
+            </div>
+
+            {/* Step 4 */}
+            <div className="flex flex-col md:flex-row-reverse items-center gap-12">
+              <div className="flex-1">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/50 dark:to-blue-800/30 rounded-2xl mb-6">
+                  <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">04</span>
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                  Analytics & Insights
+                </h3>
+                <p className="text-lg text-slate-600 dark:text-slate-400 mb-6">
+                  Comprehensive dashboards show leave patterns, utilization rates, team trends, and predictive analytics. Make data-driven workforce planning decisions with confidence.
+                </p>
+                <Link href="/users" className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold group">
+                  View dashboard <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+              <div className="flex-1 h-64 bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/10 rounded-2xl flex items-center justify-center border border-blue-200 dark:border-blue-900">
+                <BarChart3 className="w-24 h-24 text-blue-300 dark:text-blue-800" />
               </div>
             </div>
           </div>
@@ -95,114 +223,296 @@ const LandingPage = memo(() => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20">
-        <div className="max-w-6xl mx-auto px-4">
+      <section className="py-24 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-5xl sm:text-6xl font-bold text-slate-900 dark:text-white mb-6">
-              Powerful features, simple interface
+            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-6">
+              Everything your team needs
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-400">
-              Everything your team needs to manage leaves efficiently
+              Powerful features designed for modern teams
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <div className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-transparent dark:from-indigo-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-900/50 dark:to-indigo-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <MessageSquare className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
+            {/* Feature 1: WhatsApp Integration */}
+            <Link href="/signup" className="group">
+              <div className="relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-transparent dark:from-indigo-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-900/50 dark:to-indigo-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <MessageSquare className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                    WhatsApp Integration
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    Manage leaves directly via WhatsApp. Real-time notifications, instant approvals.
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
-                  WhatsApp Integration
-                </h3>
-                <p className="text-slate-600 dark:text-slate-400">
-                  Manage leaves directly via WhatsApp. Real-time notifications, instant approvals, zero friction.
-                </p>
               </div>
+            </Link>
+
+            {/* Feature 2: AI Processing */}
+            <Link href="/requests" className="group">
+              <div className="relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-teal-500 dark:hover:border-teal-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full">
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-transparent dark:from-teal-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-gradient-to-br from-teal-100 to-teal-50 dark:from-teal-900/50 dark:to-teal-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Zap className="w-7 h-7 text-teal-600 dark:text-teal-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                    AI-Powered Processing
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    Natural language understanding, smart validation, conflict detection, automated workflows.
+                  </p>
+                </div>
+              </div>
+            </Link>
+
+            {/* Feature 3: Calendar */}
+            <Link href="/requests/calendar" className="group">
+              <div className="relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-transparent dark:from-purple-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/50 dark:to-purple-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Calendar className="w-7 h-7 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                    Team Calendar
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    Visual leave overview, prevent double-booking, plan team capacity with ease.
+                  </p>
+                </div>
+              </div>
+            </Link>
+
+            {/* Feature 4: Analytics */}
+            <Link href="/users" className="group">
+              <div className="relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent dark:from-blue-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/50 dark:to-blue-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <BarChart3 className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                    Advanced Analytics
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    Leave patterns, utilization rates, team trends. Data-driven workforce planning.
+                  </p>
+                </div>
+              </div>
+            </Link>
+
+            {/* Feature 5: RBAC */}
+            <Link href="/users" className="group">
+              <div className="relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-pink-500 dark:hover:border-pink-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full">
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-50 to-transparent dark:from-pink-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-gradient-to-br from-pink-100 to-pink-50 dark:from-pink-900/50 dark:to-pink-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Users className="w-7 h-7 text-pink-600 dark:text-pink-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                    Role-Based Access
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    Worker, Manager, HR, Admin. Granular permissions for every team member.
+                  </p>
+                </div>
+              </div>
+            </Link>
+
+            {/* Feature 6: Security */}
+            <Link href="/profile" className="group">
+              <div className="relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-green-500 dark:hover:border-green-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-transparent dark:from-green-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-50 dark:from-green-900/50 dark:to-green-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Shield className="w-7 h-7 text-green-600 dark:text-green-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                    Enterprise Security
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    End-to-end encryption, audit logs, compliance ready. Your data is protected.
+                  </p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className="py-24 bg-white dark:bg-slate-950/50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-6">
+              Why teams choose LeaveFlow
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="space-y-8">
+              {[
+                {
+                  title: "Instant Approvals",
+                  desc: "Process requests in seconds, not days"
+                },
+                {
+                  title: "Time Saved",
+                  desc: "Automate 80% of leave management tasks"
+                },
+                {
+                  title: "Error Prevention",
+                  desc: "AI catches policy violations before they happen"
+                },
+                {
+                  title: "Better Visibility",
+                  desc: "Real-time team availability and capacity planning"
+                }
+              ].map((benefit, idx) => (
+                <div key={idx} className="flex gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center">
+                    <CheckIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
+                      {benefit.title}
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-400">
+                      {benefit.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {/* Feature 2 */}
-            <div className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-teal-500 dark:hover:border-teal-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-              <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-transparent dark:from-teal-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-gradient-to-br from-teal-100 to-teal-50 dark:from-teal-900/50 dark:to-teal-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Zap className="w-7 h-7 text-teal-600 dark:text-teal-400" />
+            <div className="space-y-8">
+              {[
+                {
+                  title: "Compliance Ready",
+                  desc: "Audit logs and full compliance documentation"
+                },
+                {
+                  title: "Secure by Default",
+                  desc: "Enterprise-grade security and data protection"
+                },
+                {
+                  title: "Easy Integration",
+                  desc: "Connect with your existing HR systems seamlessly"
+                },
+                {
+                  title: "24/7 Availability",
+                  desc: "Access your platform anytime, anywhere"
+                }
+              ].map((benefit, idx) => (
+                <div key={idx} className="flex gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center">
+                    <CheckIcon className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
+                      {benefit.title}
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-400">
+                      {benefit.desc}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
-                  AI-Powered Processing
-                </h3>
-                <p className="text-slate-600 dark:text-slate-400">
-                  Natural language understanding. Smart validation, conflict detection, and automated workflows.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-transparent dark:from-purple-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/50 dark:to-purple-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Calendar className="w-7 h-7 text-purple-600 dark:text-purple-400" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
-                  Team Calendar
-                </h3>
-                <p className="text-slate-600 dark:text-slate-400">
-                  Visual leave overview. Prevent double-booking and plan team capacity with ease.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent dark:from-blue-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/50 dark:to-blue-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <BarChart3 className="w-7 h-7 text-blue-600 dark:text-blue-400" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
-                  Advanced Analytics
-                </h3>
-                <p className="text-slate-600 dark:text-slate-400">
-                  Leave patterns, utilization rates, team trends. Data-driven workforce planning.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 5 */}
-            <div className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-pink-500 dark:hover:border-pink-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-50 to-transparent dark:from-pink-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-gradient-to-br from-pink-100 to-pink-50 dark:from-pink-900/50 dark:to-pink-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Users className="w-7 h-7 text-pink-600 dark:text-pink-400" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
-                  Role-Based Access
-                </h3>
-                <p className="text-slate-600 dark:text-slate-400">
-                  Worker, Manager, HR, Admin. Granular permissions for every team member.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-green-500 dark:hover:border-green-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-              <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-transparent dark:from-green-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300"></div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-50 dark:from-green-900/50 dark:to-green-800/30 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Shield className="w-7 h-7 text-green-600 dark:text-green-400" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
-                  Enterprise Security
-                </h3>
-                <p className="text-slate-600 dark:text-slate-400">
-                  End-to-end encryption, audit logs, compliance ready. Your data is protected.
-                </p>
-              </div>
+              ))}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Security Section */}
+      <section className="py-24 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-6">
+              Enterprise-grade security
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-400">
+              Your data stays yours. Always encrypted, always secure.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow duration-300">
+              <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center mb-6">
+                <Lock className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                Data Encryption
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400">
+                All data is encrypted at rest and in transit using industry-standard encryption algorithms.
+              </p>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow duration-300">
+              <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-xl flex items-center justify-center mb-6">
+                <Shield className="w-6 h-6 text-teal-600 dark:text-teal-400" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                Compliance
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400">
+                SOC 2 Type II and GDPR compliant, trusted by thousands of businesses for secure operations.
+              </p>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow duration-300">
+              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mb-6">
+                <Globe className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                Your Data, Your Control
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400">
+                Your data is only accessible to your team and is never used to train models.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className="relative py-32 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-teal-600 -z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 to-slate-950/40 -z-10"></div>
+        
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-10">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+            Ready to simplify leave management?
+          </h2>
+          
+          <p className="text-xl text-white/90">
+            Join thousands of teams already using LeaveFlow to streamline their leave processes.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
+            <Link href="/signup">
+              <Button size="lg" className="bg-white hover:bg-slate-100 text-indigo-600 font-semibold px-12 py-7 text-lg rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 group">
+                Get Started Free
+                <ArrowRightCircle className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <Link href="/requests">
+              <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 font-semibold px-12 py-7 text-lg rounded-xl transition-all duration-300 group">
+                <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                View Demo
+              </Button>
+            </Link>
+          </div>
+
+          <p className="text-white/80 text-sm">
+            💳 No credit card required • 7-day free trial • Cancel anytime
+          </p>
         </div>
       </section>
 

@@ -230,10 +230,10 @@ export function Header() {
             </>
           ) : (
             <Button asChild size="sm">
-              <Link href="/">
-                Login
-              </Link>
-            </Button>
+                <Link href="/signin">
+                  Login
+                </Link>
+              </Button>
           )}
         </div>
       </header>
