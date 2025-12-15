@@ -109,7 +109,7 @@ async def get_current_user(
         # Managers, HR, and Admin can access even if pending
         # Only workers need to be fully approved
         if (user.account_status == AccountStatus.pending and 
-            user.role == UserRole.worker):
+            user.role in [UserRole.worker, 'worker']):  # Check both enum and string
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Your account is pending admin approval"
