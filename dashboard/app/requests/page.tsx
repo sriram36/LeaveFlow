@@ -2,10 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { api, LeaveRequest } from "../lib/api";
-import { useAuth } from "../lib/auth-context";
+import { useAuthGuard } from "../lib/use-auth-guard";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, memo, useMemo, useCallback } from "react";
+import { useState, memo, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -50,15 +50,12 @@ function statusIcon(status: LeaveStatus) {
 }
 
 export default memo(function RequestsPage() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuthGuard({
+    allowedRoles: ["manager", "hr", "admin"],
+    redirectTo: "/",
+  });
   const router = useRouter();
   const [view, setView] = useState<"list" | "grid">("list");
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/");
-    }
-  }, [authLoading, isAuthenticated, router]);
 
   const {
     data: requests,
@@ -66,12 +63,13 @@ export default memo(function RequestsPage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["pending-requests"],
+    queryKey: ['pending-requests', user?.id, user?.role],
     queryFn: () => api.getPendingRequests(),
-    enabled: isAuthenticated,
+    enabled: Boolean(isAuthenticated && user && (user.role === 'manager' || user.role === 'hr' || user.role === 'admin')),
     staleTime: 30000,
     refetchInterval: 60000,
     refetchOnWindowFocus: false,
+    refetchOnMount: 'always',
   });
 
   const rows = useMemo(() => requests ?? [], [requests]);

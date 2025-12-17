@@ -30,12 +30,13 @@ export function Header() {
 
   // Fetch pending requests count for managers/HR/admin
   const { data: pendingRequests } = useQuery({
-    queryKey: ['pending-requests-count'],
+    queryKey: ['pending-requests', user?.id, user?.role], // separate cache per user/role to avoid stale empties
     queryFn: () => api.getPendingRequests(),
-    enabled: isAuthenticated && mounted && (user?.role === 'manager' || user?.role === 'hr' || user?.role === 'admin'),
+    enabled: Boolean(isAuthenticated && mounted && user && (user.role === 'manager' || user.role === 'hr' || user.role === 'admin')),
     staleTime: 10000,
     refetchInterval: 30000,
     refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
   });
 
   const pendingCount = pendingRequests?.length || 0;

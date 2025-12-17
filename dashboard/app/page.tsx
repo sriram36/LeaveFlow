@@ -524,11 +524,13 @@ const DashboardHome = memo(() => {
   const { user } = useAuth();
 
   const { data: pendingRequests } = useQuery({
-    queryKey: ['pending-requests'],
+    queryKey: ['pending-requests', user?.id, user?.role],
     queryFn: () => api.getPendingRequests(),
+    enabled: Boolean(user && (user.role === 'manager' || user.role === 'hr' || user.role === 'admin')),
     staleTime: 30000,
     refetchInterval: 60000,
     refetchOnWindowFocus: false,
+    refetchOnMount: 'always',
   });
 
   const { data: balance } = useQuery({

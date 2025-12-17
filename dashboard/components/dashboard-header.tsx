@@ -31,12 +31,13 @@ export function DashboardHeader() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const { data: pendingRequests } = useQuery({
-    queryKey: ["pending-requests"],
-    queryFn: () => api.getPendingRequests(),
-    staleTime: 10000,
-    refetchInterval: 30000,
-    refetchOnWindowFocus: true,
-    enabled: ["manager", "hr", "admin"].includes(user?.role || ""),
+  queryKey: ['pending-requests', user?.id, user?.role],
+  queryFn: () => api.getPendingRequests(),
+  enabled: Boolean(user && (user.role === 'manager' || user.role === 'hr' || user.role === 'admin')),
+  staleTime: 10000,
+  refetchInterval: 30000,
+  refetchOnWindowFocus: true,
+  refetchOnMount: 'always',
   });
 
   const pendingCount = pendingRequests?.length || 0;
