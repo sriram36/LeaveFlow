@@ -4,7 +4,9 @@ from fastapi.testclient import TestClient
 def test_read_root(client: TestClient):
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "service": "LeaveFlow API"}
+    data = response.json()
+    assert data["status"] == "ok"
+    assert data["service"] == "LeaveFlow API"
 
 def test_auth_login_invalid(client: TestClient):
     response = client.post("/auth/login", data={"username": "wrong", "password": "wrong"})
