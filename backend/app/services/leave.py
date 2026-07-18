@@ -4,7 +4,7 @@ Leave Service
 Core business logic for leave operations.
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Optional, List, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_, func
@@ -37,7 +37,9 @@ class LeaveService:
         leave_type: str,
         reason: Optional[str] = None,
         is_half_day: bool = False,
-        half_day_period: Optional[str] = None
+        half_day_period: Optional[str] = None,
+        notify_manager: bool = True,
+        notify_employee: bool = True
     ) -> LeaveRequest:
         """Create a new leave request."""
         # Convert string type to enum
@@ -82,18 +84,19 @@ class LeaveService:
         user = await self._get_user(user_id)
         
         # Notify manager using dedicated function
-        await self._notify_manager_of_new_request(
-            leave_request_id=leave_request.id,
-            user=user,
-            start_date=start_date,
-            end_date=end_date,
-            days=days,
-            leave_type=leave_type,
-            reason=reason
-        )
-        
+        if notify_manager:
+            await self._notify_manager_of_new_request(
+                leave_request_id=leave_request.id,
+                user=user,
+                start_date=start_date,
+                end_date=end_date,
+                days=days,
+                leave_type=leave_type,
+                reason=reason
+            )
+            
         # Confirm to employee
-        if user:
+        if notify_employee and user:
             await whatsapp.send_text(
                 user.phone,
                 format_leave_confirmation(
@@ -125,7 +128,7 @@ class LeaveService:
         # Update status
         leave_request.status = LeaveStatus.approved
         leave_request.approved_by = approver_id
-        leave_request.approved_at = datetime.utcnow()
+        leave_request.approved_at = datetime.now(timezone.utc)
         
         # Deduct balance
         await deduct_balance(
@@ -171,7 +174,7 @@ class LeaveService:
         # Update status
         leave_request.status = LeaveStatus.rejected
         leave_request.approved_by = approver_id
-        leave_request.approved_at = datetime.utcnow()
+        leave_request.approved_at = datetime.now(timezone.utc)
         leave_request.rejection_reason = reason
         
         # Log the action before commit

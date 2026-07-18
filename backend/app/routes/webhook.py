@@ -112,7 +112,7 @@ async def handle_webhook(
     """Handle incoming WhatsApp messages."""
     try:
         body = await request.json()
-    except:
+    except Exception:
         return {"status": "ok"}
     
     # Extract message data
@@ -419,7 +419,9 @@ async def handle_natural_language_request(db: AsyncSession, user: User, text: st
             leave_type=parsed_data["leave_type"],
             reason=parsed_data["reason"],
             is_half_day=parsed_data.get("is_half_day", False),
-            half_day_period=parsed_data.get("half_day_period")
+            half_day_period=parsed_data.get("half_day_period"),
+            notify_manager=True,
+            notify_employee=False
         )
         
         # Generate friendly confirmation using AI with conversation context
@@ -466,7 +468,9 @@ async def handle_leave_command(service: LeaveService, user: User, parsed, conver
         leave_type=parsed.leave_type or "casual",
         reason=parsed.reason,
         is_half_day=parsed.is_half_day,
-        half_day_period=parsed.half_day_period
+        half_day_period=parsed.half_day_period,
+        notify_manager=False,
+        notify_employee=False
     )
     
     # Generate natural response using LLM with conversation context
