@@ -32,7 +32,7 @@ class Settings(BaseSettings):
             print("[CRITICAL] DATABASE_URL environment variable is not set!")
             print("[CRITICAL] Please set DATABASE_URL in .env file or Vercel")
             # For local dev, use default
-            self.database_url = "postgresql+asyncpg://postgres:sriram@localhost:5432/leaveflow"
+            self.database_url = ""
         
         # Clean up DATABASE_URL if it has the variable name prefix
         if self.database_url.startswith("DATABASE_URL="):

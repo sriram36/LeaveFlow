@@ -8,7 +8,7 @@ Scheduler for automated tasks
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy import select, and_
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.database import async_session_maker
 from app.models import LeaveRequest, User, LeaveStatus, UserRole
@@ -64,7 +64,7 @@ async def check_escalations():
     """Check for pending requests that need escalation."""
     async with async_session_maker() as db:
         # Get requests pending for more than X hours
-        threshold = datetime.utcnow() - timedelta(hours=settings.escalation_hours)
+        threshold = datetime.now(timezone.utc) - timedelta(hours=settings.escalation_hours)
         
         result = await db.execute(
             select(LeaveRequest).join(User, LeaveRequest.user_id == User.id).where(

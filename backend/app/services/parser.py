@@ -220,7 +220,7 @@ class MessageParser:
                 end = self._parse_date(range_match.group(2))
                 remaining = text[:range_match.start()] + text[range_match.end():]
                 return start, end, remaining.strip()
-            except:
+            except Exception:
                 pass
         
         # Try to match single date
@@ -232,7 +232,7 @@ class MessageParser:
                 start = self._parse_date(single_match.group(1))
                 remaining = text[:single_match.start()] + text[single_match.end():]
                 return start, None, remaining.strip()
-            except:
+            except Exception:
                 pass
         
         # Try numeric date formats (12/02, 12-02-2025)
@@ -244,7 +244,7 @@ class MessageParser:
                 start = self._parse_date(numeric_match.group(1))
                 remaining = text[:numeric_match.start()] + text[numeric_match.end():]
                 return start, None, remaining.strip()
-            except:
+            except Exception:
                 pass
         
         return None, None, text
