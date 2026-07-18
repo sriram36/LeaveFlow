@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "./lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "./lib/api";
+import { AnalyticsChart } from "@/components/analytics-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -610,8 +611,39 @@ const DashboardHome = memo(() => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Analytics Overview */}
+          <div className="lg:col-span-2">
+            <AnalyticsChart />
+          </div>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Common tasks and shortcuts</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button className="w-full justify-start" variant="outline">
+                <UserCheck className="w-4 h-4 mr-2" />
+                Review Requests
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                <CalendarDays className="w-4 h-4 mr-2" />
+                View Calendar
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                <BarChart className="w-4 h-4 mr-2" />
+                Generate Report
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                <Settings className="w-4 h-4 mr-2" />
+                Manage Users
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Recent Activity */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-3">
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
               <CardDescription>Latest leave requests and approvals</CardDescription>
@@ -639,31 +671,6 @@ const DashboardHome = memo(() => {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Common tasks and shortcuts</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button className="w-full justify-start" variant="outline">
-                <UserCheck className="w-4 h-4 mr-2" />
-                Review Requests
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <CalendarDays className="w-4 h-4 mr-2" />
-                View Calendar
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <BarChart className="w-4 h-4 mr-2" />
-                Generate Report
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <Settings className="w-4 h-4 mr-2" />
-                Manage Users
-              </Button>
-            </CardContent>
-          </Card>
         </div>
     </div>
   );
