@@ -5,7 +5,8 @@ import { api, LeaveRequest } from "../lib/api";
 import { useAuthGuard } from "../lib/use-auth-guard";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, memo, useMemo, useCallback } from "react";
+import { useState, memo, useMemo, useCallback, useEffect } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -82,6 +83,45 @@ export default memo(function RequestsPage() {
   const handleRefetch = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  // WebSocket Connection for Real-time updates
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    // Determine WS URL based on API URL or window.location
+    const wsUrl = process.env.NEXT_PUBLIC_API_URL 
+      ? process.env.NEXT_PUBLIC_API_URL.replace('http', 'ws') + '/ws'
+      : 'ws://localhost:8000/ws';
+      
+    const ws = new WebSocket(wsUrl);
+    
+    ws.onopen = () => {
+      console.log("WebSocket Connected");
+    };
+    
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "NEW_REQUEST") {
+          toast.info("New Leave Request!", {
+            description: `A new ${data.status} request needs your attention.`,
+          });
+          refetch();
+        } else if (data.type === "STATUS_UPDATE") {
+          toast.success("Leave Status Updated", {
+            description: `Request status changed to ${data.status}`,
+          });
+          refetch();
+        }
+      } catch (error) {
+        console.error("Error parsing websocket message", error);
+      }
+    };
+    
+    return () => {
+      ws.close();
+    };
+  }, [isAuthenticated, refetch]);
 
   if (authLoading || isLoading) {
     return (

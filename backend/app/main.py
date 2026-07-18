@@ -131,3 +131,16 @@ async def health():
     except Exception:
         # Even if something goes wrong, return success for deployment
         return {"status": "ok", "healthy": True}
+
+
+from fastapi import WebSocket, WebSocketDisconnect
+from app.websockets import manager
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)

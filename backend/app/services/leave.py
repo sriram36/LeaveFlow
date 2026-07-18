@@ -80,6 +80,16 @@ class LeaveService:
         await self._log_action(leave_request.id, "created", user_id)
         await self.db.commit()
         
+        # Broadcast the new request
+        from app.websockets import manager
+        import asyncio
+        asyncio.create_task(manager.broadcast({
+            "type": "NEW_REQUEST",
+            "request_id": leave_request.id,
+            "user_id": user_id,
+            "status": leave_request.status.value
+        }))
+        
         # Get user and manager info for notifications
         user = await self._get_user(user_id)
         
@@ -144,6 +154,15 @@ class LeaveService:
         await self.db.commit()
         await self.db.refresh(leave_request)
         
+        # Broadcast status update
+        from app.websockets import manager
+        import asyncio
+        asyncio.create_task(manager.broadcast({
+            "type": "STATUS_UPDATE",
+            "request_id": leave_request.id,
+            "status": leave_request.status.value
+        }))
+        
         # Notify employee
         user = await self._get_user(leave_request.user_id)
         approver = await self._get_user(approver_id)
@@ -182,6 +201,15 @@ class LeaveService:
         
         await self.db.commit()
         await self.db.refresh(leave_request)
+        
+        # Broadcast status update
+        from app.websockets import manager
+        import asyncio
+        asyncio.create_task(manager.broadcast({
+            "type": "STATUS_UPDATE",
+            "request_id": leave_request.id,
+            "status": leave_request.status.value
+        }))
         
         # Notify employee
         user = await self._get_user(leave_request.user_id)
@@ -229,6 +257,15 @@ class LeaveService:
         
         await self.db.commit()
         await self.db.refresh(leave_request)
+        
+        # Broadcast status update
+        from app.websockets import manager
+        import asyncio
+        asyncio.create_task(manager.broadcast({
+            "type": "STATUS_UPDATE",
+            "request_id": leave_request.id,
+            "status": leave_request.status.value
+        }))
         
         # Notify employee
         user = await self._get_user(user_id)

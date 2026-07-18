@@ -4,6 +4,7 @@ import { Providers } from "./lib/providers";
 import { Header } from "./(components)/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ErrorBoundary } from "./components/error-boundary";
+import { Toaster } from "sonner";
 
 export const metadata = {
   title: "LeaveFlow Dashboard",
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <main className="max-w-7xl mx-auto px-4 py-8">
                 {children}
               </main>
+              <Toaster richColors position="top-right" />
             </Providers>
           </ErrorBoundary>
         </ThemeProvider>
