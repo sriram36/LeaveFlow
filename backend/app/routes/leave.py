@@ -245,54 +245,26 @@ async def get_attachment(
     request_id: int,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user_required)
-):
+) -> list:
     """Get attachments for a leave request."""
     service = LeaveService(db)
     request = await service.get_status(request_id)
-    
+
     if not request:
         raise HTTPException(status_code=404, detail="Leave request not found")
-    
+
     # Check access permissions
     if not check_leave_request_access(user, request):
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     return request.attachments
-
-
-@router.get("/balance/history", response_model=List[LeaveBalanceHistoryResponse])
-async def get_balance_history(
-    user_id: Optional[int] = Query(None, description="Filter by user (admin/HR only)"),
-    leave_type: Optional[LeaveType] = Query(None, description="Filter by leave type"),
-    db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user_required)
-):
-    """Get leave balance change history for audit trail."""
-    query = select(LeaveBalanceHistory).order_by(LeaveBalanceHistory.created_at.desc())
-    
-    # If user_id provided, check permissions
-    if user_id:
-        # Only HR/Admin can view others' history
-        if user.role not in ["hr", "admin"] and user_id != user.id:
-            raise HTTPException(status_code=403, detail="Cannot view other users' balance history")
-        query = query.where(LeaveBalanceHistory.user_id == user_id)
-    else:
-        # Regular users can only see their own
-        if user.role not in ["hr", "admin", "manager"]:
-            query = query.where(LeaveBalanceHistory.user_id == user.id)
-    
-    if leave_type:
-        query = query.where(LeaveBalanceHistory.leave_type == leave_type)
-    
-    result = await db.execute(query.limit(100))
-    return result.scalars().all()
 
 
 @router.post("/carry-forward")
 async def carry_forward_leaves(
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin)
-):
+) -> dict:
     """
     Carry forward unused leaves to next year (Admin only).
     Run this at year end. Max 5 casual days can be carried forward.

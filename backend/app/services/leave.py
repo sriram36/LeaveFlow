@@ -6,9 +6,12 @@ Core business logic for leave operations.
 
 from datetime import date, datetime, timezone
 from typing import Optional, List, Dict, Any
+import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_, func
 from sqlalchemy.orm import selectinload
+
+from app.websockets import manager
 
 from app.models import (
     User, LeaveRequest, LeaveBalance, AuditLog, Attachment,
@@ -81,8 +84,6 @@ class LeaveService:
         await self.db.commit()
         
         # Broadcast the new request
-        from app.websockets import manager
-        import asyncio
         asyncio.create_task(manager.broadcast({
             "type": "NEW_REQUEST",
             "request_id": leave_request.id,
@@ -155,8 +156,6 @@ class LeaveService:
         await self.db.refresh(leave_request)
         
         # Broadcast status update
-        from app.websockets import manager
-        import asyncio
         asyncio.create_task(manager.broadcast({
             "type": "STATUS_UPDATE",
             "request_id": leave_request.id,
@@ -203,8 +202,6 @@ class LeaveService:
         await self.db.refresh(leave_request)
         
         # Broadcast status update
-        from app.websockets import manager
-        import asyncio
         asyncio.create_task(manager.broadcast({
             "type": "STATUS_UPDATE",
             "request_id": leave_request.id,
@@ -259,8 +256,6 @@ class LeaveService:
         await self.db.refresh(leave_request)
         
         # Broadcast status update
-        from app.websockets import manager
-        import asyncio
         asyncio.create_task(manager.broadcast({
             "type": "STATUS_UPDATE",
             "request_id": leave_request.id,
