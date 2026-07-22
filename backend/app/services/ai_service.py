@@ -18,18 +18,24 @@ class AIService:
     """Service for natural language processing with OpenRouter (free models)."""
     
     def __init__(self):
+        self.model = "meta-llama/llama-2-70b-chat:free"
         if settings.openrouter_api_key:
             self.client = OpenAI(
                 base_url="https://openrouter.ai/api/v1",
                 api_key=settings.openrouter_api_key
             )
-            # Use Llama 2 70B (much more intelligent than Mistral 7B)
-            self.model = "meta-llama/llama-2-70b-chat:free"
             logger.info(f"[AI] [OK] Initialized with OpenRouter ({self.model})")
         else:
             self.client = None
             logger.warning("[AI] [WARN] No OpenRouter API key - using fallback mode")
             logger.info("[AI] Get FREE key at: https://openrouter.ai/keys")
+
+    async def _create_chat_completion(self, **kwargs):
+        """Call chat completions and support both sync and async mock clients."""
+        result = self.client.chat.completions.create(**kwargs)
+        if hasattr(result, "__await__"):
+            result = await result
+        return result
     
     async def parse_leave_request(self, user_message: str, user_name: str, conversation_history: list = None) -> Dict[str, Any]:
         """Parse natural language leave request into structured data with conversation context."""
@@ -105,7 +111,7 @@ If information is missing or ambiguous, respond:
 {{"error": "polite, specific question about what's unclear (e.g., 'Which dates do you need leave for?')"}}"""
 
         try:
-            response = self.client.chat.completions.create(
+            response = await self._create_chat_completion(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.2,  # Lower for more accurate extraction
@@ -166,6 +172,83 @@ If information is missing or ambiguous, respond:
                 return {"error": "Too many requests, please wait a moment"}
             
             return {"error": "Could you please provide the leave dates and reason?"}
+
+    async def extract_leave_details(self, user_message: str, user_name: str = "there", conversation_history: list = None) -> Dict[str, Any]:
+        """Backward-compatible alias for parse_leave_request."""
+        return await self.parse_leave_request(user_message, user_name, conversation_history)
+
+    async def parse_leave_intent(self, user_message: str, conversation_history: list = None) -> str:
+        """Backward-compatible intent parser used by older tests and callers."""
+        if not self.client:
+            message_lower = user_message.lower()
+            if any(keyword in message_lower for keyword in ["balance", "how many", "remaining"]):
+                return "balance"
+            if any(keyword in message_lower for keyword in ["cancel", "withdraw"]):
+                return "cancel"
+            if any(keyword in message_lower for keyword in ["status", "pending", "approved", "rejected"]):
+                return "status"
+            if any(keyword in message_lower for keyword in ["leave", "off", "vacation", "sick", "casual"]):
+                return "leave_request"
+            return "other"
+
+        context_text = ""
+        if conversation_history and len(conversation_history) > 0:
+            context_text = "\n\nRecent conversation:\n"
+            for msg in conversation_history[-5:]:
+                sender = "User" if msg.get('is_from_user') else "Assistant"
+                context_text += f"{sender}: {msg.get('message')}\n"
+
+        prompt = f"""Classify the user's intent for LeaveFlow.
+
+Message: "{user_message}"{context_text}
+
+Return ONLY a JSON object in this exact format:
+{{"intent": "balance"}}
+
+Possible values:
+- balance
+- leave_request
+- status
+- cancel
+- other
+"""
+
+        response = await self._create_chat_completion(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0,
+            max_tokens=50,
+            timeout=10.0,
+        )
+        text = response.choices[0].message.content.strip()
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0].strip()
+
+        result = json.loads(text)
+        return result.get("intent", "other")
+
+    async def generate_response(self, user_message: str, context: Optional[Dict[str, Any]] = None) -> str:
+        """Backward-compatible response generator used by older tests and callers."""
+        if not self.client:
+            return user_message
+
+        prompt = f"""You are a helpful LeaveFlow assistant.
+
+User message: {user_message}
+Context: {json.dumps(context or {}, default=str)}
+
+Return only the reply message."""
+
+        response = await self._create_chat_completion(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.4,
+            max_tokens=150,
+            timeout=10.0,
+        )
+        return response.choices[0].message.content.strip()
     
     async def generate_natural_response(
         self, 
@@ -250,7 +333,7 @@ Be friendly, helpful, professional. Keep it concise (under 100 words).
 Generate ONLY the message:"""
 
         try:
-            response = self.client.chat.completions.create(
+            response = await self._create_chat_completion(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,  # Balanced creativity
@@ -349,7 +432,7 @@ Consider these as NOT leave-related:
 Be strict: only classify as leave-related if there's clear intent about leave management."""
         
         try:
-            response = self.client.chat.completions.create(
+            response = await self._create_chat_completion(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,  # Low temperature for consistent classification

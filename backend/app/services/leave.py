@@ -180,6 +180,14 @@ class LeaveService:
             )
         
         return leave_request
+
+    async def approve_leave_request(
+        self,
+        request_id: int,
+        approver_id: int
+    ) -> LeaveRequest:
+        """Backward-compatible alias for approve_leave."""
+        return await self.approve_leave(request_id, approver_id)
     
     async def reject_leave(
         self,
@@ -226,6 +234,15 @@ class LeaveService:
             )
         
         return leave_request
+
+    async def reject_leave_request(
+        self,
+        request_id: int,
+        approver_id: int,
+        reason: Optional[str] = None
+    ) -> LeaveRequest:
+        """Backward-compatible alias for reject_leave."""
+        return await self.reject_leave(request_id, approver_id, reason)
     
     async def cancel_leave(
         self,
