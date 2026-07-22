@@ -83,7 +83,7 @@ class LeaveValidator:
         balance = await self._get_balance(user_id, leave_type)
         if balance < working_days:
             raise LeaveValidationError(
-                f"Insufficient {leave_type.value} leave balance. Available: {balance}, Required: {working_days}",
+                f"Insufficient balance for {leave_type.value} leave. Available: {balance}, Required: {working_days}",
                 "INSUFFICIENT_BALANCE"
             )
         
@@ -175,13 +175,16 @@ class LeaveValidator:
         balance = result.scalar_one_or_none()
         
         if not balance:
-            # Create default balance
+            # Create balance from user seed values when available, otherwise defaults
+            casual = getattr(user, "casual_leave_balance", 12.0) if user else 12.0
+            sick = getattr(user, "sick_leave_balance", 12.0) if user else 12.0
+            special = getattr(user, "special_leave_balance", 5.0) if user else 5.0
             balance = LeaveBalance(
                 user_id=user_id,
                 year=date.today().year,
-                casual=12.0,
-                sick=12.0,
-                special=5.0
+                casual=casual,
+                sick=sick,
+                special=special
             )
             self.db.add(balance)
             await self.db.commit()

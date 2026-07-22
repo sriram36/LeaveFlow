@@ -69,6 +69,10 @@ class LeaveService:
             leave_type=l_type,
             is_half_day=is_half_day
         )
+
+        # Reserve the balance immediately so pending requests reflect reduced availability.
+        if not await deduct_balance(self.db, user_id, l_type, days):
+            raise LeaveValidationError("Insufficient balance", "INSUFFICIENT_BALANCE")
         
         # Create the request
         leave_request = LeaveRequest(
@@ -148,14 +152,6 @@ class LeaveService:
         leave_request.approved_by = approver_id
         leave_request.approved_at = datetime.now(timezone.utc)
         
-        # Deduct balance
-        await deduct_balance(
-            self.db,
-            leave_request.user_id,
-            leave_request.leave_type,
-            leave_request.days
-        )
-        
         # Log the action before commit
         await self._log_action(request_id, "approved", approver_id)
         
@@ -210,6 +206,14 @@ class LeaveService:
         leave_request.approved_at = datetime.now(timezone.utc)
         leave_request.rejection_reason = reason
         
+        # Refund the reserved balance now that the request is rejected.
+        await refund_balance(
+            self.db,
+            leave_request.user_id,
+            leave_request.leave_type,
+            leave_request.days
+        )
+
         # Log the action before commit
         await self._log_action(request_id, "rejected", approver_id, reason)
         
