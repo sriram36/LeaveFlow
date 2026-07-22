@@ -35,7 +35,7 @@ Login and get access token.
 ```bash
 curl -X POST http://localhost:8000/auth/login \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=admin@leaveflow.com&password=admin123"
+  -d "username=testadmin@example.com&password=your_secure_password"
 ```
 
 **Response:**

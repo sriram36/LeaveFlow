@@ -8,11 +8,11 @@ Scheduler for automated tasks
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy import select, and_
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date
 
 from app.database import async_session_maker
 from app.models import LeaveRequest, User, LeaveStatus, UserRole
-from app.services.whatsapp import WhatsAppService, format_daily_summary
+from app.services.whatsapp import WhatsAppService, get_whatsapp_service, format_daily_summary
 from app.config import get_settings
 
 settings = get_settings()
@@ -21,7 +21,7 @@ scheduler = AsyncIOScheduler()
 
 async def send_daily_summary():
     """Send daily leave summary to managers at 8 AM."""
-    whatsapp = WhatsAppService()
+    whatsapp = get_whatsapp_service()
     async with async_session_maker() as db:
         # Get managers
         result = await db.execute(
@@ -30,7 +30,6 @@ async def send_daily_summary():
         managers = result.scalars().all()
         
         # Get today's leaves
-        from datetime import date
         today = date.today()
         
         result = await db.execute(
@@ -62,7 +61,8 @@ async def send_daily_summary():
 
 
 async def check_escalations():
-    """Check for pending requests that need escalation."""
+    """Escalate leave requests pending for > 24 hours."""
+    whatsapp = get_whatsapp_service()
     async with async_session_maker() as db:
         # Get requests pending for more than X hours
         threshold = datetime.now(timezone.utc) - timedelta(hours=settings.escalation_hours)
