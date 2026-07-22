@@ -52,6 +52,14 @@ class Settings(BaseSettings):
             self.whatsapp_token = self.whatsapp_token.strip().strip('\'"')
         if getattr(self, "whatsapp_phone_number_id", None):
             self.whatsapp_phone_number_id = self.whatsapp_phone_number_id.strip().strip('\'"')
+        if getattr(self, "whatsapp_app_secret", None):
+            self.whatsapp_app_secret = self.whatsapp_app_secret.strip().strip('\'"')
+            
+        # Security checks
+        env = os.getenv("ENV", os.getenv("NODE_ENV", "development")).lower()
+        if self.secret_key == "your-secret-key-change-in-production" and env == "production":
+            print("[CRITICAL] SECRET_KEY is set to the default value in production!")
+            raise ValueError("Insecure default SECRET_KEY in production")
     
     # JWT Auth
     secret_key: str = "your-secret-key-change-in-production"
@@ -62,6 +70,7 @@ class Settings(BaseSettings):
     whatsapp_token: str = ""
     whatsapp_phone_number_id: str = ""
     whatsapp_verify_token: str = ""
+    whatsapp_app_secret: str = ""
     
     # Storage (optional)
     supabase_url: str = ""

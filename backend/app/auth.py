@@ -20,7 +20,7 @@ settings = get_settings()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/auth/login",
-    auto_error=True
+    auto_error=False
 )
 
 
@@ -64,8 +64,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
 
+from fastapi import Request
+
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    request: Request,
+    token: Optional[str] = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """Get the current authenticated user."""
@@ -74,6 +77,13 @@ async def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
+    cookie_token = request.cookies.get("access_token")
+    if cookie_token:
+        token = cookie_token
+
+    if not token:
+        raise credentials_exception
     
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])

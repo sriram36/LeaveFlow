@@ -110,6 +110,27 @@ async def handle_webhook(
     db: AsyncSession = Depends(get_db)
 ):
     """Handle incoming WhatsApp messages."""
+    
+    # Verify signature if app secret is configured
+    if settings.whatsapp_app_secret:
+        signature = request.headers.get("X-Hub-Signature-256", "")
+        if not signature.startswith("sha256="):
+            print("[Webhook] Missing or invalid signature format")
+            raise HTTPException(status_code=403, detail="Invalid signature")
+            
+        raw_body = await request.body()
+        import hmac
+        import hashlib
+        expected_signature = hmac.new(
+            settings.whatsapp_app_secret.encode("utf-8"),
+            raw_body,
+            hashlib.sha256
+        ).hexdigest()
+        
+        if not hmac.compare_digest(f"sha256={expected_signature}", signature):
+            print("[Webhook] Signature mismatch")
+            raise HTTPException(status_code=403, detail="Invalid signature")
+
     try:
         body = await request.json()
     except Exception:
