@@ -29,9 +29,12 @@ async def engine():
 
 @pytest.fixture
 async def db_session(engine) -> AsyncGenerator[AsyncSession, None]:
-    async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-    async with async_session() as session:
-        yield session
+    async with engine.connect() as connection:
+        transaction = await connection.begin()
+        async_session = async_sessionmaker(bind=connection, class_=AsyncSession, expire_on_commit=False)
+        async with async_session() as session:
+            yield session
+        await transaction.rollback()
 
 @pytest.fixture
 def client(db_session: AsyncSession):

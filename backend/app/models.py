@@ -1,5 +1,3 @@
-from datetime import date
-
 from sqlalchemy import Column, Integer, String, Date, DateTime, Text, ForeignKey, Enum as SQLEnum, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -48,6 +46,9 @@ class User(Base):
     email = Column(String(100), unique=True, nullable=True)
     password_hash = Column(String(255), nullable=True)  # For dashboard login
     role = Column(SQLEnum(UserRole), default=UserRole.worker, nullable=False)
+    casual_leave_balance = Column(Float, default=12.0)
+    sick_leave_balance = Column(Float, default=12.0)
+    special_leave_balance = Column(Float, default=5.0)
     manager_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     account_status = Column(SQLEnum(AccountStatus), default=AccountStatus.active, nullable=False)
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # Admin who approved
@@ -60,40 +61,6 @@ class User(Base):
     leave_balance = relationship("LeaveBalance", back_populates="user", uselist=False)
     manager = relationship("User", remote_side=[id], foreign_keys=[manager_id], backref="team_members")
     approver = relationship("User", remote_side=[id], foreign_keys=[approved_by])
-
-    def _ensure_leave_balance(self):
-        if self.leave_balance is None:
-            self.leave_balance = LeaveBalance(
-                casual=12.0,
-                sick=12.0,
-                special=5.0,
-                year=date.today().year,
-            )
-        return self.leave_balance
-
-    @property
-    def casual_leave_balance(self):
-        return self._ensure_leave_balance().casual
-
-    @casual_leave_balance.setter
-    def casual_leave_balance(self, value):
-        self._ensure_leave_balance().casual = value
-
-    @property
-    def sick_leave_balance(self):
-        return self._ensure_leave_balance().sick
-
-    @sick_leave_balance.setter
-    def sick_leave_balance(self, value):
-        self._ensure_leave_balance().sick = value
-
-    @property
-    def special_leave_balance(self):
-        return self._ensure_leave_balance().special
-
-    @special_leave_balance.setter
-    def special_leave_balance(self, value):
-        self._ensure_leave_balance().special = value
 
 
 class LeaveRequest(Base):

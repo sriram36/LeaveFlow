@@ -13,7 +13,7 @@ from datetime import date, timedelta
 from typing import List, Optional, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_
-from app.models import LeaveRequest, LeaveBalance, Holiday, LeaveStatus, LeaveType, DurationType
+from app.models import LeaveRequest, LeaveBalance, Holiday, LeaveStatus, LeaveType, DurationType, User
 
 
 class LeaveValidationError(Exception):
@@ -166,6 +166,9 @@ class LeaveValidator:
     
     async def _get_balance(self, user_id: int, leave_type: LeaveType) -> float:
         """Get user's leave balance for the given type."""
+        user_result = await self.db.execute(select(User).where(User.id == user_id))
+        user = user_result.scalar_one_or_none()
+
         result = await self.db.execute(
             select(LeaveBalance).where(LeaveBalance.user_id == user_id)
         )
@@ -183,12 +186,21 @@ class LeaveValidator:
             self.db.add(balance)
             await self.db.commit()
             await self.db.refresh(balance)
+
+        if user:
+            user.casual_leave_balance = balance.casual
+            user.sick_leave_balance = balance.sick
+            user.special_leave_balance = balance.special
+            await self.db.commit()
         
         return getattr(balance, leave_type.value)
 
 
 async def deduct_balance(db: AsyncSession, user_id: int, leave_type: LeaveType, days: float) -> bool:
     """Deduct leave balance after approval."""
+    user_result = await db.execute(select(User).where(User.id == user_id))
+    user = user_result.scalar_one_or_none()
+
     result = await db.execute(
         select(LeaveBalance).where(LeaveBalance.user_id == user_id)
     )
@@ -202,12 +214,17 @@ async def deduct_balance(db: AsyncSession, user_id: int, leave_type: LeaveType, 
         return False
     
     setattr(balance, leave_type.value, current - days)
+    if user:
+        setattr(user, f"{leave_type.value}_leave_balance", current - days)
     await db.commit()
     return True
 
 
 async def refund_balance(db: AsyncSession, user_id: int, leave_type: LeaveType, days: float) -> bool:
     """Refund leave balance after cancellation or rejection."""
+    user_result = await db.execute(select(User).where(User.id == user_id))
+    user = user_result.scalar_one_or_none()
+
     result = await db.execute(
         select(LeaveBalance).where(LeaveBalance.user_id == user_id)
     )
@@ -218,5 +235,7 @@ async def refund_balance(db: AsyncSession, user_id: int, leave_type: LeaveType, 
     
     current = getattr(balance, leave_type.value)
     setattr(balance, leave_type.value, current + days)
+    if user:
+        setattr(user, f"{leave_type.value}_leave_balance", current + days)
     await db.commit()
     return True
