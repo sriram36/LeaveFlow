@@ -99,7 +99,9 @@ class ApiClient {
         }
 
         const error = await response.json().catch(() => ({ 
-          detail: response.status === 403 
+          detail: response.status === 429
+            ? 'Too many requests. Please slow down and try again later.'
+            : response.status === 403 
             ? 'You do not have permission to access this resource' 
             : response.status === 404
             ? 'Resource not found'
