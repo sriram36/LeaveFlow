@@ -109,9 +109,9 @@ async def test_validate_success():
 @pytest.mark.asyncio
 async def test_deduct_balance():
     db = AsyncMock()
-    user_mock = AsyncMock()
+    user_mock = MagicMock()
     user_mock.scalar_one_or_none.return_value = User(id=1, casual_leave_balance=10.0)
-    balance_mock = AsyncMock()
+    balance_mock = MagicMock()
     balance = LeaveBalance(user_id=1, casual=10.0)
     balance_mock.scalar_one_or_none.return_value = balance
     
