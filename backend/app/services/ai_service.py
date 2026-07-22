@@ -1,3 +1,4 @@
+from app.logging_config import logger
 """
 AI Service for Natural Language Processing
 
@@ -24,11 +25,11 @@ class AIService:
             )
             # Use Llama 2 70B (much more intelligent than Mistral 7B)
             self.model = "meta-llama/llama-2-70b-chat:free"
-            print(f"[AI] [OK] Initialized with OpenRouter ({self.model})")
+            logger.info(f"[AI] [OK] Initialized with OpenRouter ({self.model})")
         else:
             self.client = None
-            print("[AI] [WARN] No OpenRouter API key - using fallback mode")
-            print("[AI] Get FREE key at: https://openrouter.ai/keys")
+            logger.warning("[AI] [WARN] No OpenRouter API key - using fallback mode")
+            logger.info("[AI] Get FREE key at: https://openrouter.ai/keys")
     
     async def parse_leave_request(self, user_message: str, user_name: str, conversation_history: list = None) -> Dict[str, Any]:
         """Parse natural language leave request into structured data with conversation context."""
@@ -116,7 +117,7 @@ If information is missing or ambiguous, respond:
             
             # Handle empty response
             if not text or text.isspace():
-                print("[AI] Empty response from API")
+                logger.info("[AI] Empty response from API")
                 return {"error": "Could you be more specific about your leave dates and reason?"}
             
             # Remove HTML tags (like <s>, <div>, etc.)
@@ -134,7 +135,7 @@ If information is missing or ambiguous, respond:
             text = text.strip().strip('`').strip()
             
             if not text:
-                print("[AI] No valid JSON after cleanup")
+                logger.info("[AI] No valid JSON after cleanup")
                 return {"error": "Could you be more specific about your leave dates and reason?"}
             
             result = json.loads(text)
@@ -149,19 +150,19 @@ If information is missing or ambiguous, respond:
             return result
         
         except json.JSONDecodeError as e:
-            print(f"[AI] JSON parse error: {e}")
-            print(f"[AI] Raw response: {text[:200] if 'text' in locals() else 'N/A'}")
+            logger.error(f"[AI] JSON parse error: {e}")
+            logger.info(f"[AI] Raw response: {text[:200] if 'text' in locals() else 'N/A'}")
             return {"error": "Could you rephrase your leave request? For example: 'I need leave from Dec 15-17' or 'Tomorrow off for personal reasons'"}
         except Exception as e:
             error_msg = str(e)
-            print(f"[AI] Error parsing: {error_msg}")
+            logger.error(f"[AI] Error parsing: {error_msg}")
             
             # Check if it's an auth error
             if "401" in error_msg or "authentication" in error_msg.lower():
-                print("[AI] ❌ Invalid API key - get one at https://openrouter.ai/keys")
+                logger.info("[AI] ❌ Invalid API key - get one at https://openrouter.ai/keys")
                 return {"error": "AI service authentication failed"}
             elif "429" in error_msg or "rate" in error_msg.lower():
-                print("[AI] ⚠️ Rate limit - please try again in a moment")
+                logger.info("[AI] ⚠️ Rate limit - please try again in a moment")
                 return {"error": "Too many requests, please wait a moment"}
             
             return {"error": "Could you please provide the leave dates and reason?"}
@@ -272,7 +273,7 @@ Generate ONLY the message:"""
             return msg or self._fallback_response(action, details)
             
         except Exception as e:
-            print(f"[AI] Error generating response: {e}")
+            logger.error(f"[AI] Error generating response: {e}")
             return self._fallback_response(action, details)
     
     def _fallback_response(self, action: str, details: Dict[str, Any]) -> str:
@@ -368,7 +369,7 @@ Be strict: only classify as leave-related if there's clear intent about leave ma
             return result
             
         except Exception as e:
-            print(f"[AI] Error classifying message intent: {e}")
+            logger.error(f"[AI] Error classifying message intent: {e}")
             # Fallback to keyword check
             leave_keywords = [
                 "leave", "vacation", "holiday", "off", "absent", "sick", "casual", "annual",

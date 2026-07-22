@@ -1,3 +1,4 @@
+from app.logging_config import logger
 """
 WhatsApp Webhook Routes
 
@@ -34,15 +35,17 @@ def normalize_token(value: str | None) -> str:
 
 def debug_print_query(params: dict):
     try:
-        print(f"[Webhook Debug] Query params: {params}")
+        logger.info(f"[Webhook Debug] Query params: {params}")
     except Exception:
         pass
 
+from app.limiter import limiter
 settings = get_settings()
 router = APIRouter(prefix="/webhook", tags=["WhatsApp Webhook"])
 
 
 @router.get("/whatsapp")
+@limiter.limit("20/second")
 async def verify_webhook(
     request: Request,
     hub_mode: str = Query(..., alias="hub.mode", description="Verification mode, must be 'subscribe'"),
@@ -67,24 +70,24 @@ async def verify_webhook(
     
     # Debug logging
     debug_print_query(dict(params))
-    print(f"[Webhook Verify] Client: {request.client}")
+    logger.info(f"[Webhook Verify] Client: {request.client}")
 
     received_token = normalize_token(token)
     expected_token = normalize_token(settings.whatsapp_verify_token)
-    print(f"[Webhook Verify] Mode: {mode}, Token match: {received_token == expected_token}")
-    print(f"[Webhook Verify] Received token: {received_token!r}, Expected: {expected_token!r}")
+    logger.info(f"[Webhook Verify] Mode: {mode}, Token match: {received_token == expected_token}")
+    logger.info(f"[Webhook Verify] Received token: {received_token!r}, Expected: {expected_token!r}")
     
     if mode == "subscribe" and received_token and received_token == expected_token:
-        print(f"[Webhook Verify] ✓ Verification successful")
+        logger.info(f"[Webhook Verify] ✓ Verification successful")
         return Response(content=challenge, media_type="text/plain")
     
     # Detailed failure reasons for debugging
     if mode != "subscribe":
-        print(f"[Webhook Verify] ✗ Verification failed: wrong mode ({mode})")
+        logger.error(f"[Webhook Verify] ✗ Verification failed: wrong mode ({mode})")
     elif not expected_token:
-        print(f"[Webhook Verify] ✗ Verification failed: server verify token not configured")
+        logger.error(f"[Webhook Verify] ✗ Verification failed: server verify token not configured")
     else:
-        print(f"[Webhook Verify] ✗ Verification failed: token mismatch")
+        logger.error(f"[Webhook Verify] ✗ Verification failed: token mismatch")
 
     raise HTTPException(status_code=403, detail="Verification failed")
 
@@ -105,9 +108,11 @@ async def inspect_whatsapp_verify_token():
 
 
 @router.post("/whatsapp")
+@limiter.limit("20/second")
 async def handle_webhook(
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    whatsapp: WhatsAppService = Depends(get_whatsapp_service)
 ):
     """Handle incoming WhatsApp messages."""
     
@@ -115,7 +120,7 @@ async def handle_webhook(
     if settings.whatsapp_app_secret:
         signature = request.headers.get("X-Hub-Signature-256", "")
         if not signature.startswith("sha256="):
-            print("[Webhook] Missing or invalid signature format")
+            logger.info("[Webhook] Missing or invalid signature format")
             raise HTTPException(status_code=403, detail="Invalid signature")
             
         raw_body = await request.body()
@@ -128,7 +133,7 @@ async def handle_webhook(
         ).hexdigest()
         
         if not hmac.compare_digest(f"sha256={expected_signature}", signature):
-            print("[Webhook] Signature mismatch")
+            logger.info("[Webhook] Signature mismatch")
             raise HTTPException(status_code=403, detail="Invalid signature")
 
     try:
@@ -148,7 +153,7 @@ async def handle_webhook(
         for status in statuses:
             status_type = status.get("status")
             if status_type == "read":
-                print(f"[WhatsApp] Message {status.get('id')} marked as read")
+                logger.info(f"[WhatsApp] Message {status.get('id')} marked as read")
         return {"status": "ok"}
     
     if not messages:
@@ -209,11 +214,11 @@ async def handle_webhook(
         await db.commit()
         await db.refresh(user)
         
-        print(f"[Webhook] 👤 New user registered: {user.name} ({user.phone})")
+        logger.info(f"[Webhook] 👤 New user registered: {user.name} ({user.phone})")
         if default_manager:
-            print(f"[Webhook] 👔 Assigned manager: {default_manager.name}")
+            logger.info(f"[Webhook] 👔 Assigned manager: {default_manager.name}")
         else:
-            print(f"[Webhook] ⚠️ No manager available to assign!")
+            logger.info(f"[Webhook] ⚠️ No manager available to assign!")
         
         await whatsapp.send_text(
             from_phone,
@@ -232,23 +237,23 @@ async def handle_webhook(
     # Handle text messages
     if message_type == "text":
         text = message.get("text", {}).get("body", "")
-        await process_text_message(db, user, text)
+        await process_text_message(db, user, text, whatsapp)
     
     # Handle interactive responses (button clicks)
     elif message_type == "interactive":
         interactive = message.get("interactive", {})
         button_reply = interactive.get("button_reply", {})
         button_id = button_reply.get("id", "")
-        await process_text_message(db, user, button_id)
+        await process_text_message(db, user, button_id, whatsapp)
     
     # Handle image/document uploads
     elif message_type in ["image", "document", "video", "audio"]:
-        await handle_media_message(db, user, message, message_type)
+        await handle_media_message(db, user, message, message_type, whatsapp)
     
     return {"status": "ok"}
 
 
-async def process_text_message(db: AsyncSession, user: User, text: str):
+async def process_text_message(db: AsyncSession, user: User, text: str, whatsapp: WhatsAppService):
     """Process a text message from a user."""
     
     # Load conversation history (last 10 messages)
@@ -331,35 +336,35 @@ async def process_text_message(db: AsyncSession, user: User, text: str):
     try:
         # First try command-based parsing
         if parsed.command_type == CommandType.LEAVE:
-            response_text = await handle_leave_command(service, user, parsed, conversation_history)
+            response_text = await handle_leave_command(service, user, parsed, conversation_history, whatsapp)
         
         elif parsed.command_type == CommandType.HALF_LEAVE:
-            response_text = await handle_leave_command(service, user, parsed, conversation_history)
+            response_text = await handle_leave_command(service, user, parsed, conversation_history, whatsapp)
         
         elif parsed.command_type == CommandType.BALANCE:
-            response_text = await handle_balance_command(service, user, conversation_history)
+            response_text = await handle_balance_command(service, user, conversation_history, whatsapp)
         
         elif parsed.command_type == CommandType.STATUS:
-            response_text = await handle_status_command(service, user, parsed.request_id, conversation_history)
+            response_text = await handle_status_command(service, user, parsed.request_id, conversation_history, whatsapp)
         
         elif parsed.command_type == CommandType.CANCEL:
-            response_text = await handle_cancel_command(service, user, parsed.request_id, conversation_history)
+            response_text = await handle_cancel_command(service, user, parsed.request_id, conversation_history, whatsapp)
         
         elif parsed.command_type == CommandType.APPROVE:
-            response_text = await handle_approve_command(service, user, parsed.request_id, conversation_history)
+            response_text = await handle_approve_command(service, user, parsed.request_id, conversation_history, whatsapp)
         
         elif parsed.command_type == CommandType.REJECT:
-            response_text = await handle_reject_command(service, user, parsed.request_id, parsed.reason, conversation_history)
+            response_text = await handle_reject_command(service, user, parsed.request_id, parsed.reason, conversation_history, whatsapp)
         
         elif parsed.command_type == CommandType.PENDING:
-            response_text = await handle_pending_command(service, user, conversation_history)
+            response_text = await handle_pending_command(service, user, conversation_history, whatsapp)
         
         elif parsed.command_type == CommandType.TEAM_TODAY:
-            response_text = await handle_team_today_command(service, user, conversation_history)
+            response_text = await handle_team_today_command(service, user, conversation_history, whatsapp)
         
         else:
             # Try natural language processing with LLM
-            response_text = await handle_natural_language_request(db, user, text, conversation_history)
+            response_text = await handle_natural_language_request(db, user, text, conversation_history, whatsapp)
         
         # Save bot response to conversation history (if response was sent)
         if response_text:
@@ -388,8 +393,8 @@ async def process_text_message(db: AsyncSession, user: User, text: str):
     
     except Exception as e:
         import traceback
-        print(f"Error processing message: {e}")
-        print(traceback.format_exc())
+        logger.error(f"Error processing message: {e}")
+        logger.info(traceback.format_exc())
         
         # Generate error response using LLM for professional tone
         response_text = await ai_service.generate_natural_response(
@@ -412,7 +417,7 @@ async def process_text_message(db: AsyncSession, user: User, text: str):
         await db.commit()
 
 
-async def handle_natural_language_request(db: AsyncSession, user: User, text: str, conversation_history: list = None):
+async def handle_natural_language_request(db: AsyncSession, user: User, text: str, conversation_history: list = None, whatsapp: WhatsAppService):
     """Handle natural language leave requests using AI."""
     # Parse with AI service (now with conversation context)
     parsed_data = await ai_service.parse_leave_request(text, user.name, conversation_history)
@@ -475,7 +480,7 @@ async def handle_natural_language_request(db: AsyncSession, user: User, text: st
         return error_response
 
 
-async def handle_leave_command(service: LeaveService, user: User, parsed, conversation_history: list = None):
+async def handle_leave_command(service: LeaveService, user: User, parsed, conversation_history: list = None, whatsapp: WhatsAppService):
     """Handle leave application command."""
     if parsed.error:
         error_msg = f"❌ {parsed.error}"
@@ -541,7 +546,7 @@ async def handle_leave_command(service: LeaveService, user: User, parsed, conver
     return response
 
 
-async def handle_balance_command(service: LeaveService, user: User, conversation_history: list = None):
+async def handle_balance_command(service: LeaveService, user: User, conversation_history: list = None, whatsapp: WhatsAppService):
     """Handle balance check command."""
     balance = await service.get_balance(user.id)
     
@@ -560,7 +565,7 @@ async def handle_balance_command(service: LeaveService, user: User, conversation
     return response
 
 
-async def handle_status_command(service: LeaveService, user: User, request_id: Optional[int], conversation_history: list = None):
+async def handle_status_command(service: LeaveService, user: User, request_id: Optional[int], conversation_history: list = None, whatsapp: WhatsAppService):
     """Handle status check command."""
     if not request_id:
         error_msg = await ai_service.generate_natural_response(
@@ -614,7 +619,7 @@ async def handle_status_command(service: LeaveService, user: User, request_id: O
     return response
 
 
-async def handle_cancel_command(service: LeaveService, user: User, request_id: Optional[int], conversation_history: list = None):
+async def handle_cancel_command(service: LeaveService, user: User, request_id: Optional[int], conversation_history: list = None, whatsapp: WhatsAppService):
     """Handle cancel command."""
     if not request_id:
         error_msg = await ai_service.generate_natural_response(
@@ -639,7 +644,7 @@ async def handle_cancel_command(service: LeaveService, user: User, request_id: O
     return response
 
 
-async def handle_approve_command(service: LeaveService, user: User, request_id: Optional[int], conversation_history: list = None):
+async def handle_approve_command(service: LeaveService, user: User, request_id: Optional[int], conversation_history: list = None, whatsapp: WhatsAppService):
     """Handle approve command (managers only)."""
     # Verify user is a manager, HR, or admin
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
@@ -679,7 +684,7 @@ async def handle_approve_command(service: LeaveService, user: User, request_id: 
     return response
 
 
-async def handle_reject_command(service: LeaveService, user: User, request_id: Optional[int], reason: Optional[str], conversation_history: list = None):
+async def handle_reject_command(service: LeaveService, user: User, request_id: Optional[int], reason: Optional[str], conversation_history: list = None, whatsapp: WhatsAppService):
     """Handle reject command (managers only)."""
     # Verify user is a manager, HR, or admin
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
@@ -719,7 +724,7 @@ async def handle_reject_command(service: LeaveService, user: User, request_id: O
     return response
 
 
-async def handle_pending_command(service: LeaveService, user: User, conversation_history: list = None):
+async def handle_pending_command(service: LeaveService, user: User, conversation_history: list = None, whatsapp: WhatsAppService):
     """Handle pending list command (managers only)."""
     # Verify user is a manager, HR, or admin
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
@@ -756,7 +761,7 @@ async def handle_pending_command(service: LeaveService, user: User, conversation
     return response
 
 
-async def handle_team_today_command(service: LeaveService, user: User, conversation_history: list = None):
+async def handle_team_today_command(service: LeaveService, user: User, conversation_history: list = None, whatsapp: WhatsAppService):
     """Handle team today command."""
     leaves = await service.get_today_leaves()
     
@@ -776,7 +781,7 @@ async def handle_team_today_command(service: LeaveService, user: User, conversat
     return response
 
 
-async def handle_media_message(db: AsyncSession, user: User, message: dict, media_type: str):
+async def handle_media_message(db: AsyncSession, user: User, message: dict, media_type: str, whatsapp: WhatsAppService):
     """Handle media attachments (image, document, video, audio)."""
     from app.models import Attachment, LeaveRequest
     
@@ -898,7 +903,7 @@ async def check_leave_related(text: str, conversation_history: list = None) -> b
         result = await ai_service.classify_message_intent(text, conversation_history or [])
         return result.get("is_leave_related", False)
     except Exception as e:
-        print(f"Error checking leave relatedness: {e}")
+        logger.error(f"Error checking leave relatedness: {e}")
         # Fallback: assume it's leave-related if we can't determine
         return True
 

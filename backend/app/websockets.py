@@ -1,3 +1,4 @@
+from app.logging_config import logger
 from fastapi import WebSocket
 from typing import List
 import json
@@ -21,7 +22,7 @@ class ConnectionManager:
             try:
                 await connection.send_text(payload)
             except Exception as e:
-                print(f"[WebSocket] Error broadcasting: {e}")
+                logger.error(f"[WebSocket] Error broadcasting: {e}")
                 dead_connections.append(connection)
         
         for dead in dead_connections:

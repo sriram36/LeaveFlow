@@ -1,3 +1,4 @@
+from app.logging_config import logger
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
@@ -12,8 +13,8 @@ engine = None
 async_session_maker = None
 
 if not settings.database_url or settings.database_url.strip() == "":
-    print("[WARN] DATABASE_URL is not configured!")
-    print("[WARN] Database features will not be available.")
+    logger.warning("[WARN] DATABASE_URL is not configured!")
+    logger.warning("[WARN] Database features will not be available.")
 else:
     # Normalize database URL for cloud compatibility
     url = settings.database_url.strip()
@@ -45,13 +46,13 @@ else:
         ssl_context = ssl.create_default_context()
         ssl_context.check_hostname = True
         connect_args["ssl"] = ssl_context
-        print(f"[Database] Cloud database detected: {parsed.hostname}")
+        logger.info(f"[Database] Cloud database detected: {parsed.hostname}")
     else:
         # Local database - no SSL
         connect_args["ssl"] = False
-        print(f"[Database] Local database detected: {parsed.hostname}")
+        logger.info(f"[Database] Local database detected: {parsed.hostname}")
 
-    print(f"[Database] URL configured successfully")
+    logger.info(f"[Database] URL configured successfully")
 
     engine = create_async_engine(
         url,
@@ -80,7 +81,7 @@ async def get_db():
 
 async def init_db():
     if not engine:
-        print("[WARN] Cannot initialize database - no engine configured")
+        logger.warning("[WARN] Cannot initialize database - no engine configured")
         return
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

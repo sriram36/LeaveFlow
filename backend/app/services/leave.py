@@ -1,3 +1,4 @@
+from app.logging_config import logger
 """
 Leave Service
 
@@ -19,17 +20,23 @@ from app.models import (
 )
 from app.services.validator import LeaveValidator, LeaveValidationError, deduct_balance, refund_balance
 from app.services.whatsapp import (
-    whatsapp, format_leave_request_notification, format_leave_confirmation,
-    format_approval_notification, format_rejection_notification,
-    format_cancellation_confirmation, format_balance_message, format_status_message
+    format_leave_request_notification,
+    format_leave_confirmation,
+    format_approval_notification,
+    format_rejection_notification,
+    format_cancellation_confirmation,
+    WhatsAppService,
+    format_balance_message,
+    format_status_message
 )
 
 
 class LeaveService:
     """Service for managing leave requests."""
     
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: AsyncSession, whatsapp_service: Optional[WhatsAppService] = None):
         self.db = db
+        self.whatsapp = whatsapp_service or WhatsAppService()
         self.validator = LeaveValidator(db)
     
     async def create_leave_request(
@@ -108,7 +115,7 @@ class LeaveService:
             
         # Confirm to employee
         if notify_employee and user:
-            await whatsapp.send_text(
+            await self.whatsapp.send_text(
                 user.phone,
                 format_leave_confirmation(
                     request_id=leave_request.id,
@@ -167,7 +174,7 @@ class LeaveService:
         approver = await self._get_user(approver_id)
         
         if user:
-            await whatsapp.send_text(
+            await self.whatsapp.send_text(
                 user.phone,
                 format_approval_notification(request_id, approver.name if approver else "Manager")
             )
@@ -213,7 +220,7 @@ class LeaveService:
         approver = await self._get_user(approver_id)
         
         if user:
-            await whatsapp.send_text(
+            await self.whatsapp.send_text(
                 user.phone,
                 format_rejection_notification(request_id, approver.name if approver else "Manager", reason)
             )
@@ -265,7 +272,7 @@ class LeaveService:
         # Notify employee
         user = await self._get_user(user_id)
         if user:
-            await whatsapp.send_text(user.phone, format_cancellation_confirmation(request_id))
+            await self.whatsapp.send_text(user.phone, format_cancellation_confirmation(request_id))
         
         return leave_request
     
@@ -306,12 +313,12 @@ class LeaveService:
             manager_id: If provided, only return requests from users with this manager.
                        If None, return all pending requests (for HR/Admin).
         """
-        print(f"[LeaveService] get_pending_requests called with manager_id={manager_id}")
+        logger.info(f"[LeaveService] get_pending_requests called with manager_id={manager_id}")
         
         # Build query with proper join order for SQLAlchemy
         if manager_id is not None:
             # For managers: filter by their team members
-            print(f"[LeaveService] Adding manager filter for manager_id={manager_id}")
+            logger.info(f"[LeaveService] Adding manager filter for manager_id={manager_id}")
             query = (
                 select(LeaveRequest)
                 .join(User, LeaveRequest.user_id == User.id)
@@ -325,7 +332,7 @@ class LeaveService:
             )
         else:
             # For HR/Admin: get all pending requests
-            print(f"[LeaveService] No manager filter - returning all pending requests")
+            logger.info(f"[LeaveService] No manager filter - returning all pending requests")
             query = (
                 select(LeaveRequest)
                 .where(LeaveRequest.status == LeaveStatus.pending)
@@ -336,12 +343,12 @@ class LeaveService:
                 )
             )
         
-        print(f"[LeaveService] Executing query...")
+        logger.info(f"[LeaveService] Executing query...")
         result = await self.db.execute(query)
         requests = result.scalars().all()
-        print(f"[LeaveService] Query returned {len(requests)} pending requests")
+        logger.info(f"[LeaveService] Query returned {len(requests)} pending requests")
         for req in requests:
-            print(f"  - LeaveRequest ID: {req.id}, User: {req.user.name if req.user else 'Unknown'}, Status: {req.status}")
+            logger.info(f"  - LeaveRequest ID: {req.id}, User: {req.user.name if req.user else 'Unknown'}, Status: {req.status}")
         
         return requests
     
@@ -441,25 +448,25 @@ class LeaveService:
         try:
             # Check if user has a manager assigned
             if not user:
-                print(f"[LeaveService] [NOTIFY] User is None")
+                logger.info(f"[LeaveService] [NOTIFY] User is None")
                 return
             
             if not user.manager_id:
-                print(f"[LeaveService] [NOTIFY] No manager assigned to user {user.id} ({user.name})")
+                logger.info(f"[LeaveService] [NOTIFY] No manager assigned to user {user.id} ({user.name})")
                 return
             
             # Get manager details
             manager = await self._get_user(user.manager_id)
             if not manager:
-                print(f"[LeaveService] [NOTIFY] Manager {user.manager_id} not found in database")
+                logger.info(f"[LeaveService] [NOTIFY] Manager {user.manager_id} not found in database")
                 return
             
             # Check if manager has valid phone number
             if not manager.phone:
-                print(f"[LeaveService] [NOTIFY] Manager {manager.name} (ID: {manager.id}) has no phone number configured")
+                logger.info(f"[LeaveService] [NOTIFY] Manager {manager.name} (ID: {manager.id}) has no phone number configured")
                 return
             
-            print(f"[LeaveService] [NOTIFY] Preparing notification for manager {manager.name} (Phone: {manager.phone})")
+            logger.info(f"[LeaveService] [NOTIFY] Preparing notification for manager {manager.name} (Phone: {manager.phone})")
             
             # Send notification to manager
             notification_text = format_leave_request_notification(
@@ -472,15 +479,15 @@ class LeaveService:
                 reason=reason
             )
             
-            print(f"[LeaveService] [NOTIFY] Sending WhatsApp notification to manager {manager.phone}")
-            success = await whatsapp.send_text(manager.phone, notification_text)
+            logger.info(f"[LeaveService] [NOTIFY] Sending WhatsApp notification to manager {manager.phone}")
+            success = await self.whatsapp.send_text(manager.phone, notification_text)
             
             if success:
-                print(f"[LeaveService] [NOTIFY] ✓ Notification sent successfully to manager {manager.name}")
+                logger.info(f"[LeaveService] [NOTIFY] ✓ Notification sent successfully to manager {manager.name}")
             else:
-                print(f"[LeaveService] [NOTIFY] ✗ Failed to send notification to manager {manager.name}")
+                logger.error(f"[LeaveService] [NOTIFY] ✗ Failed to send notification to manager {manager.name}")
         except Exception as e:
-            print(f"[LeaveService] [NOTIFY] Exception while notifying manager: {type(e).__name__}: {e}")
+            logger.error(f"[LeaveService] [NOTIFY] Exception while notifying manager: {type(e).__name__}: {e}")
             import traceback
             traceback.print_exc()
 
@@ -504,4 +511,4 @@ class LeaveService:
             # to avoid nested transaction issues and duplicate key errors
         except Exception as e:
             # Log error but don't fail the main operation
-            print(f"[AuditLog] Error preparing audit log: {e}")
+            logger.error(f"[AuditLog] Error preparing audit log: {e}")

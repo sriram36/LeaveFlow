@@ -1,3 +1,4 @@
+from app.logging_config import logger
 """
 Leave API Routes
 """
@@ -47,15 +48,15 @@ async def get_pending_requests(
     
     # HR and Admin see all, managers only see their team's
     if user.role in [UserRole.hr, UserRole.admin]:
-        print(f"[Leave API] {user.role} user {user.name} (ID: {user.id}) requesting all pending requests")
+        logger.info(f"[Leave API] {user.role} user {user.name} (ID: {user.id}) requesting all pending requests")
         requests = await service.get_pending_requests(manager_id=None)  # No filter
     else:
-        print(f"[Leave API] Manager {user.name} (ID: {user.id}) requesting their team's pending requests")
+        logger.info(f"[Leave API] Manager {user.name} (ID: {user.id}) requesting their team's pending requests")
         requests = await service.get_pending_requests(manager_id=user.id)  # Only team members
     
-    print(f"[Leave API] Query executed successfully. Returning {len(requests)} pending requests for {user.name}")
+    logger.info(f"[Leave API] Query executed successfully. Returning {len(requests)} pending requests for {user.name}")
     for req in requests:
-        print(f"  - Request ID: {req.id}, User: {req.user.name if req.user else 'Unknown'}, Status: {req.status}")
+        logger.info(f"  - Request ID: {req.id}, User: {req.user.name if req.user else 'Unknown'}, Status: {req.status}")
     
     return requests
 

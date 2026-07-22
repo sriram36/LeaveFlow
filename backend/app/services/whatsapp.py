@@ -1,3 +1,4 @@
+from app.logging_config import logger
 """
 WhatsApp API Service
 
@@ -36,7 +37,7 @@ class WhatsAppService:
     async def send_typing_indicator(self, to: str) -> bool:
         """Send typing indicator (shows '...' in WhatsApp)."""
         if not self.token or not self.phone_id:
-            print(f"[WhatsApp] Would send typing indicator to {to}")
+            logger.info(f"[WhatsApp] Would send typing indicator to {to}")
             return True
         
         url = f"{self.BASE_URL}/{self.phone_id}/messages"
@@ -51,16 +52,16 @@ class WhatsAppService:
             try:
                 response = await client.post(url, json=payload, headers=self.headers, timeout=WHATSAPP_TYPING_TIMEOUT)
                 response.raise_for_status()
-                print(f"[WhatsApp] Typing indicator sent to {to}")
+                logger.info(f"[WhatsApp] Typing indicator sent to {to}")
                 return True
             except Exception as e:
-                print(f"[WhatsApp] Error sending typing indicator: {e}")
+                logger.error(f"[WhatsApp] Error sending typing indicator: {e}")
                 return False
     
     async def send_read_receipt(self, message_id: str) -> bool:
         """Send read receipt (blue ticks) for a message."""
         if not self.token or not self.phone_id:
-            print(f"[WhatsApp] Would send read receipt for message {message_id}")
+            logger.info(f"[WhatsApp] Would send read receipt for message {message_id}")
             return True
         
         url = f"{self.BASE_URL}/{self.phone_id}/messages"
@@ -74,19 +75,19 @@ class WhatsAppService:
             try:
                 response = await client.post(url, json=payload, headers=self.headers, timeout=WHATSAPP_READ_RECEIPT_TIMEOUT)
                 response.raise_for_status()
-                print(f"[WhatsApp] Read receipt sent for message {message_id}")
+                logger.info(f"[WhatsApp] Read receipt sent for message {message_id}")
                 return True
             except Exception as e:
-                print(f"[WhatsApp] Error sending read receipt: {e}")
+                logger.error(f"[WhatsApp] Error sending read receipt: {e}")
                 return False
     
     async def send_text(self, to: str, message: str) -> bool:
         """Send a text message."""
         if not self.token or not self.phone_id:
-            print(f"[WhatsApp] [ERROR] MISSING CREDENTIALS!")
-            print(f"[WhatsApp] Token present: {bool(self.token)}")
-            print(f"[WhatsApp] Phone ID present: {bool(self.phone_id)}")
-            print(f"[WhatsApp] Would send to {to}: {message[:50]}...")
+            logger.error(f"[WhatsApp] [ERROR] MISSING CREDENTIALS!")
+            logger.info(f"[WhatsApp] Token present: {bool(self.token)}")
+            logger.info(f"[WhatsApp] Phone ID present: {bool(self.phone_id)}")
+            logger.info(f"[WhatsApp] Would send to {to}: {message[:50]}...")
             return False  # Changed from True to False
         
         url = f"{self.BASE_URL}/{self.phone_id}/messages"
@@ -97,10 +98,10 @@ class WhatsAppService:
             "text": {"body": message}
         }
         
-        print(f"[WhatsApp] 📤 Sending message to {to}")
-        print(f"[WhatsApp] URL: {url}")
-        print(f"[WhatsApp] Phone ID: {self.phone_id}")
-        print(f"[WhatsApp] Message preview: {message[:100]}...")
+        logger.info(f"[WhatsApp] 📤 Sending message to {to}")
+        logger.info(f"[WhatsApp] URL: {url}")
+        logger.info(f"[WhatsApp] Phone ID: {self.phone_id}")
+        logger.info(f"[WhatsApp] Message preview: {message[:100]}...")
         
         async with httpx.AsyncClient() as client:
             for attempt in range(3):
@@ -108,16 +109,16 @@ class WhatsAppService:
                     response = await client.post(url, json=payload, headers=self.headers, timeout=WHATSAPP_MESSAGE_TIMEOUT)
                     response.raise_for_status()
                     result = response.json()
-                    print(f"[WhatsApp] [OK] Message sent successfully to {to}")
+                    logger.info(f"[WhatsApp] [OK] Message sent successfully to {to}")
                     return True
                 except httpx.HTTPStatusError as e:
-                    print(f"[WhatsApp] [ERROR] HTTP Error {e.response.status_code}: {e.response.text}")
+                    logger.error(f"[WhatsApp] [ERROR] HTTP Error {e.response.status_code}: {e.response.text}")
                     if attempt == 2:
                         return False
                     import asyncio
                     await asyncio.sleep(2 ** attempt)
                 except Exception as e:
-                    print(f"[WhatsApp] [ERROR] Error sending message to {to}: {str(e)}")
+                    logger.error(f"[WhatsApp] [ERROR] Error sending message to {to}: {str(e)}")
                     if attempt == 2:
                         return False
                     import asyncio
@@ -133,7 +134,7 @@ class WhatsAppService:
     ) -> bool:
         """Send an interactive message with buttons."""
         if not self.token or not self.phone_id:
-            print(f"[WhatsApp] Would send interactive to {to}: {body}")
+            logger.info(f"[WhatsApp] Would send interactive to {to}: {body}")
             return True
         
         url = f"{self.BASE_URL}/{self.phone_id}/messages"
@@ -166,7 +167,7 @@ class WhatsAppService:
                     response.raise_for_status()
                     return True
                 except Exception as e:
-                    print(f"[WhatsApp] Error sending interactive: {e}")
+                    logger.error(f"[WhatsApp] Error sending interactive: {e}")
                     if attempt == 2:
                         return False
                     import asyncio
@@ -187,7 +188,7 @@ class WhatsAppService:
                 data = response.json()
                 return data.get("url")
             except Exception as e:
-                print(f"[WhatsApp] Error getting media URL: {e}")
+                logger.error(f"[WhatsApp] Error getting media URL: {e}")
                 return None
     
     async def download_media(self, media_url: str) -> Optional[bytes]:
@@ -201,12 +202,12 @@ class WhatsAppService:
                 response.raise_for_status()
                 return response.content
             except Exception as e:
-                print(f"[WhatsApp] Error downloading media: {e}")
+                logger.error(f"[WhatsApp] Error downloading media: {e}")
                 return None
 
 
-# Singleton instance
-whatsapp = WhatsAppService()
+def get_whatsapp_service() -> WhatsAppService:
+    return WhatsAppService()
 
 
 # Message templates

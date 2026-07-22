@@ -69,9 +69,6 @@ async def get_managers(
 ):
     """Get all active managers for dropdown (HR/Admin can access)."""
     from app.models import AccountStatus
-    # Only HR and Admin can access this
-    if user.role not in [UserRole.hr, UserRole.admin]:
-        raise HTTPException(status_code=403, detail="Access denied")
     
     result = await db.execute(
         select(User)

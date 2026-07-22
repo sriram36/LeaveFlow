@@ -1,3 +1,4 @@
+from app.logging_config import logger
 """
 LeaveFlow API - WhatsApp-Native Leave Automation System
 
@@ -10,6 +11,8 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 import traceback
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.config import get_settings
 from app.routes import auth, leave, webhook, users, holidays, account_requests
@@ -25,6 +28,10 @@ app = FastAPI(
         "usePkceWithAuthorizationCodeGrant": True,
     }
 )
+
+from app.limiter import limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS middleware
 cors_origins = settings.cors_origins or "*"
@@ -78,7 +85,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 @app.exception_handler(SQLAlchemyError)
 async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
     """Handle database errors gracefully."""
-    print(f"[Database Error] {exc}")
+    logger.error(f"[Database Error] {exc}")
     traceback.print_exc()
     
     return JSONResponse(
@@ -93,7 +100,7 @@ async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """Catch-all exception handler for unexpected errors."""
-    print(f"[Unhandled Error] {exc}")
+    logger.error(f"[Unhandled Error] {exc}")
     traceback.print_exc()
     
     # Don't expose internal error details in production

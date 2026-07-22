@@ -1,3 +1,4 @@
+from app.logging_config import logger
 from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
 from functools import lru_cache
@@ -29,8 +30,8 @@ class Settings(BaseSettings):
         
         # Fail loudly if no database URL is set
         if not self.database_url:
-            print("[CRITICAL] DATABASE_URL environment variable is not set!")
-            print("[CRITICAL] Please set DATABASE_URL in .env file or Vercel")
+            logger.error("[CRITICAL] DATABASE_URL environment variable is not set!")
+            logger.error("[CRITICAL] Please set DATABASE_URL in .env file or Vercel")
             # For local dev, use default
             self.database_url = ""
         
@@ -58,7 +59,7 @@ class Settings(BaseSettings):
         # Security checks
         env = os.getenv("ENV", os.getenv("NODE_ENV", "development")).lower()
         if self.secret_key == "your-secret-key-change-in-production" and env == "production":
-            print("[CRITICAL] SECRET_KEY is set to the default value in production!")
+            logger.error("[CRITICAL] SECRET_KEY is set to the default value in production!")
             raise ValueError("Insecure default SECRET_KEY in production")
     
     # JWT Auth
