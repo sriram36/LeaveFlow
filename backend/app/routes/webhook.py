@@ -336,35 +336,35 @@ async def process_text_message(db: AsyncSession, user: User, text: str, whatsapp
     try:
         # First try command-based parsing
         if parsed.command_type == CommandType.LEAVE:
-            response_text = await handle_leave_command(service, user, parsed, conversation_history, whatsapp)
+            response_text = await handle_leave_command(service, user, parsed, whatsapp, conversation_history)
         
         elif parsed.command_type == CommandType.HALF_LEAVE:
-            response_text = await handle_leave_command(service, user, parsed, conversation_history, whatsapp)
+            response_text = await handle_leave_command(service, user, parsed, whatsapp, conversation_history)
         
         elif parsed.command_type == CommandType.BALANCE:
-            response_text = await handle_balance_command(service, user, conversation_history, whatsapp)
+            response_text = await handle_balance_command(service, user, whatsapp, conversation_history)
         
         elif parsed.command_type == CommandType.STATUS:
-            response_text = await handle_status_command(service, user, parsed.request_id, conversation_history, whatsapp)
+            response_text = await handle_status_command(service, user, parsed.request_id, whatsapp, conversation_history)
         
         elif parsed.command_type == CommandType.CANCEL:
-            response_text = await handle_cancel_command(service, user, parsed.request_id, conversation_history, whatsapp)
+            response_text = await handle_cancel_command(service, user, parsed.request_id, whatsapp, conversation_history)
         
         elif parsed.command_type == CommandType.APPROVE:
-            response_text = await handle_approve_command(service, user, parsed.request_id, conversation_history, whatsapp)
+            response_text = await handle_approve_command(service, user, parsed.request_id, whatsapp, conversation_history)
         
         elif parsed.command_type == CommandType.REJECT:
-            response_text = await handle_reject_command(service, user, parsed.request_id, parsed.reason, conversation_history, whatsapp)
+            response_text = await handle_reject_command(service, user, parsed.request_id, parsed.reason, whatsapp, conversation_history)
         
         elif parsed.command_type == CommandType.PENDING:
-            response_text = await handle_pending_command(service, user, conversation_history, whatsapp)
+            response_text = await handle_pending_command(service, user, whatsapp, conversation_history)
         
         elif parsed.command_type == CommandType.TEAM_TODAY:
-            response_text = await handle_team_today_command(service, user, conversation_history, whatsapp)
+            response_text = await handle_team_today_command(service, user, whatsapp, conversation_history)
         
         else:
             # Try natural language processing with LLM
-            response_text = await handle_natural_language_request(db, user, text, conversation_history, whatsapp)
+            response_text = await handle_natural_language_request(db, user, text, whatsapp, conversation_history)
         
         # Save bot response to conversation history (if response was sent)
         if response_text:
@@ -417,7 +417,7 @@ async def process_text_message(db: AsyncSession, user: User, text: str, whatsapp
         await db.commit()
 
 
-async def handle_natural_language_request(db: AsyncSession, user: User, text: str, conversation_history: list = None, whatsapp: WhatsAppService):
+async def handle_natural_language_request(db: AsyncSession, user: User, text: str, whatsapp: WhatsAppService, conversation_history: list = None):
     """Handle natural language leave requests using AI."""
     # Parse with AI service (now with conversation context)
     parsed_data = await ai_service.parse_leave_request(text, user.name, conversation_history)
@@ -480,7 +480,7 @@ async def handle_natural_language_request(db: AsyncSession, user: User, text: st
         return error_response
 
 
-async def handle_leave_command(service: LeaveService, user: User, parsed, conversation_history: list = None, whatsapp: WhatsAppService):
+async def handle_leave_command(service: LeaveService, user: User, parsed, whatsapp: WhatsAppService, conversation_history: list = None):
     """Handle leave application command."""
     if parsed.error:
         error_msg = f"❌ {parsed.error}"
@@ -546,7 +546,7 @@ async def handle_leave_command(service: LeaveService, user: User, parsed, conver
     return response
 
 
-async def handle_balance_command(service: LeaveService, user: User, conversation_history: list = None, whatsapp: WhatsAppService):
+async def handle_balance_command(service: LeaveService, user: User, whatsapp: WhatsAppService, conversation_history: list = None):
     """Handle balance check command."""
     balance = await service.get_balance(user.id)
     
@@ -565,7 +565,7 @@ async def handle_balance_command(service: LeaveService, user: User, conversation
     return response
 
 
-async def handle_status_command(service: LeaveService, user: User, request_id: Optional[int], conversation_history: list = None, whatsapp: WhatsAppService):
+async def handle_status_command(service: LeaveService, user: User, request_id: Optional[int], whatsapp: WhatsAppService, conversation_history: list = None):
     """Handle status check command."""
     if not request_id:
         error_msg = await ai_service.generate_natural_response(
@@ -619,7 +619,7 @@ async def handle_status_command(service: LeaveService, user: User, request_id: O
     return response
 
 
-async def handle_cancel_command(service: LeaveService, user: User, request_id: Optional[int], conversation_history: list = None, whatsapp: WhatsAppService):
+async def handle_cancel_command(service: LeaveService, user: User, request_id: Optional[int], whatsapp: WhatsAppService, conversation_history: list = None):
     """Handle cancel command."""
     if not request_id:
         error_msg = await ai_service.generate_natural_response(
@@ -644,7 +644,7 @@ async def handle_cancel_command(service: LeaveService, user: User, request_id: O
     return response
 
 
-async def handle_approve_command(service: LeaveService, user: User, request_id: Optional[int], conversation_history: list = None, whatsapp: WhatsAppService):
+async def handle_approve_command(service: LeaveService, user: User, request_id: Optional[int], whatsapp: WhatsAppService, conversation_history: list = None):
     """Handle approve command (managers only)."""
     # Verify user is a manager, HR, or admin
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
@@ -684,7 +684,7 @@ async def handle_approve_command(service: LeaveService, user: User, request_id: 
     return response
 
 
-async def handle_reject_command(service: LeaveService, user: User, request_id: Optional[int], reason: Optional[str], conversation_history: list = None, whatsapp: WhatsAppService):
+async def handle_reject_command(service: LeaveService, user: User, request_id: Optional[int], reason: Optional[str], whatsapp: WhatsAppService, conversation_history: list = None):
     """Handle reject command (managers only)."""
     # Verify user is a manager, HR, or admin
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
@@ -724,7 +724,7 @@ async def handle_reject_command(service: LeaveService, user: User, request_id: O
     return response
 
 
-async def handle_pending_command(service: LeaveService, user: User, conversation_history: list = None, whatsapp: WhatsAppService):
+async def handle_pending_command(service: LeaveService, user: User, whatsapp: WhatsAppService, conversation_history: list = None):
     """Handle pending list command (managers only)."""
     # Verify user is a manager, HR, or admin
     if user.role not in [UserRole.manager, UserRole.hr, UserRole.admin]:
@@ -761,7 +761,7 @@ async def handle_pending_command(service: LeaveService, user: User, conversation
     return response
 
 
-async def handle_team_today_command(service: LeaveService, user: User, conversation_history: list = None, whatsapp: WhatsAppService):
+async def handle_team_today_command(service: LeaveService, user: User, whatsapp: WhatsAppService, conversation_history: list = None):
     """Handle team today command."""
     leaves = await service.get_today_leaves()
     
