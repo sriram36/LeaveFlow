@@ -24,7 +24,8 @@ export default function SigninPage() {
       router.push("/");
       router.refresh();
     } catch (err: unknown) {
-      setError(err?.message || "Login failed");
+      const e = err as any;
+      setError(e?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -143,7 +144,7 @@ export default function SigninPage() {
               {/* Sign Up Link */}
               <div className="text-center">
                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                  Don't have an account?
+                  Don&apos;t have an account?
                 </p>
                 <Link 
                   href="/signup"

@@ -62,7 +62,8 @@ export default memo(function ProfilePage() {
 
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: unknown) {
-      setError(err.response?.data?.detail || err.message || "Failed to update profile");
+      const e = err as any;
+      setError(e.response?.data?.detail || e.message || "Failed to update profile");
     } finally {
       setLoading(false);
     }

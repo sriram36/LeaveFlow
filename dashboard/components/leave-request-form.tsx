@@ -225,7 +225,7 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
               💡 <strong>Tip:</strong> Submit requests at least 5 days in advance for better approval chances.
             </p>
             <p>
-              📱 <strong>Tip:</strong> You'll receive WhatsApp notifications about your request status.
+              📱 <strong>Tip:</strong> You&apos;ll receive WhatsApp notifications about your request status.
             </p>
           </div>
         </form>

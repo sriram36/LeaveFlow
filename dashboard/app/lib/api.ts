@@ -123,7 +123,8 @@ class ApiClient {
       }
 
       return await response.json();
-    } catch (error: unknown) {
+    } catch (err: unknown) {
+      const error = err as any;
       // Handle network errors
       if (error.name === 'AbortError' || error.name === 'TimeoutError') {
         throw new Error('Request timed out. Please check your connection and try again.');

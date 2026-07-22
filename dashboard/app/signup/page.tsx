@@ -66,7 +66,8 @@ export default memo(function SignupPage() {
         role: "manager",
       });
     } catch (err: unknown) {
-      setError(err.response?.data?.detail || err.message || "Registration failed");
+      const e = err as any;
+      setError(e.response?.data?.detail || e.message || "Registration failed");
     } finally {
       setLoading(false);
     }

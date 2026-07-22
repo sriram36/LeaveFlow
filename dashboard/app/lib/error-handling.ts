@@ -12,7 +12,7 @@ export class ApiError extends Error {
 }
 
 interface ApiErrorObj {
-  response?: { status?: number; data?: unknown };
+  response?: { status?: number; data?: any };
   message?: string;
   code?: string;
 }

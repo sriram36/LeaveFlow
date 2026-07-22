@@ -45,7 +45,7 @@ import {
   LucideIcon
 } from "lucide-react";
 
-const LandingPage = memo(() => {
+const LandingPage = memo(function LandingPage() {
   return (
     <div className="space-y-0">
       {/* Hero Section */}
@@ -521,7 +521,7 @@ const LandingPage = memo(() => {
   );
 });
 
-const DashboardHome = memo(() => {
+const DashboardHome = memo(function DashboardHome() {
   const { user } = useAuth();
 
   const { data: pendingRequests } = useQuery({
