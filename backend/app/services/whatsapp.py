@@ -7,6 +7,12 @@ Handles sending messages via WhatsApp Cloud API.
 import httpx
 from typing import Optional, Dict, Any
 from app.config import get_settings
+from app.constants import (
+    WHATSAPP_TYPING_TIMEOUT,
+    WHATSAPP_READ_RECEIPT_TIMEOUT,
+    WHATSAPP_MESSAGE_TIMEOUT,
+    WHATSAPP_INTERACTIVE_TIMEOUT,
+)
 
 settings = get_settings()
 
@@ -43,7 +49,7 @@ class WhatsAppService:
         
         async with httpx.AsyncClient() as client:
             try:
-                response = await client.post(url, json=payload, headers=self.headers, timeout=10.0)
+                response = await client.post(url, json=payload, headers=self.headers, timeout=WHATSAPP_TYPING_TIMEOUT)
                 response.raise_for_status()
                 print(f"[WhatsApp] Typing indicator sent to {to}")
                 return True
@@ -66,7 +72,7 @@ class WhatsAppService:
         
         async with httpx.AsyncClient() as client:
             try:
-                response = await client.post(url, json=payload, headers=self.headers, timeout=10.0)
+                response = await client.post(url, json=payload, headers=self.headers, timeout=WHATSAPP_READ_RECEIPT_TIMEOUT)
                 response.raise_for_status()
                 print(f"[WhatsApp] Read receipt sent for message {message_id}")
                 return True
@@ -97,20 +103,26 @@ class WhatsAppService:
         print(f"[WhatsApp] Message preview: {message[:100]}...")
         
         async with httpx.AsyncClient() as client:
-            try:
-                response = await client.post(url, json=payload, headers=self.headers, timeout=30.0)
-                response.raise_for_status()
-                result = response.json()
-                print(f"[WhatsApp] [OK] Message sent successfully to {to}")
-                print(f"[WhatsApp] Response: {result}")
-                print(f"[WhatsApp] Response: {result}")
-                return True
-            except httpx.HTTPStatusError as e:
-                print(f"[WhatsApp] [ERROR] HTTP Error {e.response.status_code}: {e.response.text}")
-                return False
-            except Exception as e:
-                print(f"[WhatsApp] [ERROR] Error sending message to {to}: {str(e)}")
-                return False
+            for attempt in range(3):
+                try:
+                    response = await client.post(url, json=payload, headers=self.headers, timeout=WHATSAPP_MESSAGE_TIMEOUT)
+                    response.raise_for_status()
+                    result = response.json()
+                    print(f"[WhatsApp] [OK] Message sent successfully to {to}")
+                    return True
+                except httpx.HTTPStatusError as e:
+                    print(f"[WhatsApp] [ERROR] HTTP Error {e.response.status_code}: {e.response.text}")
+                    if attempt == 2:
+                        return False
+                    import asyncio
+                    await asyncio.sleep(2 ** attempt)
+                except Exception as e:
+                    print(f"[WhatsApp] [ERROR] Error sending message to {to}: {str(e)}")
+                    if attempt == 2:
+                        return False
+                    import asyncio
+                    await asyncio.sleep(2 ** attempt)
+            return False
     
     async def send_interactive_buttons(
         self,
@@ -148,13 +160,18 @@ class WhatsAppService:
         }
         
         async with httpx.AsyncClient() as client:
-            try:
-                response = await client.post(url, json=payload, headers=self.headers)
-                response.raise_for_status()
-                return True
-            except Exception as e:
-                print(f"[WhatsApp] Error sending interactive: {e}")
-                return False
+            for attempt in range(3):
+                try:
+                    response = await client.post(url, json=payload, headers=self.headers, timeout=WHATSAPP_INTERACTIVE_TIMEOUT)
+                    response.raise_for_status()
+                    return True
+                except Exception as e:
+                    print(f"[WhatsApp] Error sending interactive: {e}")
+                    if attempt == 2:
+                        return False
+                    import asyncio
+                    await asyncio.sleep(2 ** attempt)
+            return False
     
     async def get_media_url(self, media_id: str) -> Optional[str]:
         """Get the download URL for a media file."""

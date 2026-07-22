@@ -1,0 +1,9 @@
+"""
+Constants for the LeaveFlow application.
+"""
+
+# API Timeouts (in seconds)
+WHATSAPP_TYPING_TIMEOUT = 10.0
+WHATSAPP_READ_RECEIPT_TIMEOUT = 10.0
+WHATSAPP_MESSAGE_TIMEOUT = 30.0
+WHATSAPP_INTERACTIVE_TIMEOUT = 30.0
