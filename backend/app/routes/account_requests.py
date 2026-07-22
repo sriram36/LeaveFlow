@@ -1,3 +1,4 @@
+from app.services.whatsapp import get_whatsapp_service, WhatsAppService
 from app.logging_config import logger
 """
 Account Creation Request Routes
@@ -28,8 +29,9 @@ router = APIRouter(prefix="/account-requests", tags=["Account Requests"])
 async def create_account_request(
     request_data: AccountCreationRequestCreate,
     db: AsyncSession = Depends(get_db),
-    requester: User = Depends(require_manager)
-, whatsapp: WhatsAppService = Depends(get_whatsapp_service)):
+    requester: User = Depends(require_manager),
+    whatsapp: WhatsAppService = Depends(get_whatsapp_service)
+):
     """
     Manager/HR requests to create a new account.
     Only managers and HR can request. Admin must approve.
@@ -83,7 +85,6 @@ async def create_account_request(
     await db.refresh(account_request)
     
     # Notify requester of successful submission
-    from app.services.whatsapp import get_whatsapp_service, WhatsAppService
     logger.info(f"[AccountRequests] [OK] New account request #{account_request.id} created by {requester.name}")
     await whatsapp.send_text(
         requester.phone,
@@ -162,8 +163,9 @@ async def approve_account_request(
     request_id: int,
     approval_data: AccountCreationRequestApprove,
     db: AsyncSession = Depends(get_db),
-    admin: User = Depends(require_hr_admin)
-, whatsapp: WhatsAppService = Depends(get_whatsapp_service)):
+    admin: User = Depends(require_hr_admin),
+    whatsapp: WhatsAppService = Depends(get_whatsapp_service)
+):
     """
     HR and Admin can approve/reject an account creation request.
     If approved: creates the user account
@@ -213,7 +215,6 @@ async def approve_account_request(
         await db.refresh(new_user)
         
         # Notify requester about approval
-        from app.services.whatsapp import get_whatsapp_service, WhatsAppService
         requester_result = await db.execute(
             select(User).where(User.id == request_obj.requester_id)
         )
@@ -242,7 +243,6 @@ async def approve_account_request(
         await db.commit()
         
         # Notify requester about rejection
-        from app.services.whatsapp import get_whatsapp_service, WhatsAppService
         requester_result = await db.execute(
             select(User).where(User.id == request_obj.requester_id)
         )

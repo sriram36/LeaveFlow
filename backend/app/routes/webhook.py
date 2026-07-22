@@ -18,7 +18,7 @@ from app.services.parser import parse_message, CommandType
 from app.services.leave import LeaveService
 from app.services.validator import LeaveValidationError
 from app.services.whatsapp import (
-    whatsapp, format_balance_message, format_status_message,
+    get_whatsapp_service, WhatsAppService, format_balance_message, format_status_message,
     format_pending_list
 )
 from app.services.ai_service import ai_service

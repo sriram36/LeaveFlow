@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 
 from app.database import async_session_maker
 from app.models import LeaveRequest, User, LeaveStatus, UserRole
-from app.services.whatsapp import whatsapp, format_daily_summary
+from app.services.whatsapp import WhatsAppService, format_daily_summary
 from app.config import get_settings
 
 settings = get_settings()
@@ -21,6 +21,7 @@ scheduler = AsyncIOScheduler()
 
 async def send_daily_summary():
     """Send daily leave summary to managers at 8 AM."""
+    whatsapp = WhatsAppService()
     async with async_session_maker() as db:
         # Get managers
         result = await db.execute(
