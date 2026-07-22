@@ -94,16 +94,15 @@ class LeaveService:
         await self._log_action(leave_request.id, "created", user_id)
         await self.db.commit()
         
-        # Broadcast the new request
+        # Get user and manager info for notifications
+        user = await self._get_user(user_id)
+        
+        # Broadcast new request to manager and HR/admin
         asyncio.create_task(manager.broadcast({
             "type": "NEW_REQUEST",
             "request_id": leave_request.id,
-            "user_id": user_id,
             "status": leave_request.status.value
-        }))
-        
-        # Get user and manager info for notifications
-        user = await self._get_user(user_id)
+        }, target_users=[user.manager_id] if user.manager_id else None, target_roles=["hr", "admin"]))
         
         # Notify manager using dedicated function
         if notify_manager:
@@ -163,7 +162,7 @@ class LeaveService:
             "type": "STATUS_UPDATE",
             "request_id": leave_request.id,
             "status": leave_request.status.value
-        }))
+        }, target_users=[leave_request.user_id]))
         
         # Notify employee
         user = await self._get_user(leave_request.user_id)
@@ -225,7 +224,7 @@ class LeaveService:
             "type": "STATUS_UPDATE",
             "request_id": leave_request.id,
             "status": leave_request.status.value
-        }))
+        }, target_users=[leave_request.user_id]))
         
         # Notify employee
         user = await self._get_user(leave_request.user_id)
@@ -288,7 +287,7 @@ class LeaveService:
             "type": "STATUS_UPDATE",
             "request_id": leave_request.id,
             "status": leave_request.status.value
-        }))
+        }, target_users=[leave_request.user_id, leave_request.approved_by] if leave_request.approved_by else [leave_request.user_id]))
         
         # Notify employee
         user = await self._get_user(user_id)
@@ -327,7 +326,7 @@ class LeaveService:
         """Get leave request status."""
         return await self._get_leave_request(request_id)
     
-    async def get_pending_requests(self, manager_id: Optional[int] = None) -> List[LeaveRequest]:
+    async def get_pending_requests(self, manager_id: Optional[int] = None, skip: int = 0, limit: int = 100) -> List[LeaveRequest]:
         """Get pending leave requests.
         
         Args:
@@ -364,6 +363,8 @@ class LeaveService:
                 )
             )
         
+        query = query.offset(skip).limit(limit)
+        
         logger.info(f"[LeaveService] Executing query...")
         result = await self.db.execute(query)
         requests = result.scalars().all()
@@ -398,13 +399,14 @@ class LeaveService:
         self,
         user_id: Optional[int] = None,
         status: Optional[LeaveStatus] = None,
+        skip: int = 0,
         limit: int = 100
     ) -> List[LeaveRequest]:
         """Get leave request history."""
         query = select(LeaveRequest).options(
             selectinload(LeaveRequest.user),
             selectinload(LeaveRequest.attachments)
-        ).order_by(LeaveRequest.created_at.desc()).limit(limit)
+        ).order_by(LeaveRequest.created_at.desc()).offset(skip).limit(limit)
         
         if user_id:
             query = query.where(LeaveRequest.user_id == user_id)
@@ -419,6 +421,7 @@ class LeaveService:
         self,
         team_member_ids: List[int],
         status: Optional[LeaveStatus] = None,
+        skip: int = 0,
         limit: int = 100
     ) -> List[LeaveRequest]:
         """Get leave request history for a manager's team."""
@@ -430,7 +433,7 @@ class LeaveService:
             selectinload(LeaveRequest.attachments)
         ).where(
             LeaveRequest.user_id.in_(team_member_ids)
-        ).order_by(LeaveRequest.created_at.desc()).limit(limit)
+        ).order_by(LeaveRequest.created_at.desc()).offset(skip).limit(limit)
         
         if status:
             query = query.where(LeaveRequest.status == status)

@@ -4,7 +4,7 @@ Authentication utilities
 
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-from jose import JWTError, jwt
+import jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -96,7 +96,7 @@ async def get_current_user(
             user_id = int(user_id_str)
         except (ValueError, TypeError):
             raise credentials_exception
-    except JWTError as e:
+    except jwt.PyJWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid token: {str(e)}",
@@ -178,33 +178,56 @@ async def require_hr_admin(
     return user
 
 
-def check_user_access(current_user: User, target_user: User) -> bool:
+def require_user_access(current_user: User, target_user: User) -> None:
+    """Verify that current_user has permission to access/modify target_user.
+    Raises 403 Forbidden if access is denied.
     """
-    Centralized user access checker.
-    Returns True if current_user can access target_user's information.
-    """
-    # Admin can access everything
+    # Admin can access anyone
     if current_user.role == UserRole.admin:
-        return True
+        return
     
     # HR can access everything except Admin users
     if current_user.role == UserRole.hr:
-        return target_user.role != UserRole.admin
+        if target_user.role != UserRole.admin:
+            return
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
     
     # Manager can access their team members and other managers
     if current_user.role == UserRole.manager:
         is_team_member = target_user.manager_id == current_user.id
         is_manager = target_user.role == UserRole.manager
         is_self = target_user.id == current_user.id
-        return is_team_member or is_manager or is_self
+        if is_team_member or is_manager or is_self:
+            return
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
     
     # Workers can only access themselves and their manager
     if current_user.role == UserRole.worker:
         is_self = target_user.id == current_user.id
         is_manager = target_user.id == current_user.manager_id
-        return is_self or is_manager
+        if is_self or is_manager:
+            return
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
+
+def require_role_or_self(current_user: User, target_user_id: int, allowed_roles: list) -> None:
+    """Verify that current_user is either the target user or has an allowed role."""
+    if current_user.id == target_user_id:
+        return
+    if current_user.role and current_user.role.value in allowed_roles:
+        return
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
+
+def require_leave_request_access(current_user: User, request_user_id: int) -> None:
+    """Check if user has access to view a leave request."""
+    # Workers can only see their own requests
+    if current_user.role and current_user.role.value == "worker":
+        if request_user_id != current_user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+    # Managers, HR, and Admin can see all requests (managers are filtered by team in queries)
     
-    return False
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
 
 def normalize_phone_number(phone: str, default_country_code: str = "91") -> str:

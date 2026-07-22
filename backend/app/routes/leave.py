@@ -11,7 +11,26 @@ from typing import List, Optional
 from datetime import date, datetime
 
 from app.database import get_db
-from app.auth import get_current_user_required, require_manager, require_admin, check_user_access
+from app.auth import get_current_user_required, require_manager, require_admin, require_user_access, require_role_or_self, require_leave_request_access
+from app.models import User, LeaveStatus, LeaveRequest, LeaveBalance, LeaveBalanceHistory, LeaveType
+from app.schemas import (
+    LeaveRequestResponse, LeaveRequestCreate, ApproveRequest, RejectRequest,
+    LeaveBalanceResponse, TodayLeaveResponse, UserResponse, LeaveBalanceHistoryResponse
+)
+from app.logging_config import logger
+"""
+Leave API Routes
+"""
+
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, or_
+from sqlalchemy.orm import selectinload
+from typing import List, Optional
+from datetime import date, datetime
+
+from app.database import get_db
+from app.auth import get_current_user_required, require_manager, require_admin, require_user_access, require_role_or_self, require_leave_request_access
 from app.models import User, LeaveStatus, LeaveRequest, LeaveBalance, LeaveBalanceHistory, LeaveType
 from app.schemas import (
     LeaveRequestResponse, LeaveRequestCreate, ApproveRequest, RejectRequest,
@@ -23,20 +42,12 @@ from app.services.validator import LeaveValidationError
 router = APIRouter(prefix="/leave", tags=["Leave Management"])
 
 
-def check_leave_request_access(user: User, request: LeaveRequest) -> bool:
-    """Check if user has access to view a leave request."""
-    from app.models import UserRole
-    # Workers can only see their own requests
-    if user.role == UserRole.worker:
-        return request.user_id == user.id
-    # Managers, HR, and Admin can see all requests
-    return True
-
-
 @router.get("/pending", response_model=List[LeaveRequestResponse])
 async def get_pending_requests(
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(require_manager)
+    user: User = Depends(require_manager),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, le=500)
 ):
     """Get pending leave requests.
     
@@ -49,10 +60,10 @@ async def get_pending_requests(
     # HR and Admin see all, managers only see their team's
     if user.role in [UserRole.hr, UserRole.admin]:
         logger.info(f"[Leave API] {user.role} user {user.name} (ID: {user.id}) requesting all pending requests")
-        requests = await service.get_pending_requests(manager_id=None)  # No filter
+        requests = await service.get_pending_requests(manager_id=None, skip=skip, limit=limit)  # No filter
     else:
         logger.info(f"[Leave API] Manager {user.name} (ID: {user.id}) requesting their team's pending requests")
-        requests = await service.get_pending_requests(manager_id=user.id)  # Only team members
+        requests = await service.get_pending_requests(manager_id=user.id, skip=skip, limit=limit)  # Only team members
     
     logger.info(f"[Leave API] Query executed successfully. Returning {len(requests)} pending requests for {user.name}")
     for req in requests:
@@ -79,6 +90,7 @@ async def get_today_leaves(
 async def get_leave_history(
     status: Optional[str] = Query(None, description="Filter by status"),
     user_id: Optional[int] = Query(None, description="Filter by user"),
+    skip: int = Query(0, ge=0),
     limit: int = Query(100, le=500),
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user_required)
@@ -103,11 +115,11 @@ async def get_leave_history(
             select(User.id).where(User.manager_id == user.id)
         )
         team_member_ids = result.scalars().all()
-        requests = await service.get_team_history(team_member_ids, status=status_enum, limit=limit)
+        requests = await service.get_team_history(team_member_ids, status=status_enum, limit=limit, skip=skip)
         return requests
     # HR/Admin see all (user_id remains None)
     
-    requests = await service.get_history(user_id=user_id, status=status_enum, limit=limit)
+    requests = await service.get_history(user_id=user_id, status=status_enum, limit=limit, skip=skip)
     return requests
 
 
@@ -131,6 +143,8 @@ async def get_my_balance(
 async def get_balance_history(
     user_id: Optional[int] = Query(None, description="Filter by user (admin/HR only)"),
     leave_type: Optional[LeaveType] = Query(None, description="Filter by leave type"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, le=500),
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user_required)
 ):
@@ -140,8 +154,7 @@ async def get_balance_history(
     # If user_id provided, check permissions
     if user_id:
         # Only HR/Admin can view others' history
-        if user.role not in ["hr", "admin"] and user_id != user.id:
-            raise HTTPException(status_code=403, detail="Cannot view other users' balance history")
+        require_role_or_self(user, user_id, ["hr", "admin"])
         query = query.where(LeaveBalanceHistory.user_id == user_id)
     else:
         # Regular users can only see their own
@@ -150,8 +163,10 @@ async def get_balance_history(
     
     if leave_type:
         query = query.where(LeaveBalanceHistory.leave_type == leave_type)
+        
+    query = query.offset(skip).limit(limit)
     
-    result = await db.execute(query.limit(100))
+    result = await db.execute(query)
     return result.scalars().all()
 
 
@@ -186,7 +201,7 @@ async def get_leave_request(
         raise HTTPException(status_code=404, detail="Leave request not found")
     
     # Check access permissions
-    if not check_leave_request_access(user, request):
+    if not require_leave_request_access(user, request):
         raise HTTPException(status_code=403, detail="Access denied")
     
     return request
@@ -255,7 +270,7 @@ async def get_attachment(
         raise HTTPException(status_code=404, detail="Leave request not found")
 
     # Check access permissions
-    if not check_leave_request_access(user, request):
+    if not require_leave_request_access(user, request):
         raise HTTPException(status_code=403, detail="Access denied")
 
     return request.attachments
@@ -324,6 +339,8 @@ async def advanced_search(
     date_from: Optional[date] = Query(None, description="Leave start date from"),
     date_to: Optional[date] = Query(None, description="Leave start date to"),
     user_id: Optional[int] = Query(None, description="Filter by user ID"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, le=500),
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user_required)
 ):
@@ -369,12 +386,10 @@ async def advanced_search(
     
     if user_id:
         # Check permission to view specific user
-        if user.role not in ["hr", "admin", "manager"] and user_id != user.id:
-            raise HTTPException(status_code=403, detail="Cannot view other users' requests")
+        require_role_or_self(user, user_id, ["hr", "admin", "manager"])
         query = query.where(LeaveRequest.user_id == user_id)
     
-    query = query.order_by(LeaveRequest.created_at.desc()).limit(100)
+    query = query.order_by(LeaveRequest.created_at.desc()).offset(skip).limit(limit)
     
     result = await db.execute(query)
     return result.scalars().all()
-

@@ -147,14 +147,41 @@ async def health():
         return {"status": "ok", "healthy": True}
 
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket, WebSocketDisconnect, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.websockets import manager
+from app.database import get_db
+from app.models import User
+import jwt
 
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+async def websocket_endpoint(websocket: WebSocket, db: AsyncSession = Depends(get_db)):
+    # Authenticate via cookie or query param
+    token = websocket.cookies.get("access_token")
+    if not token:
+        token = websocket.query_params.get("token")
+        
+    if not token:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Authentication required")
+        return
+        
     try:
-        while True:
-            await websocket.receive_text()
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        user_id = int(payload.get("sub"))
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+        
+        if not user:
+            raise Exception("User not found")
+            
+        await manager.connect(websocket, user)
+        try:
+            while True:
+                await websocket.receive_text()
+        except WebSocketDisconnect:
+            manager.disconnect(websocket)
+            
+    except Exception as e:
+        logger.error(f"[WebSocket] Authentication failed: {e}")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Authentication failed")

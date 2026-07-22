@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from typing import List, Optional
 
 from app.database import get_db
-from app.auth import get_current_user_required, require_manager, require_admin, require_hr_admin, check_user_access, normalize_phone_number
+from app.auth import get_current_user_required, require_manager, require_admin, require_hr_admin, require_user_access, normalize_phone_number
 from app.models import User, UserRole
 from app.schemas import UserResponse, UserCreate, UserUpdate, UserWithBalance
 
@@ -113,8 +113,7 @@ async def get_user(
         raise HTTPException(status_code=404, detail="User not found")
     
     # Use centralized access control
-    if not check_user_access(user, target_user):
-        raise HTTPException(status_code=403, detail="Access denied")
+    require_user_access(user, target_user)
     
     return target_user
 
@@ -233,8 +232,7 @@ async def update_user(
         raise HTTPException(status_code=404, detail="User not found")
     
     # Check permissions - users can only update their own profile
-    if current_user.id != user_id:
-        raise HTTPException(status_code=403, detail="You can only update your own profile")
+    require_user_access(current_user, user)
     
     # Update only the allowed fields
     if user_data.name is not None:
