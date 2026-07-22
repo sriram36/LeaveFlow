@@ -143,7 +143,7 @@ export default function UserDetailPage() {
                   className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">-- No Manager --</option>
-                  {managers?.map((manager: any) => (
+                  {managers?.map((manager: { id: number; name: string; phone: string }) => (
                     <option key={manager.id} value={manager.id}>
                       {manager.name} ({manager.phone})
                     </option>
@@ -160,7 +160,7 @@ export default function UserDetailPage() {
             </div>
             {selectedManager && managers && (
               <p className="text-sm text-muted-foreground mt-2">
-                Current manager: <strong>{managers.find((m: any) => m.id === selectedManager)?.name}</strong>
+                Current manager: <strong>{managers.find((m: { id: number; name: string }) => m.id === selectedManager)?.name}</strong>
               </p>
             )}
           </div>

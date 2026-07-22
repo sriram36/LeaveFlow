@@ -65,7 +65,7 @@ export default memo(function SignupPage() {
         confirmPassword: "",
         role: "manager",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.response?.data?.detail || err.message || "Registration failed");
     } finally {
       setLoading(false);

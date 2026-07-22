@@ -42,7 +42,7 @@ export default memo(function PendingAccountsPage() {
       setMessage({ type: 'success', text: 'Account approved successfully!' });
       setTimeout(() => setMessage(null), 3000);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       setMessage({ type: 'error', text: error.message || 'Failed to approve account' });
     },
   });
@@ -55,7 +55,7 @@ export default memo(function PendingAccountsPage() {
       setMessage({ type: 'success', text: 'Account rejected successfully!' });
       setTimeout(() => setMessage(null), 3000);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       setMessage({ type: 'error', text: error.message || 'Failed to reject account' });
     },
   });

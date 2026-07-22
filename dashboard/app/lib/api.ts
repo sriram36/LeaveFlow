@@ -65,17 +65,9 @@ class ApiClient {
 
   setToken(token: string | null) {
     this.token = token;
-    if (token) {
-      localStorage.setItem('auth_token', token);
-    } else {
-      localStorage.removeItem('auth_token');
-    }
   }
 
   getToken(): string | null {
-    if (!this.token && typeof window !== 'undefined') {
-      this.token = localStorage.getItem('auth_token');
-    }
     return this.token;
   }
 
@@ -92,6 +84,7 @@ class ApiClient {
       const response = await fetch(`${API_BASE}${path}`, {
         ...options,
         headers,
+        credentials: 'include',
         // Add timeout for better UX
         signal: AbortSignal.timeout(30000), // 30 second timeout
       });
@@ -130,7 +123,7 @@ class ApiClient {
       }
 
       return await response.json();
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle network errors
       if (error.name === 'AbortError' || error.name === 'TimeoutError') {
         throw new Error('Request timed out. Please check your connection and try again.');
@@ -152,6 +145,7 @@ class ApiClient {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData,
+      credentials: 'include',
     });
 
     if (!response.ok) {
@@ -164,8 +158,13 @@ class ApiClient {
     return data;
   }
 
-  logout() {
+  async logout() {
     this.setToken(null);
+    try {
+      await this.fetch('/auth/logout', { method: 'POST' });
+    } catch (e) {
+      console.log('Logout API call failed', e);
+    }
   }
 
   async getMe(): Promise<User> {

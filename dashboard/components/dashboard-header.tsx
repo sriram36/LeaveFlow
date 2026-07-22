@@ -81,7 +81,7 @@ export function DashboardHeader() {
                     <h2 className="text-lg font-semibold mb-4">Pending Requests</h2>
                     {pendingRequests && pendingRequests.length > 0 ? (
                       <div className="space-y-2">
-                        {pendingRequests.slice(0, 5).map((request: any) => (
+                        {pendingRequests.slice(0, 5).map((request: { id: number; employee_name: string; leave_type: string; start_date: string; end_date: string }) => (
                           <div
                             key={request.id}
                             className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700"

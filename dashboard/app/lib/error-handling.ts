@@ -4,14 +4,21 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = "ApiError";
   }
 }
 
-export function handleApiError(error: any): string {
+interface ApiErrorObj {
+  response?: { status?: number; data?: unknown };
+  message?: string;
+  code?: string;
+}
+
+export function handleApiError(errorObj: unknown): string {
+  const error = errorObj as ApiErrorObj;
   // Network errors
   if (!error.response) {
     if (error.message === "Network Error" || error.code === "ERR_NETWORK") {
@@ -44,7 +51,7 @@ export function handleApiError(error: any): string {
       // Validation errors - format nicely
       if (data?.detail && Array.isArray(data.detail)) {
         const errors = data.detail
-          .map((err: any) => {
+          .map((err: { loc?: string[], msg?: string }) => {
             const field = err.loc?.join(" > ") || "Unknown field";
             return `${field}: ${err.msg}`;
           })
@@ -64,16 +71,17 @@ export function handleApiError(error: any): string {
   }
 }
 
-export function isAuthError(error: any): boolean {
-  return error.response?.status === 401;
+export function isAuthError(error: unknown): boolean {
+  return (error as ApiErrorObj).response?.status === 401;
 }
 
-export function isValidationError(error: any): boolean {
-  return error.response?.status === 422;
+export function isValidationError(error: unknown): boolean {
+  return (error as ApiErrorObj).response?.status === 422;
 }
 
-export function isNetworkError(error: any): boolean {
-  return !error.response || error.code === "ERR_NETWORK";
+export function isNetworkError(error: unknown): boolean {
+  const err = error as ApiErrorObj;
+  return !err.response || err.code === "ERR_NETWORK";
 }
 
 // Retry logic for failed requests
@@ -82,12 +90,13 @@ export async function retryRequest<T>(
   maxRetries = 3,
   delay = 1000
 ): Promise<T> {
-  let lastError: any;
+  let lastError: unknown;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await requestFn();
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as ApiErrorObj;
       lastError = error;
 
       // Don't retry on client errors (4xx) except 408 (timeout)
@@ -110,7 +119,7 @@ export async function retryRequest<T>(
 }
 
 // Toast notification helper (can integrate with toast library)
-export function showErrorToast(error: any) {
+export function showErrorToast(error: unknown) {
   const message = handleApiError(error);
   console.error("API Error:", message, error);
   
