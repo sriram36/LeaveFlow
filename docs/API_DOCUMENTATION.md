@@ -814,7 +814,7 @@ Import this JSON for quick testing:
               "mode": "urlencoded",
               "urlencoded": [
                 {"key": "username", "value": "admin@leaveflow.com"},
-                {"key": "password", "value": "admin123"}
+                {"key": "password", "value": "<YOUR_ADMIN_PASSWORD>"}
               ]
             },
             "url": "{{base_url}}/auth/login"
