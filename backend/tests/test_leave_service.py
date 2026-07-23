@@ -38,8 +38,13 @@ async def sample_worker(db_session: AsyncSession, sample_manager):
 async def test_create_leave_request_success(db_session: AsyncSession, sample_worker):
     service = LeaveService(db_session)
     
-    start = date.today() + timedelta(days=1)
-    end = start + timedelta(days=1)
+    # Use the next Monday to avoid past dates AND avoid weekend calculation differences
+    start = date.today()
+    while start.weekday() != 0:
+        start += timedelta(days=1)
+    if start == date.today():
+        start += timedelta(days=7) # if today is Monday, use next Monday
+    end = start + timedelta(days=1) # Tuesday
     
     # Needs 2 days of sick leave
     req = await service.create_leave_request(

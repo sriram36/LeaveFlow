@@ -87,4 +87,5 @@ async def init_db():
         # Note: In production, do not use create_all().
         # Run 'alembic upgrade head' as part of the deployment process instead.
         # This is kept for development convenience.
-        await conn.run_sync(Base.metadata.create_all)
+        # await conn.run_sync(Base.metadata.create_all)
+        pass
