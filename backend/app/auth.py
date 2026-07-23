@@ -226,8 +226,8 @@ def require_leave_request_access(current_user: User, request_user_id: int) -> No
         if request_user_id != current_user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
     # Managers, HR, and Admin can see all requests (managers are filtered by team in queries)
-    
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+    # Managers, HR, and Admin can see all requests (managers are filtered by team in queries)
+    return
 
 
 def normalize_phone_number(phone: str, default_country_code: str = "91") -> str:

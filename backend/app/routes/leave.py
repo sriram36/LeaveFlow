@@ -201,8 +201,7 @@ async def get_leave_request(
         raise HTTPException(status_code=404, detail="Leave request not found")
     
     # Check access permissions
-    if not require_leave_request_access(user, request):
-        raise HTTPException(status_code=403, detail="Access denied")
+    require_leave_request_access(user, request.user_id)
     
     return request
 
@@ -270,8 +269,7 @@ async def get_attachment(
         raise HTTPException(status_code=404, detail="Leave request not found")
 
     # Check access permissions
-    if not require_leave_request_access(user, request):
-        raise HTTPException(status_code=403, detail="Access denied")
+    require_leave_request_access(user, request.user_id)
 
     return request.attachments
 
