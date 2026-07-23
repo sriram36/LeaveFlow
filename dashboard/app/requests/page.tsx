@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api, LeaveRequest } from "../lib/api";
 import { useAuthGuard } from "../lib/use-auth-guard";
+import { DashboardSkeleton } from "../components/skeleton";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, memo, useMemo, useCallback, useEffect } from "react";
@@ -131,27 +132,7 @@ export default memo(function RequestsPage() {
           <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded w-1/2 animate-pulse"></div>
           <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/4 animate-pulse"></div>
         </div>
-        {/* Header controls skeleton */}
-        <div className="flex gap-2 h-10">
-          <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-md w-20 animate-pulse"></div>
-          <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-md w-20 animate-pulse"></div>
-          <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-md w-24 animate-pulse"></div>
-        </div>
-        {/* Request cards skeleton */}
-        <div className="space-y-3">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="border border-slate-200 dark:border-slate-700 rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
-                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/4 animate-pulse"></div>
-                </div>
-              </div>
-              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-2/3 animate-pulse"></div>
-            </div>
-          ))}
-        </div>
+        <DashboardSkeleton />
       </div>
     );
   }

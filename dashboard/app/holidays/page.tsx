@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, Holiday } from "../lib/api";
 import { useAuth } from "../lib/auth-context";
+import { TableSkeleton } from "../components/skeleton";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, memo, useCallback, useMemo } from "react";
 import { format, parseISO } from "date-fns";
@@ -75,8 +76,12 @@ export default memo(function HolidaysPage() {
 
   if (authLoading || isLoading) {
     return (
-      <main className="flex items-center justify-center py-20">
-        <div className="text-muted-foreground">Loading...</div>
+      <main className="space-y-6">
+        <div>
+          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+        </div>
+        <TableSkeleton rows={5} />
       </main>
     );
   }

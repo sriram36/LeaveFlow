@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./lib/auth-context";
+import { Loading } from "./components/loading";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "./lib/api";
 import { AnalyticsChart } from "@/components/analytics-chart";
@@ -685,14 +686,7 @@ export default memo(function HomePage() {
   }, []);
 
   if (!mounted || isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-600 dark:text-slate-400">Loading...</p>
-        </div>
-      </div>
-    );
+    return <Loading fullScreen />;
   }
 
   if (isAuthenticated) {
