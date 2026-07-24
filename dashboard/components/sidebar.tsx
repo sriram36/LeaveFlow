@@ -13,7 +13,9 @@ import {
   Sparkles,
   Sun,
   Moon,
-  Laptop
+  Laptop,
+  BarChart3,
+  UserPlus
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
@@ -25,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function Sidebar() {
+export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
@@ -38,10 +40,16 @@ export function Sidebar() {
       roles: ["manager", "hr", "admin", "worker"],
     },
     {
+      title: "History",
+      href: "/requests/history",
+      icon: BarChart3,
+      roles: ["manager", "hr", "admin", "worker"],
+    },
+    {
       title: "Calendar",
       href: "/requests/calendar",
       icon: CalendarDays,
-      roles: ["manager", "hr", "admin"],
+      roles: ["manager", "hr", "admin", "worker"],
     },
     {
       title: "Team",
@@ -53,7 +61,13 @@ export function Sidebar() {
       title: "Holidays",
       href: "/holidays",
       icon: Sparkles,
-      roles: ["hr", "admin"],
+      roles: ["manager", "hr", "admin", "worker"],
+    },
+    {
+      title: "Pending Accounts",
+      href: "/pending-accounts",
+      icon: UserPlus,
+      roles: ["admin"],
     },
   ];
 
@@ -64,7 +78,7 @@ export function Sidebar() {
   if (!user) return null;
 
   return (
-    <aside className="w-[280px] border-r border-border/50 bg-background/50 backdrop-blur-xl hidden md:flex flex-col justify-between h-screen sticky top-0 transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.2)] z-40">
+    <aside className={cn("w-[280px] border-r border-border/50 bg-background/50 backdrop-blur-xl flex flex-col justify-between h-screen sticky top-0 transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.2)] z-40", className)}>
       <div className="p-6">
         <Link href="/" className="flex items-center gap-3 mb-10 group">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20 group-hover:shadow-primary/40 group-hover:scale-105 transition-all duration-300">

@@ -34,7 +34,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Providers>
               <div className="flex min-h-screen">
                 {/* Fixed Sidebar for Desktop */}
-                <Sidebar />
+                <Sidebar className="hidden md:flex" />
                 
                 {/* Main Content Area */}
                 <div className="flex-1 flex flex-col min-w-0">
