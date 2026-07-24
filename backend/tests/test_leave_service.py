@@ -68,7 +68,12 @@ async def test_create_leave_request_success(db_session: AsyncSession, sample_wor
 async def test_create_leave_request_insufficient_balance(db_session: AsyncSession, sample_worker):
     service = LeaveService(db_session)
     
-    start = date.today() + timedelta(days=1)
+    # Use the next Monday to avoid weekend calculation issues
+    start = date.today()
+    while start.weekday() != 0:
+        start += timedelta(days=1)
+    if start == date.today():
+        start += timedelta(days=7)
     end = start + timedelta(days=10) # 11 days > 5 balance
     
     with pytest.raises(LeaveValidationError, match="Insufficient balance"):
@@ -86,7 +91,11 @@ async def test_create_leave_request_insufficient_balance(db_session: AsyncSessio
 async def test_approve_leave_request(db_session: AsyncSession, sample_worker, sample_manager):
     service = LeaveService(db_session)
     
-    start = date.today() + timedelta(days=1)
+    start = date.today()
+    while start.weekday() != 0:
+        start += timedelta(days=1)
+    if start == date.today():
+        start += timedelta(days=7)
     req = await service.create_leave_request(
         user_id=sample_worker.id,
         leave_type=LeaveType.casual,
@@ -110,7 +119,11 @@ async def test_reject_leave_request_refunds_balance(db_session: AsyncSession, sa
     
     initial_balance = sample_worker.casual_leave_balance
     
-    start = date.today() + timedelta(days=1)
+    start = date.today()
+    while start.weekday() != 0:
+        start += timedelta(days=1)
+    if start == date.today():
+        start += timedelta(days=7)
     req = await service.create_leave_request(
         user_id=sample_worker.id,
         leave_type=LeaveType.casual,

@@ -22,7 +22,7 @@ from app.services.whatsapp import (
     format_pending_list
 )
 from app.services.ai_service import ai_service
-from app.auth import get_user_by_phone, normalize_phone_number
+from app.auth import get_user_by_phone, normalize_phone_number, verify_whatsapp_webhook_token, verify_whatsapp_signature
 
 
 def normalize_token(value: str | None) -> str:
@@ -77,19 +77,19 @@ async def verify_webhook(
     logger.info(f"[Webhook Verify] Mode: {mode}, Token match: {received_token == expected_token}")
     logger.info(f"[Webhook Verify] Received token: {received_token!r}, Expected: {expected_token!r}")
     
-    if mode == "subscribe" and received_token and received_token == expected_token:
+    try:
+        verify_whatsapp_webhook_token(mode, received_token, expected_token)
         logger.info(f"[Webhook Verify] ✓ Verification successful")
         return Response(content=challenge, media_type="text/plain")
-    
-    # Detailed failure reasons for debugging
-    if mode != "subscribe":
-        logger.error(f"[Webhook Verify] ✗ Verification failed: wrong mode ({mode})")
-    elif not expected_token:
-        logger.error(f"[Webhook Verify] ✗ Verification failed: server verify token not configured")
-    else:
-        logger.error(f"[Webhook Verify] ✗ Verification failed: token mismatch")
-
-    raise HTTPException(status_code=403, detail="Verification failed")
+    except Exception as e:
+        # Detailed failure reasons for debugging
+        if mode != "subscribe":
+            logger.error(f"[Webhook Verify] ✗ Verification failed: wrong mode ({mode})")
+        elif not expected_token:
+            logger.error(f"[Webhook Verify] ✗ Verification failed: server verify token not configured")
+        else:
+            logger.error(f"[Webhook Verify] ✗ Verification failed: token mismatch")
+        raise
 
 
 @router.get("/whatsapp/inspect-token")
@@ -119,22 +119,8 @@ async def handle_webhook(
     # Verify signature if app secret is configured
     if settings.whatsapp_app_secret:
         signature = request.headers.get("X-Hub-Signature-256", "")
-        if not signature.startswith("sha256="):
-            logger.info("[Webhook] Missing or invalid signature format")
-            raise HTTPException(status_code=403, detail="Invalid signature")
-            
         raw_body = await request.body()
-        import hmac
-        import hashlib
-        expected_signature = hmac.new(
-            settings.whatsapp_app_secret.encode("utf-8"),
-            raw_body,
-            hashlib.sha256
-        ).hexdigest()
-        
-        if not hmac.compare_digest(f"sha256={expected_signature}", signature):
-            logger.info("[Webhook] Signature mismatch")
-            raise HTTPException(status_code=403, detail="Invalid signature")
+        verify_whatsapp_signature(raw_body, signature, settings.whatsapp_app_secret)
 
     try:
         body = await request.json()

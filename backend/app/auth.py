@@ -286,3 +286,27 @@ async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
     """Get a user by email."""
     result = await db.execute(select(User).where(User.email == email))
     return result.scalar_one_or_none()
+
+def verify_whatsapp_webhook_token(mode: str, received_token: str, expected_token: str) -> None:
+    """Verify WhatsApp webhook subscription token."""
+    if mode == "subscribe" and received_token and received_token == expected_token:
+        return
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Verification failed")
+
+def verify_whatsapp_signature(raw_body: bytes, signature: str, app_secret: str) -> None:
+    """Verify WhatsApp webhook signature using HMAC SHA256."""
+    if not app_secret:
+        return
+    if not signature.startswith("sha256="):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid signature")
+    
+    import hmac
+    import hashlib
+    expected_signature = hmac.new(
+        app_secret.encode("utf-8"),
+        raw_body,
+        hashlib.sha256
+    ).hexdigest()
+    
+    if not hmac.compare_digest(f"sha256={expected_signature}", signature):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid signature")
