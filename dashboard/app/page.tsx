@@ -660,7 +660,7 @@ const DashboardHome = memo(function DashboardHome() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {activityData.slice(0, 5).map((activity: Record<string, string>, index: number) => (
+                {activityData.slice(0, 5).map((activity, index: number) => (
                   <div key={index} className="flex items-center space-x-4">
                     <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-sm font-medium">
                       {activity.user?.charAt(0)}
