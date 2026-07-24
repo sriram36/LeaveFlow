@@ -123,41 +123,41 @@ export default memo(function HolidaysPage() {
 
       {/* Add Holiday Form */}
       {showAddForm && (
-        <div className="card bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 shadow-lg">
-          <h3 className="font-semibold mb-3">Add New Holiday</h3>
-          <div className="grid gap-3">
-            <div className="grid sm:grid-cols-2 gap-3">
+        <div className="card p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 shadow-lg mb-6">
+          <h3 className="text-lg font-bold mb-4">Add New Holiday</h3>
+          <div className="grid gap-4">
+            <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-muted-foreground mb-1">Date</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-1.5">Date</label>
                 <input
                   type="date"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm bg-background"
+                  className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm text-muted-foreground mb-1">Holiday Name</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-1.5">Holiday Name</label>
                 <input
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g., Independence Day"
-                  className="w-full border rounded px-3 py-2 text-sm bg-background"
+                  className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm text-muted-foreground mb-1">Description (optional)</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5">Description (optional)</label>
               <input
                 type="text"
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
                 placeholder="e.g., National holiday celebrating independence"
-                className="w-full border rounded px-3 py-2 text-sm bg-background"
+                className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all"
               />
             </div>
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-3 justify-end mt-2">
               <button
                 onClick={() => {
                   setShowAddForm(false);
@@ -165,14 +165,14 @@ export default memo(function HolidaysPage() {
                   setNewName('');
                   setNewDescription('');
                 }}
-                className="btn bg-muted hover:bg-muted/80"
+                className="btn bg-muted hover:bg-muted/80 text-foreground"
               >
                 Cancel
               </button>
               <button
                 onClick={() => addMutation.mutate()}
                 disabled={!newDate || !newName || addMutation.isPending}
-                className="btn btn-primary disabled:opacity-50"
+                className="btn btn-primary disabled:opacity-50 shadow-md hover:shadow-lg"
               >
                 {addMutation.isPending ? 'Adding...' : 'Add Holiday'}
               </button>

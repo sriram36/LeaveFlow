@@ -173,10 +173,10 @@ export default function UserDetailPage() {
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Leave Balance */}
-          <div>
+          <div className="flex flex-col h-full">
             <h3 className="font-semibold mb-3">Leave Balance ({new Date().getFullYear()})</h3>
             {balance ? (
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1">
                 <div className="flex justify-between py-2 border-b">
                   <span className="text-muted-foreground">Casual Leave</span>
                   <span className="font-medium">{balance.casual} days</span>
@@ -191,7 +191,9 @@ export default function UserDetailPage() {
                 </div>
               </div>
             ) : (
-              <p className="text-muted-foreground">No balance data available</p>
+              <div className="flex flex-col items-center justify-center flex-1 bg-muted/20 border border-dashed rounded-lg p-6 min-h-[120px]">
+                <p className="text-muted-foreground text-sm font-medium">No balance data available</p>
+              </div>
             )}
           </div>
 
