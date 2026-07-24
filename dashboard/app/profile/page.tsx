@@ -4,6 +4,7 @@ import { useAuth } from "../lib/auth-context";
 import { api } from "../lib/api";
 import { useState, useEffect, memo, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { DashboardSkeleton } from "../components/skeleton";
 
 export default memo(function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -83,12 +84,13 @@ export default memo(function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading profile...</p>
+      <main className="space-y-6">
+        <div>
+          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
         </div>
-      </div>
+        <DashboardSkeleton />
+      </main>
     );
   }
 

@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api, LeaveRequest, Holiday } from "../../lib/api";
 import { useAuth } from "../../lib/auth-context";
-import { Loading } from "../../components/loading";
+import { DashboardSkeleton } from "../../components/skeleton";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
@@ -73,7 +73,15 @@ export default function CalendarPage() {
   }, [holidays]);
 
   if (authLoading || leavesLoading || holidaysLoading) {
-    return <Loading fullScreen />;
+    return (
+      <main className="space-y-6">
+        <div>
+          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+        </div>
+        <DashboardSkeleton />
+      </main>
+    );
   }
 
   return (

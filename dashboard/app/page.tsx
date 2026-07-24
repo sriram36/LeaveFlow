@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./lib/auth-context";
-import { Loading } from "./components/loading";
+import { DashboardSkeleton } from "./components/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "./lib/api";
 import { AnalyticsChart } from "@/components/analytics-chart";
@@ -695,7 +695,11 @@ export default memo(function HomePage() {
   }, []);
 
   if (!mounted || isLoading) {
-    return <Loading fullScreen />;
+    return (
+      <div className="space-y-6">
+        <DashboardSkeleton />
+      </div>
+    );
   }
 
   if (isAuthenticated) {
