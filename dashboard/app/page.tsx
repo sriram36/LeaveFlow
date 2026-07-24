@@ -50,30 +50,20 @@ const LandingPage = memo(function LandingPage() {
   return (
     <div className="space-y-0">
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-32 sm:pt-32 sm:pb-48">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-indigo-50 to-white dark:from-slate-950 dark:via-indigo-950/20 dark:to-slate-900 -z-10"></div>
-        
-        {/* Animated background blobs */}
-        <div className="absolute top-40 left-0 w-96 h-96 bg-indigo-200/30 dark:bg-indigo-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
-        <div className="absolute top-20 right-10 w-80 h-80 bg-teal-200/30 dark:bg-teal-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-indigo-300/20 dark:bg-indigo-800/20 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-4000"></div>
-        
+      <section className="relative overflow-hidden pt-20 pb-32 sm:pt-32 sm:pb-48 bg-background">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center space-y-10">
             {/* Badge */}
-            <Link href="/signup" className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-indigo-100 to-teal-100 dark:from-indigo-900/40 dark:to-teal-900/40 text-indigo-700 dark:text-indigo-300 text-sm font-semibold border border-indigo-200 dark:border-indigo-800 hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 cursor-pointer group">
-              <Sparkles className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
-              <span>Manage leaves the WhatsApp way</span>
-              <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            <Link href="/signup" className="inline-flex items-center px-3 py-1.5 rounded-full bg-muted/50 text-muted-foreground hover:text-foreground text-sm font-medium border border-border transition-colors cursor-pointer group">
+              <span>Introducing LeaveFlow for Enterprise</span>
+              <ChevronRight className="w-4 h-4 ml-2 opacity-50" />
             </Link>
             
             {/* Main Heading */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tighter text-slate-900 dark:text-white leading-tight">
-              <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-teal-600 dark:from-indigo-400 dark:via-purple-400 dark:to-teal-400 bg-clip-text text-transparent">
-                Leave Management,
-              </span>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-foreground leading-tight">
+              Modern Leave Management
               <br />
-              <span className="text-slate-900 dark:text-white">Reimagined for Teams</span>
+              <span className="text-muted-foreground">Built for Scale</span>
             </h1>
             
             {/* Subheading */}
@@ -84,14 +74,13 @@ const LandingPage = memo(function LandingPage() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
               <Link href="/signup" className="inline-block">
-                <Button size="lg" className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-12 py-7 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group">
+                <Button size="lg" className="bg-primary text-primary-foreground px-8 py-6 text-base font-medium rounded-lg shadow-sm hover:opacity-90 transition-opacity">
                   Get Started Free
-                  <ArrowRightCircle className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
               <Link href="/requests" className="inline-block">
-                <Button size="lg" variant="outline" className="px-12 py-7 text-lg font-semibold rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:border-indigo-400 dark:hover:border-indigo-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-2 group">
-                  <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                <Button size="lg" variant="outline" className="px-8 py-6 text-base font-medium rounded-lg shadow-sm hover:bg-muted/50 transition-colors">
                   View Demo
                 </Button>
               </Link>
@@ -559,63 +548,43 @@ const DashboardHome = memo(function DashboardHome() {
     <div className="space-y-8">
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="shadow-glass hover:shadow-lg transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm group hover:-translate-y-1">
+          <Card className="shadow-sm border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400/20 to-orange-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Clock className="h-4 w-4 text-amber-500 dark:text-amber-400" />
-              </div>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Pending Requests</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{pendingCount}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Awaiting approval
-              </p>
+              <div className="text-2xl font-semibold tracking-tight">{pendingCount}</div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-glass hover:shadow-lg transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm group hover:-translate-y-1">
+          <Card className="shadow-sm border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Leave Balance</CardTitle>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400/20 to-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Calendar className="h-4 w-4 text-blue-500 dark:text-blue-400" />
-              </div>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Leave Balance</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalBalance}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Days remaining
-              </p>
+              <div className="text-2xl font-semibold tracking-tight">{totalBalance}</div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-glass hover:shadow-lg transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm group hover:-translate-y-1">
+          <Card className="shadow-sm border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Approved Today</CardTitle>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400/20 to-teal-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <CheckCircle className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
-              </div>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Approved Today</CardTitle>
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats?.approved_today || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Approved today
-              </p>
+              <div className="text-2xl font-semibold tracking-tight">{stats?.approved_today || 0}</div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-glass hover:shadow-lg transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm group hover:-translate-y-1">
+          <Card className="shadow-sm border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Team Members</CardTitle>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400/20 to-pink-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Users className="h-4 w-4 text-purple-500 dark:text-purple-400" />
-              </div>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Team Members</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats?.active_users || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Active users
-              </p>
+              <div className="text-2xl font-semibold tracking-tight">{stats?.active_users || 0}</div>
             </CardContent>
           </Card>
         </div>
@@ -627,33 +596,33 @@ const DashboardHome = memo(function DashboardHome() {
           </div>
 
           {/* Quick Actions */}
-          <Card className="shadow-glass hover:shadow-lg transition-shadow duration-300 border-border/50 bg-card/50 backdrop-blur-sm">
+          {/* Quick Actions */}
+          <Card className="shadow-sm border-border bg-card">
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Common tasks and shortcuts</CardDescription>
+              <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Link href="/requests" className="block w-full group">
-                <Button className="w-full justify-start hover:bg-primary/5 border-border/50 transition-colors" variant="outline">
-                  <UserCheck className="w-4 h-4 mr-2 text-primary group-hover:scale-110 transition-transform" />
+            <CardContent className="space-y-2">
+              <Link href="/requests" className="block w-full">
+                <Button className="w-full justify-start border-border shadow-sm hover:bg-muted/50" variant="outline" size="sm">
+                  <UserCheck className="w-4 h-4 mr-2 opacity-50" />
                   Review Requests
                 </Button>
               </Link>
-              <Link href="/requests/calendar" className="block w-full group">
-                <Button className="w-full justify-start hover:bg-primary/5 border-border/50 transition-colors" variant="outline">
-                  <CalendarDays className="w-4 h-4 mr-2 text-primary group-hover:scale-110 transition-transform" />
+              <Link href="/requests/calendar" className="block w-full">
+                <Button className="w-full justify-start border-border shadow-sm hover:bg-muted/50" variant="outline" size="sm">
+                  <CalendarDays className="w-4 h-4 mr-2 opacity-50" />
                   View Calendar
                 </Button>
               </Link>
-              <Link href="/requests" className="block w-full group">
-                <Button className="w-full justify-start hover:bg-primary/5 border-border/50 transition-colors" variant="outline">
-                  <BarChart className="w-4 h-4 mr-2 text-primary group-hover:scale-110 transition-transform" />
+              <Link href="/requests" className="block w-full">
+                <Button className="w-full justify-start border-border shadow-sm hover:bg-muted/50" variant="outline" size="sm">
+                  <BarChart className="w-4 h-4 mr-2 opacity-50" />
                   Generate Report
                 </Button>
               </Link>
-              <Link href="/users" className="block w-full group">
-                <Button className="w-full justify-start hover:bg-primary/5 border-border/50 transition-colors" variant="outline">
-                  <Settings className="w-4 h-4 mr-2 text-primary group-hover:scale-110 transition-transform" />
+              <Link href="/users" className="block w-full">
+                <Button className="w-full justify-start border-border shadow-sm hover:bg-muted/50" variant="outline" size="sm">
+                  <Settings className="w-4 h-4 mr-2 opacity-50" />
                   Manage Users
                 </Button>
               </Link>
@@ -661,31 +630,29 @@ const DashboardHome = memo(function DashboardHome() {
           </Card>
 
           {/* Recent Activity */}
-          <Card className="lg:col-span-3 shadow-glass hover:shadow-lg transition-shadow duration-300 border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card className="lg:col-span-3 shadow-sm border-border bg-card">
             <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Latest leave requests and approvals</CardDescription>
+              <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="divide-y divide-border/50">
                 {activityData.slice(0, 5).map((activity, index: number) => (
-                  <div key={index} className="flex items-center space-x-4 p-3 rounded-xl hover:bg-muted/50 transition-colors group">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary/10 to-primary/30 text-primary border border-primary/20 shadow-inner rounded-full flex items-center justify-center text-sm font-semibold group-hover:scale-105 transition-transform">
-                      {activity.user?.charAt(0)}
+                  <div key={index} className="flex items-center justify-between py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-xs font-medium text-foreground">
+                        {activity.user?.charAt(0)}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-foreground">{activity.user}</span>
+                        <span className="text-xs text-muted-foreground">{activity.action}</span>
+                      </div>
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{activity.user}</p>
-                      <p className="text-xs text-muted-foreground">{activity.action}</p>
-                    </div>
-                    <div className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">{activity.time}</div>
+                    <div className="text-xs text-muted-foreground">{activity.time}</div>
                   </div>
                 )) || (
                   <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 text-muted-foreground">
-                      <FileText className="w-8 h-8" />
-                    </div>
-                    <p className="text-foreground font-medium">No recent activity</p>
-                    <p className="text-sm text-muted-foreground">New activity will appear here.</p>
+                    <p className="text-sm font-medium text-foreground">No recent activity</p>
+                    <p className="text-xs text-muted-foreground">New activity will appear here.</p>
                   </div>
                 )}
               </div>

@@ -79,20 +79,17 @@ export default memo(function UsersPage() {
       </div>
 
       {!rows.length ? (
-        <div className="card text-center py-20 px-6 border-0 shadow-glass bg-card/50 backdrop-blur-sm relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50"></div>
-          <div className="relative z-10">
-            <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
-              <div className="text-4xl">👥</div>
-            </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">No users found</h3>
-            <p className="text-muted-foreground">Try adjusting your filters or search criteria.</p>
+        <div className="card text-center py-20 px-6 border border-border shadow-sm bg-card rounded-xl">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-muted-foreground text-sm font-medium">No Users</span>
           </div>
+          <h3 className="text-lg font-semibold text-foreground mb-1">No users found</h3>
+          <p className="text-sm text-muted-foreground">Try adjusting your filters or search criteria.</p>
         </div>
       ) : (
-        <div className="card overflow-hidden shadow-glass border-0 bg-card/50 backdrop-blur-sm">
+        <div className="card overflow-hidden shadow-sm border border-border bg-card rounded-xl p-0">
           <Table>
-            <TableHeader className="bg-primary/5 dark:bg-primary/10">
+            <TableHeader className="bg-muted/50">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="font-semibold text-foreground">Name</TableHead>
                 <TableHead className="font-semibold text-foreground">Phone</TableHead>

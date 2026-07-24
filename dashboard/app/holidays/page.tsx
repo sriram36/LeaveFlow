@@ -187,9 +187,9 @@ export default memo(function HolidaysPage() {
           No holidays configured for {year}.
         </div>
       ) : (
-        <div className="card overflow-hidden shadow-glass border-0 bg-card/50 backdrop-blur-sm">
+        <div className="card overflow-hidden shadow-sm border border-border bg-card rounded-xl p-0">
           <Table>
-            <TableHeader className="bg-amber-500/10 dark:bg-amber-500/5">
+            <TableHeader className="bg-muted/50">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="font-semibold text-foreground">Date</TableHead>
                 <TableHead className="font-semibold text-foreground">Day</TableHead>
@@ -207,8 +207,8 @@ export default memo(function HolidaysPage() {
                     <TableCell className="font-semibold">{holiday.date}</TableCell>
                     <TableCell className="text-muted-foreground font-medium">{format(date, 'EEEE')}</TableCell>
                     <TableCell>
-                      <span className="inline-flex items-center gap-2">
-                        <span className="text-xl">🎉</span> {holiday.name}
+                      <span className="font-medium text-foreground">
+                        {holiday.name}
                       </span>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">

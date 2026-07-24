@@ -55,7 +55,7 @@ export function Header() {
     pathname.split('/').filter(Boolean).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' / ');
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border/50 bg-background/70 backdrop-blur-xl px-4 sm:px-6 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background px-4 sm:px-6 py-3">
       
       <div className="flex items-center gap-3">
         {/* Mobile Menu */}
@@ -72,10 +72,10 @@ export function Header() {
           </Sheet>
           
           <Link href="/" className="flex items-center gap-2 md:hidden">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-md">
-              <Sparkles className="w-3.5 h-3.5 text-white" />
+            <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shadow-sm">
+              <span className="w-3.5 h-3.5 text-primary-foreground font-bold text-xs flex items-center justify-center">L</span>
             </div>
-            <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            <span className="text-lg font-bold tracking-tight text-foreground">
               LeaveFlow
             </span>
           </Link>

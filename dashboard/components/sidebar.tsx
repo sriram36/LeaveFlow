@@ -83,7 +83,7 @@ export function Sidebar({ className }: { className?: string }) {
   if (!user) return null;
 
   return (
-    <aside className={cn("border-r border-border/50 bg-background/50 backdrop-blur-xl flex flex-col justify-between h-screen sticky top-0 transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.2)] z-40 group", className, isCollapsed ? "w-full md:w-[80px]" : "w-full md:w-[280px]")}>
+    <aside className={cn("border-r border-border bg-background flex flex-col justify-between h-screen sticky top-0 transition-all duration-300 z-40 group", className, isCollapsed ? "w-full md:w-[80px]" : "w-full md:w-[280px]")}>
       
       {/* Collapse Toggle */}
       <button 
@@ -94,12 +94,12 @@ export function Sidebar({ className }: { className?: string }) {
       </button>
 
       <div className="p-4 sm:p-6 overflow-hidden">
-        <Link href="/" className={cn("flex items-center gap-3 mb-10 group", isCollapsed ? "justify-center" : "")}>
-          <div className="w-9 h-9 min-w-[36px] rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20 group-hover:shadow-primary/40 group-hover:scale-105 transition-all duration-300">
-            <Sparkles className="w-4 h-4 text-white" />
+        <Link href="/" className={cn("flex items-center gap-3 mb-10", isCollapsed ? "justify-center" : "")}>
+          <div className="w-8 h-8 min-w-[32px] rounded-lg bg-primary flex items-center justify-center shadow-sm">
+            <LayoutDashboard className="w-4 h-4 text-primary-foreground" />
           </div>
           {!isCollapsed && (
-            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent truncate">
+            <span className="text-lg font-bold tracking-tight text-foreground truncate">
               LeaveFlow
             </span>
           )}
@@ -117,17 +117,14 @@ export function Sidebar({ className }: { className?: string }) {
                 href={item.href}
                 title={isCollapsed ? item.title : undefined}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative",
+                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   isActive 
-                    ? "text-primary bg-primary/10 shadow-sm" 
+                    ? "text-primary-foreground bg-primary shadow-sm" 
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                   isCollapsed ? "justify-center" : ""
                 )}
               >
-                {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full shadow-[0_0_8px_rgba(139,92,246,0.6)]" />
-                )}
-                <item.icon className={cn("w-4.5 h-4.5 min-w-[18px]", isActive ? "text-primary" : "group-hover:scale-110 transition-transform")} />
+                <item.icon className={cn("w-4.5 h-4.5 min-w-[18px]", isActive ? "text-primary-foreground" : "")} />
                 {!isCollapsed && <span className="truncate">{item.title}</span>}
               </Link>
             );
@@ -149,17 +146,16 @@ export function Sidebar({ className }: { className?: string }) {
           </button>
         )}
 
-        {/* User Profile */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className={cn("flex items-center w-full rounded-xl hover:bg-muted/50 transition-all text-left border border-transparent hover:border-border/50 group", isCollapsed ? "p-1 justify-center" : "gap-3 p-2.5")}>
-              <div className="w-10 h-10 min-w-[40px] rounded-full bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center font-semibold text-primary border border-primary/20 shadow-inner group-hover:scale-105 transition-transform">
+            <button className={cn("flex items-center w-full rounded-md hover:bg-muted/50 transition-colors text-left", isCollapsed ? "p-1 justify-center" : "gap-3 p-2")}>
+              <div className="w-8 h-8 min-w-[32px] rounded-full bg-muted flex items-center justify-center font-medium text-muted-foreground border border-border shadow-sm">
                 {user?.name?.charAt(0) || "U"}
               </div>
               {!isCollapsed && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate text-foreground">{user?.name || "User"}</p>
-                  <p className="text-xs text-muted-foreground capitalize truncate font-medium">{user?.role || "Role"}</p>
+                  <p className="text-sm font-medium truncate text-foreground">{user?.name || "User"}</p>
+                  <p className="text-xs text-muted-foreground capitalize truncate">{user?.role || "Role"}</p>
                 </div>
               )}
             </button>

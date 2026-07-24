@@ -198,18 +198,17 @@ export default memo(function RequestsPage() {
       </div>
 
       {!rows.length ? (
-        <Card className="border-0 shadow-glass bg-card/50 backdrop-blur-sm overflow-hidden">
-          <CardContent className="text-center py-20 px-6 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50"></div>
-            <div className="relative z-10 max-w-sm mx-auto">
-              <div className="w-24 h-24 bg-gradient-to-br from-primary/10 to-primary/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                <CheckCircle className="w-12 h-12 text-primary" />
+        <Card className="border-border shadow-sm bg-card overflow-hidden">
+          <CardContent className="text-center py-20 px-6">
+            <div className="max-w-sm mx-auto">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-2xl font-bold text-foreground mb-3 tracking-tight">
-                All caught up!
+              <h3 className="text-xl font-semibold text-foreground mb-2 tracking-tight">
+                No pending requests
               </h3>
-              <p className="text-muted-foreground text-lg leading-relaxed">
-                You&apos;ve reviewed all pending requests. Great job keeping the team moving!
+              <p className="text-muted-foreground text-sm">
+                You have reviewed all pending leave requests.
               </p>
             </div>
           </CardContent>
@@ -220,7 +219,7 @@ export default memo(function RequestsPage() {
           {rows.map((request: LeaveRequest) => (
             <Card
               key={request.id}
-              className="shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border-border/50 bg-card/80 backdrop-blur-sm hover:-translate-y-1 group"
+              className="shadow-sm hover:shadow-md transition-shadow cursor-pointer border-border bg-card group"
               onClick={() => router.push(`/requests/${request.id}`)}
             >
               <CardContent className="pt-6">
@@ -228,7 +227,7 @@ export default memo(function RequestsPage() {
                   {/* Left */}
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary/10 to-primary/30 text-primary border border-primary/20 rounded-full flex items-center justify-center text-sm font-bold shadow-inner group-hover:scale-105 transition-transform">
+                      <div className="w-10 h-10 bg-muted text-foreground rounded-full flex items-center justify-center text-sm font-medium">
                         {request.user?.name?.charAt(0) || "U"}
                       </div>
                       <div className="flex-1">
@@ -278,13 +277,13 @@ export default memo(function RequestsPage() {
           {rows.map((request: LeaveRequest) => (
             <Card
               key={request.id}
-              className="shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border-border/50 bg-card/80 backdrop-blur-sm hover:-translate-y-1 group"
+              className="shadow-sm hover:shadow-md transition-shadow cursor-pointer border-border bg-card group"
               onClick={() => router.push(`/requests/${request.id}`)}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary/10 to-primary/30 text-primary border border-primary/20 rounded-full flex items-center justify-center text-sm font-bold shadow-inner group-hover:scale-105 transition-transform">
+                    <div className="w-10 h-10 bg-muted text-foreground rounded-full flex items-center justify-center text-sm font-medium">
                         {request.user?.name?.charAt(0) || "U"}
                       </div>
                       <div>
