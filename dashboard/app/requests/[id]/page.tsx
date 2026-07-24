@@ -89,7 +89,7 @@ export default function RequestDetail() {
           <div className="space-y-6">
             <div className="p-4 bg-muted/50 rounded-lg border">
               <label className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">Employee</label>
-              <p className="font-bold text-lg mt-1">{detail.user?.name || "Unknown"}</p>
+              <p className="font-bold text-lg mt-1 break-words">{detail.user?.name || "Unknown"}</p>
               <p className="text-sm text-muted-foreground">{detail.user?.phone}</p>
             </div>
 
@@ -113,7 +113,7 @@ export default function RequestDetail() {
           <div className="space-y-6">
             <div className="p-4 bg-muted/50 rounded-lg border">
               <label className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">Reason</label>
-              <p className="text-foreground mt-2 leading-relaxed">{detail.reason || 'No reason provided'}</p>
+              <p className="text-foreground mt-2 leading-relaxed break-words">{detail.reason || 'No reason provided'}</p>
             </div>
 
             {detail.rejection_reason && (
@@ -164,24 +164,7 @@ export default function RequestDetail() {
               </div>
             )}
 
-            {detail.attachments && detail.attachments.length > 0 && (
-              <div className="p-4 bg-indigo-50 rounded-lg">
-                <label className="text-xs uppercase tracking-wide text-indigo-600 font-semibold">Attachments</label>
-                <div className="space-y-2 mt-2">
-                  {detail.attachments.map(att => (
-                    <a
-                      key={att.id}
-                      href={att.file_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium transition-colors"
-                    >
-                      📎 View Attachment
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
+
 
             <div className="p-4 bg-muted/50 rounded-lg border">
               <label className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">Submitted</label>
