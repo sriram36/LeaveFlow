@@ -17,7 +17,7 @@ graph LR
     API -->|WebSocket| UI[Next.js Dashboard]
 ```
 
-See [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md) for a deep dive into the architectural decisions and trade-offs.
+See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for a deep dive into the architectural decisions and trade-offs.
 
 ## 🚀 Getting Started
 
@@ -41,3 +41,11 @@ cd backend
 pip install -r requirements-dev.txt
 pytest tests/
 ```
+
+### Load Testing
+We use [Locust](https://locust.io/) to benchmark API performance and scalability.
+```bash
+pip install locust
+locust -f locustfile.py
+```
+Then navigate to `http://localhost:8089` to start the swarm and view real-time latency and throughput metrics.
