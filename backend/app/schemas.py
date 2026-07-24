@@ -224,6 +224,27 @@ class AccountCreationRequestApprove(BaseModel):
     rejection_reason: Optional[str] = None
 
 
+class MonthlyTrend(BaseModel):
+    name: str
+    Sick: int
+    Casual: int
+    Special: int
+
+
+class RecentActivity(BaseModel):
+    user: str
+    action: str
+    time: str
+
+
+class DashboardStatsResponse(BaseModel):
+    pending_count: int
+    approved_today: int
+    active_users: int
+    monthly_trends: List[MonthlyTrend]
+    recent_activity: List[RecentActivity]
+
+
 # Forward refs
 UserWithBalance.model_rebuild()
 LeaveRequestResponse.model_rebuild()

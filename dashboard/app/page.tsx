@@ -543,15 +543,16 @@ const DashboardHome = memo(function DashboardHome() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: recentActivity } = useQuery({
-    queryKey: ['recent-activity'],
-    queryFn: () => [],
+  const { data: stats } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: () => api.getDashboardStats(),
+    enabled: Boolean(user && (user.role === 'manager' || user.role === 'hr' || user.role === 'admin')),
     staleTime: 30000,
   });
 
-  const pendingCount = useMemo(() => pendingRequests?.length || 0, [pendingRequests]);
+  const pendingCount = useMemo(() => stats?.pending_count ?? (pendingRequests?.length || 0), [stats, pendingRequests]);
   const balanceData = useMemo(() => balance || { casual: 0, sick: 0, special: 0 }, [balance]);
-  const activityData = useMemo(() => recentActivity || [], [recentActivity]);
+  const activityData = useMemo(() => stats?.recent_activity || [], [stats]);
   const totalBalance = useMemo(() => (balanceData.casual || 0) + (balanceData.sick || 0) + (balanceData.special || 0), [balanceData]);
 
   return (
@@ -590,9 +591,9 @@ const DashboardHome = memo(function DashboardHome() {
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-2xl font-bold">{stats?.approved_today || 0}</div>
               <p className="text-xs text-muted-foreground">
-                +2 from yesterday
+                Approved today
               </p>
             </CardContent>
           </Card>
@@ -603,7 +604,7 @@ const DashboardHome = memo(function DashboardHome() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">48</div>
+              <div className="text-2xl font-bold">{stats?.active_users || 0}</div>
               <p className="text-xs text-muted-foreground">
                 Active users
               </p>
@@ -614,7 +615,7 @@ const DashboardHome = memo(function DashboardHome() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Analytics Overview */}
           <div className="lg:col-span-2">
-            <AnalyticsChart />
+            <AnalyticsChart data={stats?.monthly_trends || []} />
           </div>
 
           {/* Quick Actions */}
@@ -624,22 +625,30 @@ const DashboardHome = memo(function DashboardHome() {
               <CardDescription>Common tasks and shortcuts</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full justify-start" variant="outline">
-                <UserCheck className="w-4 h-4 mr-2" />
-                Review Requests
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <CalendarDays className="w-4 h-4 mr-2" />
-                View Calendar
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <BarChart className="w-4 h-4 mr-2" />
-                Generate Report
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <Settings className="w-4 h-4 mr-2" />
-                Manage Users
-              </Button>
+              <Link href="/requests" className="block w-full">
+                <Button className="w-full justify-start" variant="outline">
+                  <UserCheck className="w-4 h-4 mr-2" />
+                  Review Requests
+                </Button>
+              </Link>
+              <Link href="/requests/calendar" className="block w-full">
+                <Button className="w-full justify-start" variant="outline">
+                  <CalendarDays className="w-4 h-4 mr-2" />
+                  View Calendar
+                </Button>
+              </Link>
+              <Link href="/requests" className="block w-full">
+                <Button className="w-full justify-start" variant="outline">
+                  <BarChart className="w-4 h-4 mr-2" />
+                  Generate Report
+                </Button>
+              </Link>
+              <Link href="/users" className="block w-full">
+                <Button className="w-full justify-start" variant="outline">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Manage Users
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
@@ -651,7 +660,7 @@ const DashboardHome = memo(function DashboardHome() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentActivity?.slice(0, 5).map((activity: Record<string, string>, index: number) => (
+                {activityData.slice(0, 5).map((activity: Record<string, string>, index: number) => (
                   <div key={index} className="flex items-center space-x-4">
                     <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-sm font-medium">
                       {activity.user?.charAt(0)}

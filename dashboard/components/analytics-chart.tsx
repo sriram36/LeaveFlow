@@ -12,18 +12,13 @@ import {
   Legend
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MonthlyTrend } from "@/app/lib/api";
 
-const data = [
-  { name: "Jan", Sick: 4, Casual: 2, Special: 0 },
-  { name: "Feb", Sick: 3, Casual: 5, Special: 1 },
-  { name: "Mar", Sick: 2, Casual: 8, Special: 0 },
-  { name: "Apr", Sick: 6, Casual: 3, Special: 2 },
-  { name: "May", Sick: 1, Casual: 10, Special: 0 },
-  { name: "Jun", Sick: 5, Casual: 4, Special: 1 },
-  { name: "Jul", Sick: 3, Casual: 7, Special: 0 },
-];
+interface AnalyticsChartProps {
+  data: MonthlyTrend[];
+}
 
-export function AnalyticsChart() {
+export function AnalyticsChart({ data }: AnalyticsChartProps) {
   const { theme } = useTheme();
   
   const colors = {

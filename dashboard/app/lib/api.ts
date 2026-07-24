@@ -53,11 +53,25 @@ export interface Holiday {
   description?: string;
 }
 
+export interface MonthlyTrend {
+  name: string;
+  Sick: number;
+  Casual: number;
+  Special: number;
+}
+
+export interface RecentActivity {
+  user: string;
+  action: string;
+  time: string;
+}
+
 export interface DashboardStats {
   pending_count: number;
   approved_today: number;
-  rejected_today: number;
-  on_leave_today: User[];
+  active_users: number;
+  monthly_trends: MonthlyTrend[];
+  recent_activity: RecentActivity[];
 }
 
 class ApiClient {
@@ -216,6 +230,10 @@ class ApiClient {
 
   async getTodayLeaves(): Promise<{ employees: User[]; count: number }> {
     return this.fetch('/leave/today');
+  }
+
+  async getDashboardStats(): Promise<DashboardStats> {
+    return this.fetch('/leave/dashboard/stats');
   }
 
   // Users

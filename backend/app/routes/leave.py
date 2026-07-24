@@ -34,12 +34,130 @@ from app.auth import get_current_user_required, require_manager, require_admin, 
 from app.models import User, LeaveStatus, LeaveRequest, LeaveBalance, LeaveBalanceHistory, LeaveType
 from app.schemas import (
     LeaveRequestResponse, LeaveRequestCreate, ApproveRequest, RejectRequest,
-    LeaveBalanceResponse, TodayLeaveResponse, UserResponse, LeaveBalanceHistoryResponse
+    LeaveBalanceResponse, TodayLeaveResponse, UserResponse, LeaveBalanceHistoryResponse,
+    DashboardStatsResponse
 )
 from app.services.leave import LeaveService
 from app.services.validator import LeaveValidationError
 
 router = APIRouter(prefix="/leave", tags=["Leave Management"])
+
+
+@router.get("/dashboard/stats", response_model=DashboardStatsResponse)
+async def get_dashboard_stats(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_manager)
+):
+    """Get overall dashboard stats (Admin/HR/Manager)."""
+    from sqlalchemy import select, func, or_
+    from datetime import date, timedelta
+    from app.models import LeaveRequest, LeaveStatus, UserRole, User, AccountStatus
+    
+    today = date.today()
+    
+    # 1. Pending Count
+    # Base query for pending
+    pending_query = select(func.count(LeaveRequest.id)).where(LeaveRequest.status == LeaveStatus.pending)
+    
+    if user.role == UserRole.manager:
+        # Managers only see pending from their team
+        pending_query = pending_query.join(User).where(User.manager_id == user.id)
+    
+    pending_count = await db.scalar(pending_query) or 0
+    
+    # 2. Approved Today
+    # Count requests where approved_at is today
+    approved_query = select(func.count(LeaveRequest.id)).where(
+        LeaveRequest.status == LeaveStatus.approved,
+        func.date(LeaveRequest.approved_at) == today
+    )
+    if user.role == UserRole.manager:
+        approved_query = approved_query.join(User).where(User.manager_id == user.id)
+        
+    approved_today = await db.scalar(approved_query) or 0
+    
+    # 3. Active Users
+    users_query = select(func.count(User.id)).where(User.account_status == AccountStatus.active)
+    if user.role == UserRole.manager:
+        users_query = users_query.where(User.manager_id == user.id)
+        
+    active_users = await db.scalar(users_query) or 0
+    
+    # 4. Monthly Trends (last 6 months)
+    # We'll calculate it in Python for simplicity since DB support for cross-tab queries varies
+    from dateutil.relativedelta import relativedelta
+    import calendar
+    
+    monthly_trends = []
+    
+    for i in range(5, -1, -1):
+        target_month = today - relativedelta(months=i)
+        start_date = target_month.replace(day=1)
+        end_date = target_month.replace(day=calendar.monthrange(target_month.year, target_month.month)[1])
+        
+        # Get counts for this month
+        month_query = select(
+            LeaveRequest.leave_type, 
+            func.count(LeaveRequest.id)
+        ).where(
+            LeaveRequest.start_date >= start_date,
+            LeaveRequest.start_date <= end_date,
+            LeaveRequest.status == LeaveStatus.approved
+        ).group_by(LeaveRequest.leave_type)
+        
+        if user.role == UserRole.manager:
+            month_query = month_query.join(User).where(User.manager_id == user.id)
+            
+        result = await db.execute(month_query)
+        type_counts = dict(result.all())
+        
+        month_name = target_month.strftime("%b")
+        monthly_trends.append({
+            "name": month_name,
+            "Sick": type_counts.get("sick", 0),
+            "Casual": type_counts.get("casual", 0),
+            "Special": type_counts.get("special", 0)
+        })
+        
+    # 5. Recent Activity
+    from app.models import AuditLog
+    
+    activity_query = select(AuditLog).order_by(AuditLog.created_at.desc()).limit(5)
+    
+    if user.role == UserRole.manager:
+        # Filter logs to those concerning users in manager's team
+        activity_query = activity_query.join(LeaveRequest, AuditLog.leave_request_id == LeaveRequest.id)\
+            .join(User, LeaveRequest.user_id == User.id)\
+            .where(User.manager_id == user.id)
+            
+    # Need to load the actor or the request user to get the name
+    activity_query = activity_query.options(selectinload(AuditLog.actor))
+    
+    activity_result = await db.execute(activity_query)
+    logs = activity_result.scalars().all()
+    
+    recent_activity = []
+    for log in logs:
+        time_str = log.created_at.strftime("%I:%M %p") if log.created_at else "Unknown"
+        user_name = log.actor.name if log.actor else "System"
+        
+        action_text = f"{log.action} a leave request"
+        if log.details:
+            action_text = log.details
+            
+        recent_activity.append({
+            "user": user_name,
+            "action": action_text,
+            "time": time_str
+        })
+        
+    return DashboardStatsResponse(
+        pending_count=pending_count,
+        approved_today=approved_today,
+        active_users=active_users,
+        monthly_trends=monthly_trends,
+        recent_activity=recent_activity
+    )
 
 
 @router.get("/pending", response_model=List[LeaveRequestResponse])
