@@ -39,8 +39,7 @@ async def login(
             phone="+1234567890",
             email="demo@leaveflow.com",
             role=UserRole.admin,
-            is_approved=True,
-            status=AccountStatus.active,
+            account_status=AccountStatus.active,
             password_hash=get_password_hash("demo123")
         )
         db.add(demo_user)
@@ -60,6 +59,18 @@ async def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
+        )
+        
+    if user.account_status == AccountStatus.pending:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account is pending approval by an administrator."
+        )
+        
+    if user.account_status == AccountStatus.suspended:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account has been suspended."
         )
     
     access_token = create_access_token(data={"sub": user.id})
@@ -111,8 +122,8 @@ async def register(
                 detail="Email already registered"
             )
     
-    # Auto-approve all accounts for now for testing purposes
-    account_status = AccountStatus.active
+    # New accounts require admin approval
+    account_status = AccountStatus.pending
     
     # Create user
     user = User(

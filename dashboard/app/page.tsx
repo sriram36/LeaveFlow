@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "./lib/auth-context";
 import { DashboardSkeleton } from "./components/skeleton";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "./lib/api";
+import { api, LeaveRequest } from "./lib/api";
 import { AnalyticsChart } from "@/components/analytics-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -575,6 +575,43 @@ const DashboardHome = memo(function DashboardHome() {
   const activityData = useMemo(() => stats?.recent_activity || [], [stats]);
   const totalBalance = useMemo(() => (balanceData.casual || 0) + (balanceData.sick || 0) + (balanceData.special || 0), [balanceData]);
 
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateReport = async () => {
+    try {
+      setIsGenerating(true);
+      const history = await api.getLeaveHistory();
+      if (!history || history.length === 0) return;
+      
+      const headers = ['ID', 'Employee', 'Start Date', 'End Date', 'Days', 'Type', 'Duration', 'Status', 'Reason', 'Created At'];
+      const csvData: (string | number)[][] = history.map((req: LeaveRequest) => [
+        req.id,
+        req.user?.name || 'Unknown',
+        req.start_date,
+        req.end_date,
+        req.days,
+        req.leave_type,
+        req.duration_type,
+        req.status,
+        `"${(req.reason || '').replace(/"/g, '""')}"`,
+        req.created_at,
+      ]);
+
+      const csv = [headers.join(','), ...csvData.map((row) => row.join(','))].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `leave-history-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to generate report", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   if (pendingLoading || balanceLoading || statsLoading) {
     return <DashboardSkeleton />;
   }
@@ -669,12 +706,15 @@ const DashboardHome = memo(function DashboardHome() {
                   View Calendar
                 </Button>
               </Link>
-              <Link href="/requests/history" className="block w-full group">
-                <Button className="w-full justify-start hover:bg-primary/5 border-border/50 transition-colors" variant="outline">
-                  <BarChart className="w-4 h-4 mr-2 text-primary group-hover:scale-110 transition-transform" />
-                  Generate Report
-                </Button>
-              </Link>
+              <Button 
+                onClick={handleGenerateReport} 
+                disabled={isGenerating}
+                className="w-full justify-start hover:bg-primary/5 border-border/50 transition-colors" 
+                variant="outline"
+              >
+                <BarChart className="w-4 h-4 mr-2 text-primary group-hover:scale-110 transition-transform" />
+                {isGenerating ? "Generating..." : "Generate Report"}
+              </Button>
               <Link href="/users" className="block w-full group">
                 <Button className="w-full justify-start hover:bg-primary/5 border-border/50 transition-colors" variant="outline">
                   <Settings className="w-4 h-4 mr-2 text-primary group-hover:scale-110 transition-transform" />

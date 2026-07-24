@@ -7,6 +7,7 @@ import { DashboardSkeleton } from "../../components/skeleton";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ArrowLeft, User as UserIcon, Mail, Phone, Shield, Briefcase, Calendar, CheckCircle, XCircle, Clock } from "lucide-react";
 
 export default function UserDetailPage() {
   const params = useParams();
@@ -65,7 +66,18 @@ export default function UserDetailPage() {
   }
 
   if (error || !user) {
-    return <div className="text-red-600">Failed to load user or not found.</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
+          <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground">User Not Found</h2>
+        <p className="text-muted-foreground mt-2">The user you're looking for doesn't exist or you don't have access.</p>
+        <Link href="/users" className="mt-6 px-4 py-2 bg-primary text-primary-foreground rounded-lg shadow-sm">
+          Return to Directory
+        </Link>
+      </div>
+    );
   }
 
   const handleManagerUpdate = async () => {
@@ -102,122 +114,150 @@ export default function UserDetailPage() {
   };
 
   return (
-    <main className="space-y-6">
-      <Link href="/users" className="text-sm text-blue-600 hover:underline">
-        ← Back to Users
+    <main className="space-y-6 pb-12">
+      <Link href="/users" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-2">
+        <ArrowLeft className="w-4 h-4 mr-1" />
+        Back to Users
       </Link>
 
-      <div className="card">
-        <div className="flex items-start justify-between mb-6 gap-4">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold truncate">{user.name}</h1>
-            <p className="text-muted-foreground">{user.phone}</p>
-            {user.email && <p className="text-muted-foreground text-sm truncate">{user.email}</p>}
-          </div>
-          <span className={`inline-flex items-center px-3 py-1 text-sm rounded-full font-semibold flex-shrink-0 ${roleColor(user.role)}`}>
-            {user.role}
-          </span>
+      <div className="card border-border/50 shadow-glass bg-card/50 backdrop-blur-md rounded-2xl overflow-hidden p-0 relative">
+        {/* Decorative Header Banner */}
+        <div className="h-32 bg-gradient-to-r from-primary/80 to-indigo-600/80 relative">
+          <div className="absolute inset-0 bg-white/10 dark:bg-black/10 backdrop-blur-[2px]"></div>
         </div>
 
-        {updateMessage && (
-          <div className={`mb-4 p-3 rounded-md text-sm ${
-            updateMessage.type === 'success' 
-              ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400' 
-              : 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400'
-          }`}>
-            {updateMessage.text}
-          </div>
-        )}
-
-        {/* Manager Assignment Section - Only for Workers */}
-        {user.role === 'worker' && (
-          <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-border">
-            <h3 className="font-semibold mb-3">Assign Manager</h3>
-            {managersError && (
-              <div className="mb-3 p-3 bg-red-500/10 border border-red-500/20 rounded-md text-sm text-red-700 dark:text-red-300">
-                Failed to load managers. Please refresh the page or contact support.
-              </div>
-            )}
-            <div className="flex gap-3 items-end">
-              <div className="flex-1">
-                <label className="block text-sm font-medium mb-2">Select Manager</label>
-                <select
-                  value={selectedManager || ''}
-                  onChange={(e) => setSelectedManager(e.target.value ? Number(e.target.value) : null)}
-                  disabled={isUpdating || managersError || !managers}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="">-- No Manager --</option>
-                  {managers?.map((manager: { id: number; name: string; phone: string }) => (
-                    <option key={manager.id} value={manager.id}>
-                      {manager.name} ({manager.phone})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <button
-                onClick={handleManagerUpdate}
-                disabled={isUpdating || managersError || !managers}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-              >
-                {isUpdating ? 'Updating...' : 'Update'}
-              </button>
+        <div className="px-6 sm:px-8 pb-8 relative">
+          {/* Profile Avatar Header */}
+          <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end -mt-12 mb-8">
+            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 shadow-xl border-4 border-card flex items-center justify-center text-3xl font-bold text-white flex-shrink-0">
+              {user.name?.charAt(0)}
             </div>
-            {selectedManager && managers && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Current manager: <strong>{managers.find((m: { id: number; name: string }) => m.id === selectedManager)?.name}</strong>
-              </p>
-            )}
-          </div>
-        )}
-
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Leave Balance */}
-          <div className="flex flex-col h-full">
-            <h3 className="font-semibold mb-3">Leave Balance ({new Date().getFullYear()})</h3>
-            {balance ? (
-              <div className="space-y-2 flex-1">
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-muted-foreground">Casual Leave</span>
-                  <span className="font-medium">{balance.casual} days</span>
+            
+            <div className="flex-1 min-w-0 pb-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold text-foreground truncate">{user.name}</h1>
+                  <p className="text-muted-foreground mt-1 text-sm font-medium">#{user.id.toString().padStart(4, '0')}</p>
                 </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-muted-foreground">Sick Leave</span>
-                  <span className="font-medium">{balance.sick} days</span>
+                <div className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold shadow-sm flex-shrink-0 ${roleColor(user.role)}`}>
+                  {user.role === 'admin' ? <Shield className="w-4 h-4 mr-2" /> : <Briefcase className="w-4 h-4 mr-2" />}
+                  <span className="capitalize">{user.role}</span>
                 </div>
-                <div className="flex justify-between py-2">
-                  <span className="text-muted-foreground">Special Leave</span>
-                  <span className="font-medium">{balance.special} days</span>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center flex-1 bg-muted/20 border border-dashed rounded-lg p-6 min-h-[120px]">
-                <p className="text-muted-foreground text-sm font-medium">No balance data available</p>
-              </div>
-            )}
-          </div>
-
-          {/* Leave Statistics */}
-          <div>
-            <h3 className="font-semibold mb-3">Leave Statistics</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-muted/50 rounded p-3 text-center border">
-                <div className="text-2xl font-bold text-foreground">{stats.total}</div>
-                <div className="text-xs text-muted-foreground">Total Requests</div>
-              </div>
-              <div className="bg-green-500/10 rounded p-3 text-center border border-green-500/20">
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.approved}</div>
-                <div className="text-xs text-green-600 dark:text-green-400">Approved</div>
-              </div>
-              <div className="bg-amber-500/10 rounded p-3 text-center border border-amber-500/20">
-                <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.pending}</div>
-                <div className="text-xs text-amber-600 dark:text-amber-400">Pending</div>
-              </div>
-              <div className="bg-red-500/10 rounded p-3 text-center border border-red-500/20">
-                <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.rejected}</div>
-                <div className="text-xs text-red-600 dark:text-red-400">Rejected</div>
               </div>
             </div>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Left Column: Contact & Manager */}
+            <div className="lg:col-span-1 space-y-6">
+              
+              {/* Contact Info */}
+              <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-2">Contact Details</h3>
+                
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Phone className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground font-medium">Phone Number</p>
+                    <p className="text-sm font-semibold truncate text-foreground">{user.phone}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-5 h-5 text-indigo-500" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground font-medium">Email Address</p>
+                    <p className="text-sm font-semibold truncate text-foreground">{user.email || 'Not provided'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Manager Assignment */}
+              {user.role === 'worker' && (
+                <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Reporting To</h3>
+                  
+                  {managersError && (
+                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-md text-xs font-medium text-red-700 dark:text-red-400">
+                      Failed to load managers.
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <select
+                      value={selectedManager || ''}
+                      onChange={(e) => setSelectedManager(e.target.value ? Number(e.target.value) : null)}
+                      disabled={isUpdating || managersError || !managers}
+                      className="w-full px-3 py-2.5 border border-border/60 rounded-lg bg-muted/30 focus:bg-background focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all"
+                    >
+                      <option value="">-- No Manager Assigned --</option>
+                      {managers?.map((manager: { id: number; name: string; phone: string }) => (
+                        <option key={manager.id} value={manager.id}>
+                          {manager.name}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      onClick={handleManagerUpdate}
+                      disabled={isUpdating || managersError || !managers}
+                      className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg shadow-sm hover:shadow-md hover:bg-primary/90 disabled:opacity-50 font-semibold text-sm transition-all"
+                    >
+                      {isUpdating ? 'Saving...' : 'Save Assignment'}
+                    </button>
+                    
+                    {updateMessage && (
+                      <div className={`p-3 rounded-lg text-xs font-semibold flex items-center gap-2 ${
+                        updateMessage.type === 'success' 
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                          : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                      }`}>
+                        {updateMessage.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                        {updateMessage.text}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right Column: Balances & Stats */}
+            <div className="lg:col-span-2 space-y-6">
+              
+              {/* Balances */}
+              <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Leave Balances ({new Date().getFullYear()})</h3>
+                
+                {balance ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <BalanceCard title="Casual" days={balance.casual} color="bg-green-500" />
+                    <BalanceCard title="Sick" days={balance.sick} color="bg-red-500" />
+                    <BalanceCard title="Special" days={balance.special} color="bg-purple-500" />
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center bg-muted/30 border border-dashed border-border/50 rounded-lg p-6 min-h-[100px]">
+                    <p className="text-sm text-muted-foreground font-medium">No balance data available</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Statistics */}
+              <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Request Statistics</h3>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <StatBlock icon={<Calendar />} label="Total" value={stats.total} color="text-blue-500" />
+                  <StatBlock icon={<CheckCircle />} label="Approved" value={stats.approved} color="text-emerald-500" />
+                  <StatBlock icon={<Clock />} label="Pending" value={stats.pending} color="text-amber-500" />
+                  <StatBlock icon={<XCircle />} label="Rejected" value={stats.rejected} color="text-red-500" />
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
