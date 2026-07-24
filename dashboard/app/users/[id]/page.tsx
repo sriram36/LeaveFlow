@@ -128,8 +128,8 @@ export default function UserDetailPage() {
 
         <div className="px-6 sm:px-8 pb-8 relative">
           {/* Profile Avatar Header */}
-          <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end -mt-12 mb-8">
-            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 shadow-xl border-4 border-card flex items-center justify-center text-3xl font-bold text-white flex-shrink-0">
+          <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end mb-8">
+            <div className="-mt-12 relative z-10 w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 shadow-xl border-4 border-card flex items-center justify-center text-3xl font-bold text-white flex-shrink-0">
               {user.name?.charAt(0)}
             </div>
             
@@ -263,7 +263,7 @@ export default function UserDetailPage() {
       </div>
 
       {/* Recent Leave History */}
-      <div className="card">
+      <div className="card border-border/50 shadow-glass bg-card/50 backdrop-blur-md rounded-2xl">
         <h3 className="font-semibold mb-4">Recent Leave Requests</h3>
         {!leaveHistory || leaveHistory.length === 0 ? (
           <p className="text-muted-foreground">No leave requests yet.</p>
