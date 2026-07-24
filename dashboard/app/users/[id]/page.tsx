@@ -72,7 +72,7 @@ export default function UserDetailPage() {
           <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
         </div>
         <h2 className="text-xl font-bold text-foreground">User Not Found</h2>
-        <p className="text-muted-foreground mt-2">The user you're looking for doesn't exist or you don't have access.</p>
+        <p className="text-muted-foreground mt-2">The user you&apos;re looking for doesn&apos;t exist or you don&apos;t have access.</p>
         <Link href="/users" className="mt-6 px-4 py-2 bg-primary text-primary-foreground rounded-lg shadow-sm">
           Return to Directory
         </Link>
@@ -323,4 +323,29 @@ function statusColor(status: string) {
     default:
       return 'bg-muted text-muted-foreground';
   }
+}
+
+function BalanceCard({ title, days, color }: { title: string, days: number, color: string }) {
+  return (
+    <div className="p-4 rounded-xl border border-border/40 bg-muted/20 relative overflow-hidden group hover:bg-muted/40 transition-colors">
+      <div className={`absolute top-0 left-0 w-1 h-full ${color}`}></div>
+      <p className="text-xs font-bold text-muted-foreground uppercase">{title}</p>
+      <div className="mt-2 flex items-baseline gap-1">
+        <span className="text-3xl font-bold text-foreground">{days}</span>
+        <span className="text-sm font-medium text-muted-foreground">days</span>
+      </div>
+    </div>
+  );
+}
+
+function StatBlock({ icon, label, value, color }: { icon: React.ReactNode, label: string, value: number, color: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-border/30 bg-muted/10 text-center">
+      <div className={`w-8 h-8 rounded-full bg-muted flex items-center justify-center mb-2 ${color}`}>
+        {icon}
+      </div>
+      <span className="text-2xl font-bold text-foreground">{value}</span>
+      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-1">{label}</span>
+    </div>
+  );
 }
