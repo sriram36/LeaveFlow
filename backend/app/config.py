@@ -78,7 +78,7 @@ class Settings(BaseSettings):
     supabase_service_key: str = ""
     
     # App Config
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = "http://localhost:3000,https://leave-flow-cyan.vercel.app"
     escalation_hours: int = 24
     
     # AI Service (OpenRouter - Free models available)
