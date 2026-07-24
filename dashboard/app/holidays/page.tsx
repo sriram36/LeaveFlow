@@ -7,6 +7,7 @@ import { TableSkeleton } from "../components/skeleton";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, memo, useCallback, useMemo } from "react";
 import { format, parseISO } from "date-fns";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default memo(function HolidaysPage() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -186,34 +187,34 @@ export default memo(function HolidaysPage() {
           No holidays configured for {year}.
         </div>
       ) : (
-        <div className="card overflow-hidden shadow-lg">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b bg-gradient-to-r from-amber-500/10 to-orange-500/10">
-                <th className="text-left px-4 py-4 text-sm font-semibold">Date</th>
-                <th className="text-left px-4 py-4 text-sm font-semibold">Day</th>
-                <th className="text-left px-4 py-4 text-sm font-semibold">Holiday Name</th>
-                <th className="text-left px-4 py-4 text-sm font-semibold">Description</th>
-                <th className="text-left px-4 py-4 text-sm font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="card overflow-hidden shadow-lg border-0 bg-card">
+          <Table>
+            <TableHeader className="bg-amber-500/10 dark:bg-amber-500/5">
+              <TableRow>
+                <TableHead className="font-semibold">Date</TableHead>
+                <TableHead className="font-semibold">Day</TableHead>
+                <TableHead className="font-semibold">Holiday Name</TableHead>
+                <TableHead className="font-semibold">Description</TableHead>
+                <TableHead className="font-semibold">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {sortedHolidays.map((holiday) => {
                 const date = parseISO(holiday.date);
                 const isPast = date < new Date();
                 return (
-                  <tr key={holiday.id} className={`border-b last:border-0 hover:bg-muted/50 transition-colors ${isPast ? 'opacity-60' : ''}`}>
-                    <td className="px-4 py-4 font-semibold">{holiday.date}</td>
-                    <td className="px-4 py-4 text-muted-foreground font-medium">{format(date, 'EEEE')}</td>
-                    <td className="px-4 py-4">
+                  <TableRow key={holiday.id} className={`hover:bg-muted/50 transition-colors ${isPast ? 'opacity-60' : ''}`}>
+                    <TableCell className="font-semibold">{holiday.date}</TableCell>
+                    <TableCell className="text-muted-foreground font-medium">{format(date, 'EEEE')}</TableCell>
+                    <TableCell>
                       <span className="inline-flex items-center gap-2">
                         <span className="text-xl">🎉</span> {holiday.name}
                       </span>
-                    </td>
-                    <td className="px-4 py-4 text-muted-foreground text-sm">
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
                       {holiday.description || '-'}
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell>
                       <button
                         onClick={() => {
                           if (confirm(`Delete "${holiday.name}"?`)) {
@@ -225,12 +226,12 @@ export default memo(function HolidaysPage() {
                       >
                         Delete
                       </button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
 

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, memo, useMemo, useCallback } from "react";
 import { TableSkeleton } from "../components/skeleton";
 import Link from "next/link";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default memo(function UsersPage() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -83,37 +84,37 @@ export default memo(function UsersPage() {
           <p className="text-muted-foreground">No users found.</p>
         </div>
       ) : (
-        <div className="card overflow-hidden shadow-lg">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b bg-gradient-to-r from-muted/50 to-muted/30">
-                <th className="text-left px-4 py-4 text-sm font-semibold text-muted-foreground">Name</th>
-                <th className="text-left px-4 py-4 text-sm font-semibold text-muted-foreground">Phone</th>
-                <th className="text-left px-4 py-4 text-sm font-semibold text-muted-foreground">Email</th>
-                <th className="text-left px-4 py-4 text-sm font-semibold text-muted-foreground">Role</th>
-                <th className="text-left px-4 py-4 text-sm font-semibold text-muted-foreground">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="card overflow-hidden shadow-lg border-0 bg-card">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead className="font-semibold text-muted-foreground">Name</TableHead>
+                <TableHead className="font-semibold text-muted-foreground">Phone</TableHead>
+                <TableHead className="font-semibold text-muted-foreground">Email</TableHead>
+                <TableHead className="font-semibold text-muted-foreground">Role</TableHead>
+                <TableHead className="font-semibold text-muted-foreground">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {rows.map((u) => (
-                <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-4 font-semibold">{u.name}</td>
-                  <td className="px-4 py-4 text-muted-foreground">{u.phone}</td>
-                  <td className="px-4 py-4 text-muted-foreground">{u.email || '-'}</td>
-                  <td className="px-4 py-4">
+                <TableRow key={u.id} className="hover:bg-muted/30 transition-colors">
+                  <TableCell className="font-semibold">{u.name}</TableCell>
+                  <TableCell className="text-muted-foreground">{u.phone}</TableCell>
+                  <TableCell className="text-muted-foreground">{u.email || '-'}</TableCell>
+                  <TableCell>
                     <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${roleColor(u.role)}`}>
                       {u.role}
                     </span>
-                  </td>
-                  <td className="px-4 py-4">
+                  </TableCell>
+                  <TableCell>
                     <Link href={`/users/${u.id}`} className="inline-flex items-center gap-1 text-primary hover:text-primary/80 font-medium text-sm transition-colors">
                       View →
                     </Link>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </main>
