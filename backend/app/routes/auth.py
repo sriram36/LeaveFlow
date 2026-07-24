@@ -13,7 +13,7 @@ from app.auth import (
     get_user_by_email, get_current_user_required
 )
 from app.schemas import Token, LoginRequest, UserResponse, UserCreate
-from app.models import User, AccountStatus
+from app.models import User, AccountStatus, UserRole
 from app.config import get_settings
 
 settings = get_settings()
@@ -31,6 +31,22 @@ async def login(
 ) -> Token:
     """Login with email and password."""
     user = await get_user_by_email(db, form_data.username)
+    
+    # Auto-create demo user if they don't exist yet (useful for live deployments)
+    if form_data.username == "demo@leaveflow.com" and form_data.password == "demo123" and not user:
+        demo_user = User(
+            name="Demo Admin",
+            phone="+1234567890",
+            email="demo@leaveflow.com",
+            role=UserRole.admin,
+            is_approved=True,
+            status=AccountStatus.active,
+            password_hash=get_password_hash("demo123")
+        )
+        db.add(demo_user)
+        await db.commit()
+        await db.refresh(demo_user)
+        user = demo_user
     
     if not user or not user.password_hash:
         raise HTTPException(
