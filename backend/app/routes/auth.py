@@ -51,8 +51,8 @@ async def login(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=settings.cors_origins != "http://localhost:3000",
-        samesite="lax",
+        secure=True, # Must be true for SameSite=None
+        samesite="none",
         max_age=settings.access_token_expire_minutes * 60
     )
     return Token(access_token=access_token, token_type="bearer")
@@ -64,8 +64,8 @@ async def logout(response: Response) -> dict:
     response.delete_cookie(
         key="access_token",
         httponly=True,
-        secure=settings.cors_origins != "http://localhost:3000",
-        samesite="lax"
+        secure=True,
+        samesite="none"
     )
     return {"message": "Logged out successfully"}
 

@@ -116,9 +116,8 @@ class ApiClient {
         if (response.status === 401) {
           // Clear token on auth failure
           this.setToken(null);
-          if (typeof window !== 'undefined') {
-            window.location.href = '/';
-          }
+          // Let the UI components handle the redirect state instead of hard-redirecting here
+          // to prevent infinite loops when checking session on mount.
         }
         
         throw new Error(error.detail || error.message || 'Request failed');
