@@ -95,8 +95,8 @@ async def register(
                 detail="Email already registered"
             )
     
-    # HR and Manager accounts require admin approval
-    account_status = AccountStatus.pending if user_data.role in ["hr", "manager"] else AccountStatus.active
+    # Auto-approve all accounts for now for testing purposes
+    account_status = AccountStatus.active
     
     # Create user
     user = User(

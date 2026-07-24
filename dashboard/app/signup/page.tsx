@@ -53,8 +53,8 @@ export default memo(function SignupPage() {
         role: formData.role,
       });
 
-      // Show success message - account pending approval
-      setSuccess("Account created successfully! Your account is pending admin approval. You'll be able to login once approved.");
+      // Show success message
+      setSuccess("Account created successfully! You can now sign in.");
       
       // Reset form
       setFormData({
@@ -88,7 +88,9 @@ export default memo(function SignupPage() {
                 Get Started in Minutes
               </div>
               <h1 className="text-3xl font-bold mb-2">Create Your Account</h1>
-              <p className="text-muted-foreground">Manager and HR accounts require admin approval</p>
+              <p className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-md inline-block">
+                Note: Instant access is enabled for testing. In production, accounts will require admin approval.
+              </p>
             </div>
 
             {success && (
@@ -177,7 +179,6 @@ export default memo(function SignupPage() {
                     <option value="hr">HR</option>
                     <option value="admin">Admin</option>
                   </select>
-                  <p className="text-xs text-muted-foreground">Account will require admin approval</p>
                 </div>
               </div>
 
