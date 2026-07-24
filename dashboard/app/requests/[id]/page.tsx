@@ -72,122 +72,126 @@ export default function RequestDetail() {
   const canAction = detail.status === 'pending' && (user?.role === 'manager' || user?.role === 'hr' || user?.role === 'admin');
 
   return (
-    <main className="space-y-6">
+    <main className="space-y-6 max-w-4xl">
       <Link href="/requests" className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
         ← Back to Pending Requests
       </Link>
 
-      <div className="card shadow-xl border">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b">
-          <h1 className="text-3xl font-bold">Request #{detail.id}</h1>
-          <span className={`px-4 py-2 text-sm rounded-full font-bold shadow-sm ${badge.className}`}>
-            {badge.label}
-          </span>
+      <div className="card shadow-xl border overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border-b">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center text-xl flex-shrink-0">
+                {detail.user?.name?.charAt(0) || 'U'}
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">Request #{detail.id}</h1>
+                <p className="text-sm text-muted-foreground">{detail.user?.name || 'Unknown'} · {detail.user?.phone}</p>
+              </div>
+            </div>
+            <span className={`inline-flex items-center px-4 py-1.5 text-sm rounded-full font-bold shadow-sm self-start sm:self-auto ${badge.className}`}>
+              {badge.label}
+            </span>
+          </div>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          <div className="space-y-6">
-            <div className="p-4 bg-muted/50 rounded-lg border">
-              <label className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">Employee</label>
-              <p className="font-bold text-lg mt-1 break-words">{detail.user?.name || "Unknown"}</p>
-              <p className="text-sm text-muted-foreground">{detail.user?.phone}</p>
-            </div>
+        {/* Info Grid */}
+        <div className="p-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Leave Type</span>
+            <span className="font-semibold text-foreground capitalize">{detail.leave_type}</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Duration</span>
+            <span className="font-semibold text-foreground capitalize">{detail.duration_type.replace('_', ' ')}</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Days</span>
+            <span className="font-semibold text-foreground">{detail.days} working day(s)</span>
+          </div>
+          <div className="flex flex-col gap-1 sm:col-span-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date Range</span>
+            <span className="font-semibold text-foreground">{detail.start_date} → {detail.end_date}</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Submitted</span>
+            <span className="font-medium text-foreground">{new Date(detail.created_at).toLocaleString()}</span>
+          </div>
+        </div>
 
-            <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
-              <label className="text-xs uppercase tracking-wide text-blue-600 dark:text-blue-400 font-semibold">Leave Type</label>
-              <p className="font-bold text-lg mt-1 capitalize">{detail.leave_type}</p>
-            </div>
+        {/* Reason */}
+        <div className="px-6 pb-4">
+          <div className="p-4 bg-muted/40 rounded-xl border">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground block mb-2">Reason</span>
+            <p className="text-foreground leading-relaxed break-words">{detail.reason || 'No reason provided'}</p>
+          </div>
+        </div>
 
-            <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
-              <label className="text-xs uppercase tracking-wide text-amber-600 dark:text-amber-400 font-semibold">Duration Type</label>
-              <p className="font-bold text-lg mt-1 capitalize">{detail.duration_type.replace('_', ' ')}</p>
-            </div>
-
-            <div className="p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-              <label className="text-xs uppercase tracking-wide text-emerald-600 dark:text-emerald-400 font-semibold">Date Range</label>
-              <p className="font-bold text-lg mt-1">{detail.start_date} → {detail.end_date}</p>
-              <p className="text-sm text-muted-foreground mt-1">{detail.days} working day(s)</p>
+        {/* Rejection Reason */}
+        {detail.rejection_reason && (
+          <div className="px-6 pb-4">
+            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+              <span className="text-xs font-semibold uppercase tracking-wide text-red-600 dark:text-red-400 block mb-2">Rejection Reason</span>
+              <p className="text-red-700 dark:text-red-300 leading-relaxed">{detail.rejection_reason}</p>
             </div>
           </div>
+        )}
 
-          <div className="space-y-6">
-            <div className="p-4 bg-muted/50 rounded-lg border">
-              <label className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">Reason</label>
-              <p className="text-foreground mt-2 leading-relaxed break-words">{detail.reason || 'No reason provided'}</p>
-            </div>
-
-            {detail.rejection_reason && (
-              <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-                <label className="text-xs uppercase tracking-wide text-red-600 dark:text-red-400 font-semibold">Rejection Reason</label>
-                <p className="text-red-600 dark:text-red-400 mt-2 leading-relaxed">{detail.rejection_reason}</p>
-              </div>
-            )}
-
-            {detail.attachments && detail.attachments.length > 0 && (
-              <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                <label className="text-xs uppercase tracking-wide text-purple-600 dark:text-purple-400 font-semibold mb-3 block">
-                  📎 Attachments ({detail.attachments.length})
-                </label>
-                <div className="space-y-2">
-                  {detail.attachments.map((attachment) => (
-                    <div key={attachment.id} className="flex items-center gap-3 p-3 bg-background rounded border hover:border-purple-500/50 transition-colors">
-                      <div className="flex-shrink-0">
-                        {attachment.file_type?.includes('image') ? (
-                          <span className="text-2xl">🖼️</span>
-                        ) : attachment.file_type?.includes('pdf') ? (
-                          <span className="text-2xl">📄</span>
-                        ) : attachment.file_type?.includes('video') ? (
-                          <span className="text-2xl">🎥</span>
-                        ) : (
-                          <span className="text-2xl">📎</span>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {attachment.file_type || 'Attachment'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(attachment.uploaded_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <a
-                        href={attachment.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-500/20 hover:bg-purple-200 dark:hover:bg-purple-500/30 rounded transition-colors"
-                      >
-                        View
-                      </a>
+        {/* Attachments */}
+        {detail.attachments && detail.attachments.length > 0 && (
+          <div className="px-6 pb-4">
+            <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
+              <span className="text-xs font-semibold uppercase tracking-wide text-purple-600 dark:text-purple-400 mb-3 block">
+                📎 Attachments ({detail.attachments.length})
+              </span>
+              <div className="space-y-2">
+                {detail.attachments.map((attachment) => (
+                  <div key={attachment.id} className="flex items-center gap-3 p-3 bg-background rounded border hover:border-purple-500/50 transition-colors">
+                    <div className="flex-shrink-0">
+                      {attachment.file_type?.includes('image') ? (
+                        <span className="text-2xl">🖼️</span>
+                      ) : attachment.file_type?.includes('pdf') ? (
+                        <span className="text-2xl">📄</span>
+                      ) : attachment.file_type?.includes('video') ? (
+                        <span className="text-2xl">🎥</span>
+                      ) : (
+                        <span className="text-2xl">📎</span>
+                      )}
                     </div>
-                  ))}
-                </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{attachment.file_type || 'Attachment'}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(attachment.uploaded_at).toLocaleDateString()}</p>
+                    </div>
+                    <a
+                      href={attachment.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-500/20 hover:bg-purple-200 dark:hover:bg-purple-500/30 rounded transition-colors"
+                    >
+                      View
+                    </a>
+                  </div>
+                ))}
               </div>
-            )}
-
-
-
-            <div className="p-4 bg-muted/50 rounded-lg border">
-              <label className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">Submitted</label>
-              <p className="mt-1 font-medium">{new Date(detail.created_at).toLocaleString()}</p>
             </div>
           </div>
-        </div>
+        )}
 
-        <hr className="my-6" />
-
+        {/* Actions */}
         {canAction && (
-          <div className="flex flex-wrap gap-4 pt-4">
+          <div className="px-6 py-4 border-t bg-muted/30 flex flex-wrap gap-3">
             <button
               onClick={() => approveMutation.mutate()}
               disabled={approveMutation.isPending || rejectMutation.isPending}
-              className="btn bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 shadow-md hover:shadow-lg transition-all flex-1 sm:flex-none"
+              className="btn bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
             >
               {approveMutation.isPending ? 'Approving...' : '✓ Approve Request'}
             </button>
             <button
               onClick={() => setShowRejectModal(true)}
               disabled={approveMutation.isPending || rejectMutation.isPending}
-              className="btn bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 shadow-md hover:shadow-lg transition-all flex-1 sm:flex-none"
+              className="btn bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
             >
               ✕ Reject Request
             </button>
@@ -195,9 +199,12 @@ export default function RequestDetail() {
         )}
 
         {!canAction && detail.status === 'pending' && (
-          <p className="text-muted-foreground text-sm">You don&apos;t have permission to approve or reject this request.</p>
+          <div className="px-6 py-4 border-t">
+            <p className="text-muted-foreground text-sm">You don&apos;t have permission to approve or reject this request.</p>
+          </div>
         )}
       </div>
+
 
       {/* Reject Modal */}
       {showRejectModal && (

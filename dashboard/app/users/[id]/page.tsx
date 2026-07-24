@@ -108,13 +108,13 @@ export default function UserDetailPage() {
       </Link>
 
       <div className="card">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">{user.name}</h1>
+        <div className="flex items-start justify-between mb-6 gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold truncate">{user.name}</h1>
             <p className="text-muted-foreground">{user.phone}</p>
-            {user.email && <p className="text-muted-foreground text-sm">{user.email}</p>}
+            {user.email && <p className="text-muted-foreground text-sm truncate">{user.email}</p>}
           </div>
-          <span className={`px-3 py-1 text-sm rounded-full font-medium ${roleColor(user.role)}`}>
+          <span className={`inline-flex items-center px-3 py-1 text-sm rounded-full font-semibold flex-shrink-0 ${roleColor(user.role)}`}>
             {user.role}
           </span>
         </div>
