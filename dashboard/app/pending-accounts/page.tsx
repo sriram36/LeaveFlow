@@ -116,11 +116,11 @@ export default memo(function PendingAccountsPage() {
               className="bg-card border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-semibold">{account.name}</h3>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-3 mb-2">
+                    <h3 className="text-xl font-semibold truncate">{account.name}</h3>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
                         account.role === 'manager'
                           ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400'
                           : account.role === 'hr'
@@ -132,12 +132,12 @@ export default memo(function PendingAccountsPage() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-muted-foreground">
-                    <div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-muted-foreground break-words">
+                    <div className="truncate" title={account.phone}>
                       <span className="font-medium">Phone:</span> {account.phone}
                     </div>
                     {account.email && (
-                      <div>
+                      <div className="truncate" title={account.email}>
                         <span className="font-medium">Email:</span> {account.email}
                       </div>
                     )}
@@ -149,7 +149,7 @@ export default memo(function PendingAccountsPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-2 ml-4">
+                <div className="flex flex-col sm:flex-row gap-2 ml-4 flex-shrink-0">
                   <button
                     onClick={() => approveMutation.mutate(account.id)}
                     disabled={approveMutation.isPending || rejectMutation.isPending}

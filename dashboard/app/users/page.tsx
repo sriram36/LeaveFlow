@@ -101,11 +101,11 @@ export default memo(function UsersPage() {
             <TableBody>
               {rows.map((u) => (
                 <TableRow key={u.id} className="hover:bg-muted/50 transition-colors group">
-                  <TableCell className="font-semibold text-foreground group-hover:text-primary transition-colors">{u.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{u.phone}</TableCell>
-                  <TableCell className="text-muted-foreground">{u.email || '-'}</TableCell>
+                  <TableCell className="font-semibold text-foreground group-hover:text-primary transition-colors max-w-[200px] truncate" title={u.name}>{u.name}</TableCell>
+                  <TableCell className="text-muted-foreground whitespace-nowrap">{u.phone}</TableCell>
+                  <TableCell className="text-muted-foreground max-w-[200px] truncate" title={u.email || ''}>{u.email || '-'}</TableCell>
                   <TableCell>
-                    <span className={`px-2.5 py-1 text-xs font-semibold rounded-full shadow-sm ${roleColor(u.role)}`}>
+                    <span className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full shadow-sm ${roleColor(u.role)}`}>
                       {u.role}
                     </span>
                   </TableCell>
