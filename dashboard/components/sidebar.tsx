@@ -2,169 +2,163 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/app/lib/auth-context";
+import { cn } from "@/lib/utils";
 import {
-  Calendar,
-  ClipboardList,
+  LayoutDashboard,
+  CalendarDays,
   Users,
-  BarChart3,
   Settings,
   LogOut,
-  Home,
-  Menu,
-  X,
-  ChevronDown,
+  Sparkles,
+  Sun,
+  Moon,
+  Laptop
 } from "lucide-react";
-import { useState } from "react";
-import { useAuth } from "@/app/lib/auth-context";
-
-const menuItems = [
-  {
-    label: "Dashboard",
-    href: "/",
-    icon: Home,
-    roles: ["worker", "manager", "hr", "admin"],
-  },
-  {
-    label: "Leave Requests",
-    href: "/requests",
-    icon: ClipboardList,
-    roles: ["worker", "manager", "hr", "admin"],
-  },
-  {
-    label: "Approvals",
-    href: "/requests?tab=pending",
-    icon: Calendar,
-    roles: ["manager", "hr", "admin"],
-  },
-  {
-    label: "Team",
-    href: "/users",
-    icon: Users,
-    roles: ["manager", "hr", "admin"],
-  },
-  {
-    label: "Analytics",
-    href: "/analytics",
-    icon: BarChart3,
-    roles: ["hr", "admin"],
-  },
-  {
-    label: "Settings",
-    href: "/settings",
-    icon: Settings,
-    roles: ["worker", "manager", "hr", "admin"],
-  },
-];
+import { useTheme } from "next-themes";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
-  const visibleItems = menuItems.filter((item) =>
-    item.roles.includes(user?.role || "worker")
+  const navItems = [
+    {
+      title: "Dashboard",
+      href: "/requests",
+      icon: LayoutDashboard,
+      roles: ["manager", "hr", "admin", "worker"],
+    },
+    {
+      title: "Calendar",
+      href: "/requests/calendar",
+      icon: CalendarDays,
+      roles: ["manager", "hr", "admin"],
+    },
+    {
+      title: "Team",
+      href: "/users",
+      icon: Users,
+      roles: ["hr", "admin"],
+    },
+    {
+      title: "Holidays",
+      href: "/holidays",
+      icon: Sparkles,
+      roles: ["hr", "admin"],
+    },
+  ];
+
+  const filteredNav = navItems.filter((item) => 
+    !item.roles || item.roles.includes(user?.role || "")
   );
 
+  if (!user) return null;
+
   return (
-    <>
-      {/* Mobile Menu Button */}
-      <div className="fixed top-4 left-4 z-50 md:hidden">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-10 h-10 p-0"
-        >
-          {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </Button>
-      </div>
-
-      {/* Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 z-30 md:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed left-0 top-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 w-64 z-40 transition-transform duration-300 md:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {/* Logo */}
-        <div className="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center px-6">
-          <div className="flex items-center space-x-2 w-full">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-slate-900 dark:text-white">
-              LeaveFlow
-            </span>
+    <aside className="w-[280px] border-r border-border/50 bg-background/50 backdrop-blur-xl hidden md:flex flex-col justify-between h-screen sticky top-0 transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.2)] z-40">
+      <div className="p-6">
+        <Link href="/" className="flex items-center gap-3 mb-10 group">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20 group-hover:shadow-primary/40 group-hover:scale-105 transition-all duration-300">
+            <Sparkles className="w-4 h-4 text-white" />
           </div>
-        </div>
+          <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            LeaveFlow
+          </span>
+        </Link>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-          {visibleItems.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/" && pathname.startsWith(item.href));
-
+        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-2">Menu</div>
+        <nav className="space-y-1.5">
+          {filteredNav.map((item) => {
+            const isActive = pathname.startsWith(item.href) && 
+              (item.href !== "/requests" || pathname === "/requests");
+              
             return (
-              <Link key={item.href} href={item.href}>
-                <Button
-                  variant={isActive ? "default" : "ghost"}
-                  className={`w-full justify-start gap-3 ${
-                    isActive
-                      ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  }`}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Icon className="w-4 h-4" />
-                  {item.label}
-                </Button>
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative",
+                  isActive 
+                    ? "text-primary bg-primary/10 shadow-sm" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full shadow-[0_0_8px_rgba(139,92,246,0.6)]" />
+                )}
+                <item.icon className={cn("w-4 h-4", isActive ? "text-primary" : "group-hover:scale-110 transition-transform")} />
+                {item.title}
               </Link>
             );
           })}
         </nav>
+      </div>
 
-        {/* User Section */}
-        <div className="border-t border-slate-200 dark:border-slate-800 p-4 space-y-3">
-          <div className="flex items-center space-x-3 px-2">
-            <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-600 dark:text-indigo-400">
-              {user?.name?.charAt(0)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
-                {user?.name}
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                {user?.role}
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full justify-start gap-2 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800"
-            onClick={() => {
-              logout();
-              setIsOpen(false);
-            }}
+      <div className="p-6 space-y-6">
+        {/* Theme Toggle */}
+        <div className="flex items-center justify-between p-1 bg-muted/40 rounded-full border border-border/50 backdrop-blur-md">
+          <button
+            onClick={() => setTheme("light")}
+            className={cn("p-2 rounded-full transition-all", theme === "light" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}
           >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </Button>
+            <Sun className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setTheme("system")}
+            className={cn("p-2 rounded-full transition-all", theme === "system" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}
+          >
+            <Laptop className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setTheme("dark")}
+            className={cn("p-2 rounded-full transition-all", theme === "dark" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}
+          >
+            <Moon className="w-4 h-4" />
+          </button>
         </div>
-      </aside>
 
-      {/* Spacer for main content on desktop */}
-      <div className="hidden md:block w-64" />
-    </>
+        {/* User Profile */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-muted/50 transition-all text-left border border-transparent hover:border-border/50 group">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center font-semibold text-primary border border-primary/20 shadow-inner group-hover:scale-105 transition-transform">
+                {user?.name?.charAt(0) || "U"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold truncate text-foreground">{user?.name || "User"}</p>
+                <p className="text-xs text-muted-foreground capitalize truncate font-medium">{user?.role || "Role"}</p>
+              </div>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-60 rounded-xl shadow-2xl shadow-black/10 border-border/50 backdrop-blur-xl bg-background/95">
+            <DropdownMenuLabel className="font-semibold text-foreground">My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-border/50" />
+            <DropdownMenuItem asChild className="cursor-pointer rounded-lg hover:bg-muted/50 focus:bg-muted/50">
+              <Link href="/profile" className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Profile Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-border/50" />
+            <DropdownMenuItem
+              onClick={logout}
+              className="gap-2 cursor-pointer text-destructive focus:text-destructive rounded-lg hover:bg-destructive/10 focus:bg-destructive/10"
+            >
+              <LogOut className="w-4 h-4" />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </aside>
   );
 }
