@@ -19,25 +19,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing token on mount
-    const token = api.getToken();
-    if (token) {
-      api.getMe()
-        .then(user => {
-          // Only allow managers, hr, and admin
-          if (user.role === 'worker') {
-            api.logout();
-            throw new Error('Access denied');
-          }
-          setUser(user);
-        })
-        .catch(() => {
+    // Check for existing session via HTTP-only cookie
+    api.getMe()
+      .then(user => {
+        // Only allow managers, hr, and admin
+        if (user.role === 'worker') {
           api.logout();
-        })
-        .finally(() => setIsLoading(false));
-    } else {
-      setIsLoading(false);
-    }
+          throw new Error('Access denied');
+        }
+        setUser(user);
+      })
+      .catch(() => {
+        api.logout();
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   const login = async (email: string, password: string) => {
