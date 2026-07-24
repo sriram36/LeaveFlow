@@ -59,7 +59,7 @@ export function Header() {
       
       <div className="flex items-center gap-3">
         {/* Mobile Menu */}
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center gap-3">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
@@ -70,6 +70,15 @@ export function Header() {
               <Sidebar />
             </SheetContent>
           </Sheet>
+          
+          <Link href="/" className="flex items-center gap-2 md:hidden">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-md">
+              <Sparkles className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              LeaveFlow
+            </span>
+          </Link>
         </div>
 
         {/* Dynamic Title based on route */}
