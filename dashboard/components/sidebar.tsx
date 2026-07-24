@@ -19,7 +19,8 @@ import {
   BarChart3,
   UserPlus,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Inbox
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import {
@@ -40,8 +41,14 @@ export function Sidebar({ className }: { className?: string }) {
   const navItems = [
     {
       title: "Dashboard",
-      href: "/requests",
+      href: "/",
       icon: LayoutDashboard,
+      roles: ["manager", "hr", "admin", "worker"],
+    },
+    {
+      title: "Requests",
+      href: "/requests",
+      icon: Inbox,
       roles: ["manager", "hr", "admin", "worker"],
     },
     {
@@ -108,8 +115,9 @@ export function Sidebar({ className }: { className?: string }) {
         {!isCollapsed && <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-2">Menu</div>}
         <nav className="space-y-1.5">
           {filteredNav.map((item) => {
-            const isActive = pathname.startsWith(item.href) && 
-              (item.href !== "/requests" || pathname === "/requests");
+            const isActive = item.href === "/" 
+              ? pathname === "/" 
+              : pathname.startsWith(item.href) && (item.href !== "/requests" || pathname === "/requests");
               
             return (
               <Link
