@@ -545,7 +545,7 @@ const LandingPage = memo(function LandingPage() {
 const DashboardHome = memo(function DashboardHome() {
   const { user } = useAuth();
 
-  const { data: pendingRequests } = useQuery({
+  const { data: pendingRequests, isLoading: pendingLoading } = useQuery({
     queryKey: ['pending-requests', user?.id, user?.role],
     queryFn: () => api.getPendingRequests(),
     enabled: Boolean(user && (user.role === 'manager' || user.role === 'hr' || user.role === 'admin')),
@@ -555,7 +555,7 @@ const DashboardHome = memo(function DashboardHome() {
     refetchOnMount: 'always',
   });
 
-  const { data: balance } = useQuery({
+  const { data: balance, isLoading: balanceLoading } = useQuery({
     queryKey: ['my-balance'],
     queryFn: () => api.getMyBalance(),
     staleTime: 60000,
@@ -563,7 +563,7 @@ const DashboardHome = memo(function DashboardHome() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: stats } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => api.getDashboardStats(),
     enabled: Boolean(user && (user.role === 'manager' || user.role === 'hr' || user.role === 'admin')),
@@ -574,6 +574,10 @@ const DashboardHome = memo(function DashboardHome() {
   const balanceData = useMemo(() => balance || { casual: 0, sick: 0, special: 0 }, [balance]);
   const activityData = useMemo(() => stats?.recent_activity || [], [stats]);
   const totalBalance = useMemo(() => (balanceData.casual || 0) + (balanceData.sick || 0) + (balanceData.special || 0), [balanceData]);
+
+  if (pendingLoading || balanceLoading || statsLoading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-8">
@@ -665,7 +669,7 @@ const DashboardHome = memo(function DashboardHome() {
                   View Calendar
                 </Button>
               </Link>
-              <Link href="/requests" className="block w-full group">
+              <Link href="/requests/history" className="block w-full group">
                 <Button className="w-full justify-start hover:bg-primary/5 border-border/50 transition-colors" variant="outline">
                   <BarChart className="w-4 h-4 mr-2 text-primary group-hover:scale-110 transition-transform" />
                   Generate Report
