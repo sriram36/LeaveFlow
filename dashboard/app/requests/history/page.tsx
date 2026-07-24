@@ -122,29 +122,41 @@ export default function HistoryPage() {
 function HistoryCard({ req }: { req: LeaveRequest }) {
   const badge = badgeForStatus(req.status);
   return (
-    <div className="card hover:shadow-lg hover:border-primary/50 transition-all duration-200">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            <span className="text-lg font-bold">{req.id}</span>
-            <span className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full ${badge.className}`}>{badge.label}</span>
-            <span className="inline-flex items-center px-2 py-1 text-xs bg-muted text-muted-foreground rounded-full font-medium">{req.days} day(s)</span>
+    <div className="card hover:shadow-lg hover:border-primary/50 transition-all duration-200 p-4">
+      <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
+        
+        {/* Left: Avatar + Name + Meta */}
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-sm flex-shrink-0">
+            {req.user?.name?.charAt(0) || 'U'}
           </div>
-          <div className="text-sm font-semibold mb-1 truncate">
-            {req.user?.name || "Unknown"}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold text-foreground truncate">{req.user?.name || 'Unknown'}</span>
+              <span className={`inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full flex-shrink-0 ${badge.className}`}>
+                {badge.label}
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
+              <span>📅 {req.start_date} → {req.end_date}</span>
+              <span>•</span>
+              <span className="capitalize">{req.leave_type}</span>
+              <span>•</span>
+              <span>{req.days} day(s)</span>
+            </div>
+            {req.reason && (
+              <p className="text-xs text-muted-foreground mt-1 truncate">{req.reason}</p>
+            )}
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              📅 {req.start_date} → {req.end_date}
-            </span>
-            <span>•</span>
-            <span className="capitalize">{req.leave_type}</span>
-          </div>
-          <div className="text-sm text-muted-foreground mt-2 line-clamp-1 break-words">{req.reason}</div>
         </div>
-        <Link href={`/requests/${req.id}`} className="btn btn-ghost border text-sm hover:border-primary transition-all whitespace-nowrap">
-          View →
-        </Link>
+
+        {/* Right: Request ID + View button */}
+        <div className="flex items-center gap-3 flex-shrink-0 self-start sm:self-center">
+          <span className="text-xs font-mono text-muted-foreground">#{req.id}</span>
+          <Link href={`/requests/${req.id}`} className="btn btn-ghost border text-sm hover:border-primary transition-all whitespace-nowrap">
+            View →
+          </Link>
+        </div>
       </div>
     </div>
   );
