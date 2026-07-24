@@ -83,7 +83,7 @@ export function Sidebar({ className }: { className?: string }) {
   if (!user) return null;
 
   return (
-    <aside className={cn("border-r border-border/50 bg-background/50 backdrop-blur-xl flex flex-col justify-between h-screen sticky top-0 transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.2)] z-40 relative group", className, isCollapsed ? "w-[80px]" : "w-[280px]")}>
+    <aside className={cn("border-r border-border/50 bg-background/50 backdrop-blur-xl flex flex-col justify-between h-screen sticky top-0 transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.2)] z-40 group", className, isCollapsed ? "w-full md:w-[80px]" : "w-full md:w-[280px]")}>
       
       {/* Collapse Toggle */}
       <button 

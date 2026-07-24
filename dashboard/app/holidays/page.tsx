@@ -23,16 +23,14 @@ export default memo(function HolidaysPage() {
     if (!authLoading && !isAuthenticated) {
       router.push('/');
     }
-    // Only HR and Admin can access this page
-    if (!authLoading && user && user.role !== 'hr' && user.role !== 'admin') {
-      router.push('/');
-    }
-  }, [authLoading, isAuthenticated, user, router]);
+  }, [authLoading, isAuthenticated, router]);
+
+  const canEdit = user?.role === 'hr' || user?.role === 'admin';
 
   const { data: holidays, isLoading, error } = useQuery({
     queryKey: ['holidays', year],
     queryFn: () => api.getHolidays(year),
-    enabled: isAuthenticated && (user?.role === 'hr' || user?.role === 'admin'),
+    enabled: Boolean(isAuthenticated),
     staleTime: 300000, // 5 minutes
     refetchInterval: 600000, // 10 minutes
     refetchOnWindowFocus: false,
@@ -112,12 +110,14 @@ export default memo(function HolidaysPage() {
               <option key={y} value={y}>{y}</option>
             ))}
           </select>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="btn btn-primary text-sm shadow-md hover:shadow-lg transition-all"
-          >
-            + Add Holiday
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="btn btn-primary text-sm shadow-md hover:shadow-lg transition-all"
+            >
+              + Add Holiday
+            </button>
+          )}
         </div>
       </div>
 
@@ -187,15 +187,15 @@ export default memo(function HolidaysPage() {
           No holidays configured for {year}.
         </div>
       ) : (
-        <div className="card overflow-hidden shadow-lg border-0 bg-card">
+        <div className="card overflow-hidden shadow-glass border-0 bg-card/50 backdrop-blur-sm">
           <Table>
             <TableHeader className="bg-amber-500/10 dark:bg-amber-500/5">
-              <TableRow>
-                <TableHead className="font-semibold">Date</TableHead>
-                <TableHead className="font-semibold">Day</TableHead>
-                <TableHead className="font-semibold">Holiday Name</TableHead>
-                <TableHead className="font-semibold">Description</TableHead>
-                <TableHead className="font-semibold">Actions</TableHead>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="font-semibold text-foreground">Date</TableHead>
+                <TableHead className="font-semibold text-foreground">Day</TableHead>
+                <TableHead className="font-semibold text-foreground">Holiday Name</TableHead>
+                <TableHead className="font-semibold text-foreground">Description</TableHead>
+                {canEdit && <TableHead className="font-semibold text-foreground">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -214,19 +214,21 @@ export default memo(function HolidaysPage() {
                     <TableCell className="text-muted-foreground text-sm">
                       {holiday.description || '-'}
                     </TableCell>
-                    <TableCell>
-                      <button
-                        onClick={() => {
-                          if (confirm(`Delete "${holiday.name}"?`)) {
-                            deleteMutation.mutate(holiday.id);
-                          }
-                        }}
-                        disabled={deleteMutation.isPending}
-                        className="text-red-600 hover:underline text-sm disabled:opacity-50"
-                      >
-                        Delete
-                      </button>
-                    </TableCell>
+                    {canEdit && (
+                      <TableCell>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete "${holiday.name}"?`)) {
+                              deleteMutation.mutate(holiday.id);
+                            }
+                          }}
+                          disabled={deleteMutation.isPending}
+                          className="text-destructive hover:underline text-sm font-medium disabled:opacity-50"
+                        >
+                          Delete
+                        </button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}

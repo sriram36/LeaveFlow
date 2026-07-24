@@ -198,15 +198,20 @@ export default memo(function RequestsPage() {
       </div>
 
       {!rows.length ? (
-        <Card className="border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-900/20">
-          <CardContent className="text-center py-16">
-            <div className="text-5xl mb-4">✓</div>
-            <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-              All caught up!
-            </h3>
-            <p className="text-slate-600 dark:text-slate-400">
-              No pending requests right now.
-            </p>
+        <Card className="border-0 shadow-glass bg-card/50 backdrop-blur-sm overflow-hidden">
+          <CardContent className="text-center py-20 px-6 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50"></div>
+            <div className="relative z-10 max-w-sm mx-auto">
+              <div className="w-24 h-24 bg-gradient-to-br from-primary/10 to-primary/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <CheckCircle className="w-12 h-12 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground mb-3 tracking-tight">
+                All caught up!
+              </h3>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                You&apos;ve reviewed all pending requests. Great job keeping the team moving!
+              </p>
+            </div>
           </CardContent>
         </Card>
       ) : view === "list" ? (
@@ -215,7 +220,7 @@ export default memo(function RequestsPage() {
           {rows.map((request: LeaveRequest) => (
             <Card
               key={request.id}
-              className="hover:shadow-md transition-shadow cursor-pointer"
+              className="shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border-border/50 bg-card/80 backdrop-blur-sm hover:-translate-y-1 group"
               onClick={() => router.push(`/requests/${request.id}`)}
             >
               <CardContent className="pt-6">
@@ -223,7 +228,7 @@ export default memo(function RequestsPage() {
                   {/* Left */}
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                      <div className="w-10 h-10 bg-gradient-to-br from-primary/10 to-primary/30 text-primary border border-primary/20 rounded-full flex items-center justify-center text-sm font-bold shadow-inner group-hover:scale-105 transition-transform">
                         {request.user?.name?.charAt(0) || "U"}
                       </div>
                       <div className="flex-1">
@@ -273,13 +278,13 @@ export default memo(function RequestsPage() {
           {rows.map((request: LeaveRequest) => (
             <Card
               key={request.id}
-              className="hover:shadow-md transition-shadow cursor-pointer"
+              className="shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border-border/50 bg-card/80 backdrop-blur-sm hover:-translate-y-1 group"
               onClick={() => router.push(`/requests/${request.id}`)}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary/10 to-primary/30 text-primary border border-primary/20 rounded-full flex items-center justify-center text-sm font-bold shadow-inner group-hover:scale-105 transition-transform">
                         {request.user?.name?.charAt(0) || "U"}
                       </div>
                       <div>
