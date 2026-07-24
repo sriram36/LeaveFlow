@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Mail, Lock, ArrowRight, CheckCircle, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 export default function SigninPage() {
   const router = useRouter();
@@ -19,6 +20,14 @@ export default function SigninPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    
+    // Set a timer to show a warning if it takes too long (Render cold start)
+    const coldStartTimer = setTimeout(() => {
+      toast.info("The free backend server is waking up. This can take up to 50 seconds...", {
+        duration: 10000,
+      });
+    }, 3000);
+
     try {
       await login(email, password);
       router.push("/");
@@ -27,6 +36,7 @@ export default function SigninPage() {
       const e = err as any;
       setError(e?.message || "Login failed");
     } finally {
+      clearTimeout(coldStartTimer);
       setLoading(false);
     }
   };
