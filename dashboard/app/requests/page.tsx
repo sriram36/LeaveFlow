@@ -297,7 +297,7 @@ export default memo(function RequestsPage() {
                   </div>
                   <Badge
                     variant={statusToBadgeVariant(request.status as LeaveStatus)}
-                    className="text-xs"
+                    className="text-xs flex-shrink-0"
                   >
                     {request.status}
                   </Badge>

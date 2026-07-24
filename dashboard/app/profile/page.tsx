@@ -154,7 +154,7 @@ export default memo(function ProfilePage() {
             <div className="text-center sm:text-left">
               <h2 className="text-xl sm:text-2xl font-bold mb-1">{user.name}</h2>
               <div className="flex flex-col sm:flex-row items-center gap-2">
-                <span className="px-3 py-1 rounded-full text-xs font-medium bg-primary/20 text-primary capitalize">
+                <span className="inline-flex items-center flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium bg-primary/20 text-primary capitalize">
                   {user.role}
                 </span>
                 <span className="hidden sm:inline text-muted-foreground text-sm">•</span>

@@ -117,7 +117,7 @@ export function Header() {
                       <Link href={`/requests/${req.id}`} className="flex flex-col gap-1">
                         <div className="flex justify-between items-center w-full">
                           <span className="font-medium text-sm text-foreground">{req.user?.name}</span>
-                          <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">{req.days}d</span>
+                          <span className="inline-flex items-center flex-shrink-0 text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">{req.days}d</span>
                         </div>
                         <div className="flex justify-between items-center w-full text-xs text-muted-foreground">
                           <span className="capitalize">{req.leave_type} Leave</span>

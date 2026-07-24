@@ -239,7 +239,7 @@ export default function UserDetailPage() {
                   <span className="text-sm capitalize">{leave.leave_type}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`px-2 py-0.5 text-xs rounded-full ${statusColor(leave.status)}`}>
+                  <span className={`inline-flex items-center flex-shrink-0 px-2 py-0.5 text-xs rounded-full ${statusColor(leave.status)}`}>
                     {leave.status}
                   </span>
                   <Link href={`/requests/${leave.id}`} className="text-blue-600 hover:underline text-sm">
