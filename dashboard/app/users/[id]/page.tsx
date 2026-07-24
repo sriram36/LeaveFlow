@@ -114,13 +114,14 @@ export default function UserDetailPage() {
   };
 
   return (
-    <main className="space-y-6 pb-12">
+    <main className="max-w-7xl mx-auto space-y-8 pb-12">
       <Link href="/users" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-2">
         <ArrowLeft className="w-4 h-4 mr-1" />
         Back to Users
       </Link>
 
-      <div className="card border-border/50 shadow-glass bg-card/50 backdrop-blur-md rounded-2xl overflow-hidden p-0 relative">
+      {/* Profile Card */}
+      <div className="card border-border/50 shadow-glass bg-card/50 backdrop-blur-md rounded-3xl overflow-hidden p-0 relative">
         {/* Decorative Header Banner */}
         <div className="h-32 bg-gradient-to-r from-primary/80 to-indigo-600/80 relative">
           <div className="absolute inset-0 bg-white/10 dark:bg-black/10 backdrop-blur-[2px]"></div>
@@ -128,18 +129,18 @@ export default function UserDetailPage() {
 
         <div className="px-6 sm:px-8 pb-8 relative">
           {/* Profile Avatar Header */}
-          <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end mb-8">
-            <div className="-mt-12 relative z-10 w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 shadow-xl border-4 border-card flex items-center justify-center text-3xl font-bold text-white flex-shrink-0">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-8">
+            <div className="relative -mt-14 sm:-mt-12 z-10 w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 shadow-xl border-4 border-card flex items-center justify-center text-3xl font-bold text-white flex-shrink-0">
               {user.name?.charAt(0)}
             </div>
             
-            <div className="flex-1 min-w-0 pb-1">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
+            <div className="flex-1 min-w-0 pb-1 mt-4 lg:mt-0">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                <div className="flex-1">
                   <h1 className="text-3xl font-bold text-foreground truncate">{user.name}</h1>
                   <p className="text-muted-foreground mt-1 text-sm font-medium">#{user.id.toString().padStart(4, '0')}</p>
                 </div>
-                <div className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold shadow-sm flex-shrink-0 ${roleColor(user.role)}`}>
+                <div className={`inline-flex self-start lg:self-center items-center px-4 py-2 rounded-full text-sm font-bold shadow-sm flex-shrink-0 ${roleColor(user.role)}`}>
                   {user.role === 'admin' ? <Shield className="w-4 h-4 mr-2" /> : <Briefcase className="w-4 h-4 mr-2" />}
                   <span className="capitalize">{user.role}</span>
                 </div>
@@ -147,142 +148,133 @@ export default function UserDetailPage() {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Left Column: Contact & Manager */}
-            <div className="lg:col-span-1 space-y-6">
-              
-              {/* Contact Info */}
-              <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-2">Contact Details</h3>
-                
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-5 h-5 text-primary" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground font-medium">Phone Number</p>
-                    <p className="text-sm font-semibold truncate text-foreground">{user.phone}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-5 h-5 text-indigo-500" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground font-medium">Email Address</p>
-                    <p className="text-sm font-semibold truncate text-foreground">{user.email || 'Not provided'}</p>
-                  </div>
-                </div>
+          {/* Contact Details Inside Profile Card */}
+          <div className="grid md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-border/50">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Phone className="w-5 h-5 text-primary" />
               </div>
-
-              {/* Manager Assignment */}
-              {user.role === 'worker' && (
-                <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Reporting To</h3>
-                  
-                  {managersError && (
-                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-md text-xs font-medium text-red-700 dark:text-red-400">
-                      Failed to load managers.
-                    </div>
-                  )}
-
-                  <div className="space-y-4">
-                    <select
-                      value={selectedManager || ''}
-                      onChange={(e) => setSelectedManager(e.target.value ? Number(e.target.value) : null)}
-                      disabled={isUpdating || managersError || !managers}
-                      className="w-full px-3 py-2.5 border border-border/60 rounded-lg bg-muted/30 focus:bg-background focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all"
-                    >
-                      <option value="">-- No Manager Assigned --</option>
-                      {managers?.map((manager: { id: number; name: string; phone: string }) => (
-                        <option key={manager.id} value={manager.id}>
-                          {manager.name}
-                        </option>
-                      ))}
-                    </select>
-
-                    <button
-                      onClick={handleManagerUpdate}
-                      disabled={isUpdating || managersError || !managers}
-                      className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg shadow-sm hover:shadow-md hover:bg-primary/90 disabled:opacity-50 font-semibold text-sm transition-all"
-                    >
-                      {isUpdating ? 'Saving...' : 'Save Assignment'}
-                    </button>
-                    
-                    {updateMessage && (
-                      <div className={`p-3 rounded-lg text-xs font-semibold flex items-center gap-2 ${
-                        updateMessage.type === 'success' 
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
-                          : 'bg-red-500/10 text-red-600 dark:text-red-400'
-                      }`}>
-                        {updateMessage.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                        {updateMessage.text}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right Column: Balances & Stats */}
-            <div className="lg:col-span-2 space-y-6">
-              
-              {/* Balances */}
-              <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Leave Balances ({new Date().getFullYear()})</h3>
-                
-                {balance ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <BalanceCard title="Casual" days={balance.casual} color="bg-green-500" />
-                    <BalanceCard title="Sick" days={balance.sick} color="bg-red-500" />
-                    <BalanceCard title="Special" days={balance.special} color="bg-purple-500" />
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center bg-muted/30 border border-dashed border-border/50 rounded-lg p-6 min-h-[100px]">
-                    <p className="text-sm text-muted-foreground font-medium">No balance data available</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Statistics */}
-              <div className="bg-background rounded-xl p-5 border border-border/50 shadow-sm">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Request Statistics</h3>
-                
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <StatBlock icon={<Calendar />} label="Total" value={stats.total} color="text-blue-500" />
-                  <StatBlock icon={<CheckCircle />} label="Approved" value={stats.approved} color="text-emerald-500" />
-                  <StatBlock icon={<Clock />} label="Pending" value={stats.pending} color="text-amber-500" />
-                  <StatBlock icon={<XCircle />} label="Rejected" value={stats.rejected} color="text-red-500" />
-                </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground font-medium">Phone Number</p>
+                <p className="text-sm font-semibold truncate text-foreground">{user.phone}</p>
               </div>
             </div>
 
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0">
+                <Mail className="w-5 h-5 text-indigo-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground font-medium">Email Address</p>
+                <p className="text-sm font-semibold truncate text-foreground">{user.email || 'Not provided'}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Recent Leave History */}
-      <div className="card border-border/50 shadow-glass bg-card/50 backdrop-blur-md rounded-2xl">
-        <h3 className="font-semibold mb-4">Recent Leave Requests</h3>
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Balances Card */}
+        <div className="card border-border/50 shadow-glass bg-card/50 backdrop-blur-md rounded-3xl p-5">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Leave Balances ({new Date().getFullYear()})</h3>
+          
+          {balance ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <BalanceCard title="Casual" days={balance.casual} color="bg-green-500" />
+              <BalanceCard title="Sick" days={balance.sick} color="bg-red-500" />
+              <BalanceCard title="Special" days={balance.special} color="bg-purple-500" />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center bg-muted/30 border border-dashed border-border/50 rounded-lg p-6 min-h-[100px]">
+              <p className="text-sm text-muted-foreground font-medium">No balance data available</p>
+            </div>
+          )}
+        </div>
+
+        {/* Manager Assignment Card */}
+        {user.role === 'worker' && (
+          <div className="card border-border/50 shadow-glass bg-card/50 backdrop-blur-md rounded-3xl p-5">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Reporting To</h3>
+            
+            {managersError && (
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-md text-xs font-medium text-red-700 dark:text-red-400">
+                Failed to load managers.
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <select
+                value={selectedManager || ''}
+                onChange={(e) => setSelectedManager(e.target.value ? Number(e.target.value) : null)}
+                disabled={isUpdating || managersError || !managers}
+                className="w-full h-11 px-4 border border-border/60 rounded-lg bg-muted/30 focus:bg-background focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all"
+              >
+                <option value="">-- No Manager Assigned --</option>
+                {managers?.map((manager: { id: number; name: string; phone: string }) => (
+                  <option key={manager.id} value={manager.id}>
+                    {manager.name}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={handleManagerUpdate}
+                disabled={isUpdating || managersError || !managers}
+                className="w-full h-11 bg-primary text-primary-foreground rounded-lg shadow-sm hover:shadow-md hover:bg-primary/90 disabled:opacity-50 font-semibold text-sm transition-all"
+              >
+                {isUpdating ? 'Saving...' : 'Save Assignment'}
+              </button>
+              
+              {updateMessage && (
+                <div className={`p-3 rounded-lg text-xs font-semibold flex items-center gap-2 ${
+                  updateMessage.type === 'success' 
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                    : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                }`}>
+                  {updateMessage.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                  {updateMessage.text}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Statistics Card */}
+      <div className="card border-border/50 shadow-glass bg-card/50 backdrop-blur-md rounded-3xl p-5">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Request Statistics</h3>
+        
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+          <StatBlock icon={<Calendar />} label="Total" value={stats.total} color="text-blue-500" />
+          <StatBlock icon={<CheckCircle />} label="Approved" value={stats.approved} color="text-emerald-500" />
+          <StatBlock icon={<Clock />} label="Pending" value={stats.pending} color="text-amber-500" />
+          <StatBlock icon={<XCircle />} label="Rejected" value={stats.rejected} color="text-red-500" />
+        </div>
+      </div>
+
+      {/* Recent Leave History Card */}
+      <div className="card border-border/50 shadow-glass bg-card/50 backdrop-blur-md rounded-3xl p-5">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Recent Leave Requests</h3>
         {!leaveHistory || leaveHistory.length === 0 ? (
           <p className="text-muted-foreground">No leave requests yet.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="divide-y divide-border">
             {leaveHistory.slice(0, 10).map((leave) => (
-              <div key={leave.id} className="flex items-center justify-between py-2 border-b last:border-0">
+              <div key={leave.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 py-4 first:pt-0 last:pb-0">
                 <div>
-                  <span className="font-medium">#{leave.id}</span>
-                  <span className="text-muted-foreground mx-2">•</span>
-                  <span className="text-sm">{leave.start_date} → {leave.end_date}</span>
-                  <span className="text-muted-foreground mx-2">•</span>
-                  <span className="text-sm capitalize">{leave.leave_type}</span>
+                  <div className="font-semibold text-foreground">Request #{leave.id}</div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {leave.start_date} → {leave.end_date}
+                  </div>
+                  <div className="text-sm text-muted-foreground capitalize mt-1">
+                    {leave.leave_type} Leave
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={`inline-flex items-center flex-shrink-0 px-2 py-0.5 text-xs rounded-full ${statusColor(leave.status)}`}>
+                <div className="flex items-center gap-4">
+                  <span className={`inline-flex items-center min-w-[90px] justify-center px-3 py-1 text-xs font-bold rounded-full ${statusColor(leave.status)}`}>
                     {leave.status}
                   </span>
-                  <Link href={`/requests/${leave.id}`} className="text-blue-600 hover:underline text-sm">
+                  <Link href={`/requests/${leave.id}`} className="px-4 py-2 rounded-lg bg-primary/10 text-primary font-semibold hover:bg-primary/20 transition-colors text-sm">
                     View
                   </Link>
                 </div>
