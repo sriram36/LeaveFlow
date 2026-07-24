@@ -22,7 +22,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 @router.post("/login", response_model=Token)
-@limiter.limit("1/minute")
+@limiter.limit("5/minute")
 async def login(
     request: Request,
     response: Response,
@@ -71,7 +71,7 @@ async def logout(response: Response) -> dict:
 
 
 @router.post("/register", response_model=UserResponse)
-@limiter.limit("1/minute")
+@limiter.limit("5/minute")
 async def register(
     request: Request,
     user_data: UserCreate,
