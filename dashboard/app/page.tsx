@@ -690,14 +690,14 @@ const DashboardHome = memo(function DashboardHome() {
               <div className="space-y-4">
                 {activityData.slice(0, 5).map((activity, index: number) => (
                   <div key={index} className="flex items-center space-x-4 p-3 rounded-xl hover:bg-muted/50 transition-colors group">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary/10 to-primary/30 text-primary border border-primary/20 shadow-inner rounded-full flex items-center justify-center text-sm font-semibold group-hover:scale-105 transition-transform">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary/10 to-primary/30 text-primary border border-primary/20 shadow-inner rounded-full flex items-center justify-center text-sm font-semibold group-hover:scale-105 transition-transform flex-shrink-0">
                       {activity.user?.charAt(0)}
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{activity.user}</p>
-                      <p className="text-xs text-muted-foreground">{activity.action}</p>
+                    <div className="flex-1 space-y-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">{activity.user}</p>
+                      <p className="text-xs text-muted-foreground truncate">{activity.action}</p>
                     </div>
-                    <div className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">{activity.time}</div>
+                    <div className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full flex-shrink-0">{activity.time}</div>
                   </div>
                 )) || (
                   <div className="text-center py-12">

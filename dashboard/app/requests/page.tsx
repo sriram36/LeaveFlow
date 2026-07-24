@@ -225,13 +225,13 @@ export default memo(function RequestsPage() {
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between gap-4">
                   {/* Left */}
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 bg-muted text-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                      <div className="w-10 h-10 bg-muted text-foreground rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0">
                         {request.user?.name?.charAt(0) || "U"}
                       </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-slate-900 dark:text-white">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-900 dark:text-white truncate">
                           {request.user?.name || "Unknown User"}
                         </p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -240,7 +240,7 @@ export default memo(function RequestsPage() {
                       </div>
                     </div>
                     {request.reason && (
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 truncate">
                         {request.reason}
                       </p>
                     )}
@@ -282,12 +282,12 @@ export default memo(function RequestsPage() {
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-muted text-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 bg-muted text-foreground rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0">
                         {request.user?.name?.charAt(0) || "U"}
                       </div>
-                      <div>
-                        <p className="font-semibold text-sm text-slate-900 dark:text-white">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">
                           {request.user?.name || "Unknown User"}
                       </p>
                       <p className="text-xs text-slate-600 dark:text-slate-400">
@@ -305,7 +305,7 @@ export default memo(function RequestsPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {request.reason && (
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 truncate">
                     {request.reason}
                   </p>
                 )}
