@@ -136,8 +136,25 @@ export default function SigninPage() {
                     <>
                       <span>Sign in to Dashboard</span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </>
                   )}
+                </Button>
+                
+                <div className="relative flex items-center py-2 mt-4">
+                  <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                  <span className="flex-shrink-0 mx-4 text-xs font-medium text-slate-400">OR</span>
+                  <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                </div>
+                
+                <Button 
+                  type="button" 
+                  onClick={() => {
+                    setEmail("demo@leaveflow.com");
+                    setPassword("demo123");
+                  }}
+                  className="w-full h-12 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-300"
+                >
+                  <Sparkles className="w-4 h-4 mr-2 text-indigo-500" />
+                  Fill Demo Credentials
                 </Button>
               </form>
 

@@ -48,7 +48,27 @@ import {
 
 const LandingPage = memo(function LandingPage() {
   return (
-    <div className="space-y-0">
+    <div className="space-y-0 relative">
+      {/* Top Navigation */}
+      <nav className="absolute top-0 w-full z-50 px-6 py-6 flex items-center justify-between max-w-7xl mx-auto left-0 right-0">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">LeaveFlow</span>
+        </div>
+        <div className="flex items-center gap-6">
+          <Link href="/signin" className="text-sm font-medium text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-indigo-400 transition-colors">
+            Sign In
+          </Link>
+          <Link href="/signup">
+            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-5 shadow-md shadow-indigo-500/20">
+              Get Started
+            </Button>
+          </Link>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-20 pb-32 sm:pt-32 sm:pb-48">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-indigo-50 to-white dark:from-slate-950 dark:via-indigo-950/20 dark:to-slate-900 -z-10"></div>
