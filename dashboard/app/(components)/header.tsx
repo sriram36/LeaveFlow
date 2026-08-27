@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
-import { Bell, Menu, Sparkles } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -39,7 +39,12 @@ export function Header() {
   const { data: pendingRequests } = useQuery({
     queryKey: ['pending-requests', user?.id, user?.role],
     queryFn: () => api.getPendingRequests(),
-    enabled: Boolean(isAuthenticated && mounted && user && (user.role === 'manager' || user.role === 'hr' || user.role === 'admin')),
+    enabled: Boolean(
+      isAuthenticated &&
+        mounted &&
+        user &&
+        (user.role === 'manager' || user.role === 'hr' || user.role === 'admin')
+    ),
     staleTime: 10000,
     refetchInterval: 30000,
     refetchOnWindowFocus: true,
@@ -47,18 +52,21 @@ export function Header() {
   });
 
   const pendingCount = pendingRequests?.length || 0;
-  
+
   if (!mounted || !isAuthenticated) return null;
 
-  // Format the path nicely
-  const pathTitle = pathname === "/" ? "Dashboard" : 
-    pathname.split('/').filter(Boolean).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' / ');
+  const pathTitle =
+    pathname === "/"
+      ? "Dashboard"
+      : pathname
+          .split('/')
+          .filter(Boolean)
+          .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+          .join(' / ');
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background px-4 sm:px-6 py-3">
-      
+    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl px-4 sm:px-6 py-3">
       <div className="flex items-center gap-3">
-        {/* Mobile Menu */}
         <div className="md:hidden flex items-center gap-3">
           <Sheet>
             <SheetTrigger asChild>
@@ -66,14 +74,17 @@ export function Header() {
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-[280px] bg-background/95 backdrop-blur-xl border-r-border/50">
+            <SheetContent side="left" className="p-0 w-[256px] bg-card">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Navigation</SheetTitle>
+              </SheetHeader>
               <Sidebar />
             </SheetContent>
           </Sheet>
-          
+
           <Link href="/" className="flex items-center gap-2 md:hidden">
             <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shadow-sm">
-              <span className="w-3.5 h-3.5 text-primary-foreground font-bold text-xs flex items-center justify-center">L</span>
+              <span className="text-primary-foreground font-bold text-xs">L</span>
             </div>
             <span className="text-lg font-bold tracking-tight text-foreground">
               LeaveFlow
@@ -81,43 +92,50 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Dynamic Title based on route */}
         <h2 className="hidden sm:block text-sm font-medium text-muted-foreground tracking-wide">
           {pathTitle}
         </h2>
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Bell Icon Notification */}
         {(user?.role === 'manager' || user?.role === 'hr' || user?.role === 'admin') && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative hover:bg-muted/50 rounded-full">
+              <Button variant="ghost" size="icon" className="relative hover:bg-muted rounded-full">
                 <Bell className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" />
                 {pendingCount > 0 && (
-                  <Badge variant="destructive" className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-[10px] shadow-lg animate-pulse">
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-[10px] shadow-sm"
+                  >
                     {pendingCount}
                   </Badge>
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 rounded-xl shadow-2xl shadow-black/10 border-border/50">
-              <DropdownMenuLabel className="flex justify-between items-center px-4 py-3 border-b border-border/50">
-                <span className="font-semibold text-foreground">Notifications</span>
+            <DropdownMenuContent align="end" className="w-80 rounded-xl shadow-lg border-border/60">
+              <DropdownMenuLabel className="flex justify-between items-center px-3 py-2.5 border-b border-border/60">
+                <span className="font-semibold text-sm">Notifications</span>
                 {pendingCount > 0 && (
-                  <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
+                  <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
                     {pendingCount} New
                   </Badge>
                 )}
               </DropdownMenuLabel>
               <div className="max-h-[300px] overflow-y-auto p-1">
                 {pendingRequests && pendingRequests.length > 0 ? (
-                  pendingRequests.slice(0, 5).map(req => (
-                    <DropdownMenuItem key={req.id} asChild className="p-3 mb-1 cursor-pointer rounded-lg hover:bg-muted/50 focus:bg-muted/50">
+                  pendingRequests.slice(0, 5).map((req) => (
+                    <DropdownMenuItem
+                      key={req.id}
+                      asChild
+                      className="p-3 mb-1 cursor-pointer rounded-lg hover:bg-muted"
+                    >
                       <Link href={`/requests/${req.id}`} className="flex flex-col gap-1">
                         <div className="flex justify-between items-center w-full">
                           <span className="font-medium text-sm text-foreground">{req.user?.name}</span>
-                          <span className="inline-flex items-center flex-shrink-0 text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">{req.days}d</span>
+                          <span className="inline-flex items-center flex-shrink-0 text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            {req.days}d
+                          </span>
                         </div>
                         <div className="flex justify-between items-center w-full text-xs text-muted-foreground">
                           <span className="capitalize">{req.leave_type} Leave</span>
@@ -128,13 +146,16 @@ export function Header() {
                   ))
                 ) : (
                   <div className="p-4 text-center text-sm text-muted-foreground">
-                    No pending requests! You&apos;re all caught up.
+                    No pending requests — you&apos;re all caught up.
                   </div>
                 )}
               </div>
               {pendingCount > 5 && (
-                <div className="p-2 border-t border-border/50">
-                  <Link href="/requests" className="block text-center text-sm font-medium text-primary hover:underline">
+                <div className="p-2 border-t border-border/60">
+                  <Link
+                    href="/requests"
+                    className="block text-center text-sm font-medium text-primary hover:underline"
+                  >
                     View all {pendingCount} requests
                   </Link>
                 </div>
