@@ -101,8 +101,8 @@ export function WhatsAppBotPreview() {
               <div
                 className={`max-w-xs rounded-lg px-4 py-2 text-sm ${
                   message.sender === "user"
-                    ? "bg-indigo-600 text-white"
-                    : "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-50"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground"
                 }`}
               >
                 {message.text}
@@ -123,12 +123,12 @@ export function WhatsAppBotPreview() {
               }
             }}
             placeholder="Type a message..."
-            className="flex-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 bg-muted border border-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
           <Button
             size="sm"
             onClick={handleSendMessage}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-primary hover:bg-primary/90"
           >
             <Send className="w-4 h-4" />
           </Button>

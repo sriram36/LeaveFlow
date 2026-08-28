@@ -58,8 +58,8 @@ export default function HistoryPage() {
     return (
       <main className="space-y-6">
         <div>
-          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+          <div className="h-9 bg-muted rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <TableSkeleton rows={5} />
       </main>
@@ -67,7 +67,7 @@ export default function HistoryPage() {
   }
 
   if (error) {
-    return <div className="text-red-600">Failed to load history.</div>;
+    return <div className="text-destructive">Failed to load history.</div>;
   }
 
   const rows: LeaveRequest[] = requests ?? [];
@@ -94,7 +94,7 @@ export default function HistoryPage() {
           <button
             onClick={handleExportCSV}
             disabled={rows.length === 0}
-            className="btn text-sm bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
+            className="btn text-sm bg-success text-success-foreground hover:bg-success/90 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
           >
             📥 Export CSV
           </button>
@@ -165,11 +165,11 @@ function HistoryCard({ req }: { req: LeaveRequest }) {
 function badgeForStatus(status: LeaveStatus) {
   switch (status) {
     case "pending":
-      return { label: "Pending", className: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400" };
+      return { label: "Pending", className: "bg-warning/10 text-warning" };
     case "approved":
-      return { label: "Approved", className: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400" };
+      return { label: "Approved", className: "bg-success/10 text-success" };
     case "rejected":
-      return { label: "Rejected", className: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400" };
+      return { label: "Rejected", className: "bg-destructive/10 text-destructive" };
     case "cancelled":
       return { label: "Cancelled", className: "bg-muted text-muted-foreground" };
     default:

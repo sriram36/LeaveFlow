@@ -43,7 +43,7 @@ export function DashboardHeader() {
   const pendingCount = pendingRequests?.length || 0;
 
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+    <header className="sticky top-0 z-40 bg-card border-b border-border">
       <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Right Actions */}
         <div className="flex items-center gap-2 ml-4">
@@ -72,19 +72,19 @@ export function DashboardHeader() {
                         {pendingRequests.slice(0, 5).map((request: any) => (
                           <div
                             key={request.id}
-                            className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700"
+                            className="p-3 bg-muted rounded-lg border border-border"
                           >
                             <p className="font-medium text-sm">
                               {request.employee_name}
                             </p>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                            <p className="text-xs text-muted-foreground mt-1">
                               {request.leave_type} • {request.start_date} to {request.end_date}
                             </p>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                      <p className="text-sm text-muted-foreground">
                         No pending requests
                       </p>
                     )}
@@ -98,7 +98,7 @@ export function DashboardHeader() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-2">
-                <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center text-sm font-semibold text-accent">
                   {user?.name?.charAt(0)}
                 </div>
                 <span className="hidden sm:inline text-sm font-medium">
@@ -110,7 +110,7 @@ export function DashboardHeader() {
               <DropdownMenuLabel>
                 <div>
                   <p className="text-sm font-medium">{user?.name}</p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 capitalize">
+                  <p className="text-xs text-muted-foreground capitalize">
                     {user?.role}
                   </p>
                 </div>
@@ -118,7 +118,7 @@ export function DashboardHeader() {
               <DropdownMenuSeparator />
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="gap-2 cursor-pointer text-red-600 dark:text-red-400"
+                className="gap-2 cursor-pointer text-destructive"
                 onClick={logout}
               >
                 <LogOut className="w-4 h-4" />

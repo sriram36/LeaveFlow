@@ -20,7 +20,7 @@ import {
   parseISO,
   isWithinInterval,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, BarChart3, Inbox, Calendar as CalendarIcon, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChartBar as BarChart3, Inbox, Calendar as CalendarIcon, Sparkles } from "lucide-react";
 
 export default function CalendarPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -77,8 +77,8 @@ export default function CalendarPage() {
     return (
       <main className="space-y-6">
         <div>
-          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+          <div className="h-9 bg-muted rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <DashboardSkeleton />
       </main>
@@ -166,7 +166,7 @@ export default function CalendarPage() {
                       : isWeekend
                       ? 'bg-muted/30 border-border/30'
                       : holiday
-                      ? 'bg-amber-500/5 border-amber-500/30 shadow-sm'
+                      ? 'bg-warning/5 border-warning/30 shadow-sm'
                       : 'bg-background border-border/50 hover:border-primary/40 hover:shadow-glass hover:-translate-y-0.5'
                   }`}
                 >
@@ -183,7 +183,7 @@ export default function CalendarPage() {
 
                   <div className="flex-1 space-y-1.5 overflow-hidden">
                     {holiday && (
-                      <div className="flex items-center text-[10px] sm:text-xs font-semibold bg-gradient-to-r from-amber-500/20 to-orange-500/10 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-md border border-amber-500/20 truncate" title={holiday.name}>
+                      <div className="flex items-center text-[10px] sm:text-xs font-semibold bg-gradient-to-r from-warning/20 to-warning/10 text-warning px-2 py-1 rounded-md border border-warning/20 truncate" title={holiday.name}>
                         <Sparkles className="w-3 h-3 mr-1 flex-shrink-0" />
                         <span className="truncate">{holiday.name}</span>
                       </div>
@@ -195,10 +195,10 @@ export default function CalendarPage() {
                         href={`/requests/${leave.id}`}
                         className={`block text-[10px] sm:text-xs font-medium px-2 py-1 rounded-md truncate hover:brightness-95 transition-all ${
                           leave.leave_type === 'sick'
-                            ? 'bg-red-100 text-red-800 border border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30'
+                            ? 'bg-destructive/10 text-destructive border border-destructive/20'
                             : leave.leave_type === 'casual'
-                            ? 'bg-green-100 text-green-800 border border-green-200 dark:bg-green-500/20 dark:text-green-300 dark:border-green-500/30'
-                            : 'bg-purple-100 text-purple-800 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30'
+                            ? 'bg-success/10 text-success border border-success/20'
+                            : 'bg-accent/10 text-accent border border-accent/20'
                         }`}
                         title={`${leave.user?.name} - ${leave.leave_type}`}
                       >
@@ -222,10 +222,10 @@ export default function CalendarPage() {
         <div className="border-t border-border/50 bg-muted/30 p-6">
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">Legend</p>
           <div className="flex flex-wrap gap-4 sm:gap-6">
-            <LegendItem color="bg-green-100 border-green-200 dark:bg-green-500/20 dark:border-green-500/30" label="Casual Leave" />
-            <LegendItem color="bg-red-100 border-red-200 dark:bg-red-500/20 dark:border-red-500/30" label="Sick Leave" />
-            <LegendItem color="bg-purple-100 border-purple-200 dark:bg-purple-500/20 dark:border-purple-500/30" label="Special Leave" />
-            <LegendItem color="bg-amber-100 border-amber-200 dark:bg-amber-500/20 dark:border-amber-500/30" label="Holiday" />
+            <LegendItem color="bg-success/10 border-success/20" label="Casual Leave" />
+            <LegendItem color="bg-destructive/10 border-destructive/20" label="Sick Leave" />
+            <LegendItem color="bg-accent/10 border-accent/20" label="Special Leave" />
+            <LegendItem color="bg-warning/10 border-warning/20" label="Holiday" />
             <div className="flex items-center gap-2.5">
               <span className="w-4 h-4 rounded-full bg-primary flex items-center justify-center shadow-sm">
                 <span className="w-1.5 h-1.5 bg-primary-foreground rounded-full"></span>

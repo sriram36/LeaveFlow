@@ -57,8 +57,8 @@ export default function UserDetailPage() {
     return (
       <main className="space-y-6">
         <div>
-          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+          <div className="h-9 bg-muted rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <DashboardSkeleton />
       </main>
@@ -68,8 +68,8 @@ export default function UserDetailPage() {
   if (error || !user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
-        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
-          <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+        <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
+          <XCircle className="w-8 h-8 text-destructive" />
         </div>
         <h2 className="text-xl font-bold text-foreground">User Not Found</h2>
         <p className="text-muted-foreground mt-2">The user you&apos;re looking for doesn&apos;t exist or you don&apos;t have access.</p>
@@ -123,14 +123,14 @@ export default function UserDetailPage() {
       {/* Profile Card */}
       <div className="card border-border/50 shadow-glass bg-card/50 backdrop-blur-md rounded-3xl overflow-hidden p-0 relative">
         {/* Decorative Header Banner */}
-        <div className="h-32 bg-gradient-to-r from-primary/80 to-indigo-600/80 relative">
+        <div className="h-32 bg-gradient-to-r from-primary/80 to-accent/80 relative">
           <div className="absolute inset-0 bg-white/10 dark:bg-black/10 backdrop-blur-[2px]"></div>
         </div>
 
         <div className="px-6 sm:px-8 pb-8 relative">
           {/* Profile Avatar Header */}
           <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-8">
-            <div className="relative -mt-14 sm:-mt-12 z-10 w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 shadow-xl border-4 border-card flex items-center justify-center text-3xl font-bold text-white flex-shrink-0">
+            <div className="relative -mt-14 sm:-mt-12 z-10 w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-xl border-4 border-card flex items-center justify-center text-3xl font-bold text-white flex-shrink-0">
               {user.name?.charAt(0)}
             </div>
             
@@ -161,8 +161,8 @@ export default function UserDetailPage() {
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0">
-                <Mail className="w-5 h-5 text-indigo-500" />
+              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                <Mail className="w-5 h-5 text-accent" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-muted-foreground font-medium">Email Address</p>
@@ -180,9 +180,9 @@ export default function UserDetailPage() {
           
           {balance ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <BalanceCard title="Casual" days={balance.casual} color="bg-green-500" />
-              <BalanceCard title="Sick" days={balance.sick} color="bg-red-500" />
-              <BalanceCard title="Special" days={balance.special} color="bg-purple-500" />
+              <BalanceCard title="Casual" days={balance.casual} color="bg-success" />
+              <BalanceCard title="Sick" days={balance.sick} color="bg-destructive" />
+              <BalanceCard title="Special" days={balance.special} color="bg-accent" />
             </div>
           ) : (
             <div className="flex items-center justify-center bg-muted/30 border border-dashed border-border/50 rounded-lg p-6 min-h-[100px]">
@@ -197,7 +197,7 @@ export default function UserDetailPage() {
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Reporting To</h3>
             
             {managersError && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-md text-xs font-medium text-red-700 dark:text-red-400">
+              <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-xs font-medium text-destructive">
                 Failed to load managers.
               </div>
             )}
@@ -228,8 +228,8 @@ export default function UserDetailPage() {
               {updateMessage && (
                 <div className={`p-3 rounded-lg text-xs font-semibold flex items-center gap-2 ${
                   updateMessage.type === 'success' 
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
-                    : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                    ? 'bg-success/10 text-success' 
+                    : 'bg-destructive/10 text-destructive'
                 }`}>
                   {updateMessage.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                   {updateMessage.text}
@@ -245,10 +245,10 @@ export default function UserDetailPage() {
         <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Request Statistics</h3>
         
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-          <StatBlock icon={<Calendar />} label="Total" value={stats.total} color="text-blue-500" />
-          <StatBlock icon={<CheckCircle />} label="Approved" value={stats.approved} color="text-emerald-500" />
-          <StatBlock icon={<Clock />} label="Pending" value={stats.pending} color="text-amber-500" />
-          <StatBlock icon={<XCircle />} label="Rejected" value={stats.rejected} color="text-red-500" />
+          <StatBlock icon={<Calendar />} label="Total" value={stats.total} color="text-accent" />
+          <StatBlock icon={<CheckCircle />} label="Approved" value={stats.approved} color="text-success" />
+          <StatBlock icon={<Clock />} label="Pending" value={stats.pending} color="text-warning" />
+          <StatBlock icon={<XCircle />} label="Rejected" value={stats.rejected} color="text-destructive" />
         </div>
       </div>
 
@@ -290,11 +290,11 @@ export default function UserDetailPage() {
 function roleColor(role: string) {
   switch (role) {
     case 'admin':
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-400';
+      return 'bg-accent/10 text-accent';
     case 'hr':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400';
+      return 'bg-primary/10 text-primary';
     case 'manager':
-      return 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400';
+      return 'bg-success/10 text-success';
     case 'worker':
       return 'bg-muted text-muted-foreground';
     default:
@@ -305,11 +305,11 @@ function roleColor(role: string) {
 function statusColor(status: string) {
   switch (status) {
     case 'approved':
-      return 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400';
+      return 'bg-success/10 text-success';
     case 'pending':
-      return 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400';
+      return 'bg-warning/10 text-warning';
     case 'rejected':
-      return 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400';
+      return 'bg-destructive/10 text-destructive';
     case 'cancelled':
       return 'bg-muted text-muted-foreground';
     default:

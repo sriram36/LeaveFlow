@@ -74,8 +74,8 @@ export default memo(function PendingAccountsPage() {
     return (
       <main className="space-y-6">
         <div>
-          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+          <div className="h-9 bg-muted rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <TableSkeleton rows={5} />
       </main>
@@ -95,8 +95,8 @@ export default memo(function PendingAccountsPage() {
         <div
           className={`mb-6 p-4 rounded-md ${
             message.type === 'success'
-              ? 'bg-green-50 text-green-800 dark:bg-green-500/20 dark:text-green-400 border border-green-200 dark:border-green-500/30'
-              : 'bg-red-50 text-red-800 dark:bg-red-500/20 dark:text-red-400 border border-red-200 dark:border-red-500/30'
+              ? 'bg-success/10 text-success border border-success/20'
+              : 'bg-destructive/10 text-destructive border border-destructive/20'
           }`}
         >
           {message.text}
@@ -122,10 +122,10 @@ export default memo(function PendingAccountsPage() {
                     <span
                       className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
                         account.role === 'manager'
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400'
+                          ? 'bg-primary/10 text-primary'
                           : account.role === 'hr'
-                          ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-400'
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-500/20 dark:text-gray-400'
+                          ? 'bg-accent/10 text-accent'
+                          : 'bg-muted text-muted-foreground'
                       }`}
                     >
                       {account.role.toUpperCase()}
@@ -153,7 +153,7 @@ export default memo(function PendingAccountsPage() {
                   <button
                     onClick={() => approveMutation.mutate(account.id)}
                     disabled={approveMutation.isPending || rejectMutation.isPending}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-success text-success-foreground rounded-md hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {approveMutation.isPending ? 'Approving...' : 'Approve'}
                   </button>
@@ -164,7 +164,7 @@ export default memo(function PendingAccountsPage() {
                       }
                     }}
                     disabled={approveMutation.isPending || rejectMutation.isPending}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {rejectMutation.isPending ? 'Rejecting...' : 'Reject'}
                   </button>

@@ -86,8 +86,8 @@ export default memo(function ProfilePage() {
     return (
       <main className="space-y-6">
         <div>
-          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+          <div className="h-9 bg-muted rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <DashboardSkeleton />
       </main>
@@ -121,8 +121,8 @@ export default memo(function ProfilePage() {
 
       {/* Success Message */}
       {success && (
-        <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-          <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+        <div className="mb-6 p-4 bg-success/10 border border-success/20 rounded-lg">
+          <div className="flex items-center gap-2 text-success">
             <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
@@ -298,7 +298,7 @@ export default memo(function ProfilePage() {
           </div>
           <div>
             <p className="text-muted-foreground mb-1">Account Status</p>
-            <p className="font-medium text-green-600 dark:text-green-400">Active</p>
+            <p className="font-medium text-success">Active</p>
           </div>
         </div>
       </div>

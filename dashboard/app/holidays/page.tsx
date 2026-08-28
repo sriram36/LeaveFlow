@@ -77,8 +77,8 @@ export default memo(function HolidaysPage() {
     return (
       <main className="space-y-6">
         <div>
-          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+          <div className="h-9 bg-muted rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <TableSkeleton rows={5} />
       </main>
@@ -86,7 +86,7 @@ export default memo(function HolidaysPage() {
   }
 
   if (error) {
-    return <div className="text-red-600">Failed to load holidays.</div>;
+    return <div className="text-destructive">Failed to load holidays.</div>;
   }
 
   const sortedHolidays = [...(holidays || [])].sort((a, b) => 
@@ -104,7 +104,7 @@ export default memo(function HolidaysPage() {
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="text-sm border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary focus:border-primary"
+            className="text-sm border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-ring focus:border-ring"
           >
             {[year - 1, year, year + 1].map(y => (
               <option key={y} value={y}>{y}</option>
@@ -133,7 +133,7 @@ export default memo(function HolidaysPage() {
                   type="date"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
-                  className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                  className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-ring focus:border-ring transition-all"
                 />
               </div>
               <div>
@@ -143,7 +143,7 @@ export default memo(function HolidaysPage() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g., Independence Day"
-                  className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                  className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-ring focus:border-ring transition-all"
                 />
               </div>
             </div>
@@ -154,7 +154,7 @@ export default memo(function HolidaysPage() {
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
                 placeholder="e.g., National holiday celebrating independence"
-                className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-ring focus:border-ring transition-all"
               />
             </div>
             <div className="flex gap-3 justify-end mt-2">

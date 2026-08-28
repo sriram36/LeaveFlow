@@ -56,8 +56,8 @@ export default function RequestDetail() {
     return (
       <main className="space-y-6">
         <div>
-          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+          <div className="h-9 bg-muted rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <DashboardSkeleton />
       </main>
@@ -65,7 +65,7 @@ export default function RequestDetail() {
   }
 
   if (error || !detail) {
-    return <div className="text-red-600">Failed to load request or not found.</div>;
+    return <div className="text-destructive">Failed to load request or not found.</div>;
   }
 
   const badge = badgeForStatus(detail.status);
@@ -73,7 +73,7 @@ export default function RequestDetail() {
 
   return (
     <main className="space-y-6 max-w-4xl">
-      <Link href="/requests" className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
+      <Link href="/requests" className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">
         ← Back to Pending Requests
       </Link>
 
@@ -131,9 +131,9 @@ export default function RequestDetail() {
         {/* Rejection Reason */}
         {detail.rejection_reason && (
           <div className="px-6 pb-4">
-            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
-              <span className="text-xs font-semibold uppercase tracking-wide text-red-600 dark:text-red-400 block mb-2">Rejection Reason</span>
-              <p className="text-red-700 dark:text-red-300 leading-relaxed">{detail.rejection_reason}</p>
+            <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-xl">
+              <span className="text-xs font-semibold uppercase tracking-wide text-destructive block mb-2">Rejection Reason</span>
+              <p className="text-destructive leading-relaxed">{detail.rejection_reason}</p>
             </div>
           </div>
         )}
@@ -141,13 +141,13 @@ export default function RequestDetail() {
         {/* Attachments */}
         {detail.attachments && detail.attachments.length > 0 && (
           <div className="px-6 pb-4">
-            <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
-              <span className="text-xs font-semibold uppercase tracking-wide text-purple-600 dark:text-purple-400 mb-3 block">
+            <div className="p-4 bg-accent/10 border border-accent/30 rounded-xl">
+              <span className="text-xs font-semibold uppercase tracking-wide text-accent mb-3 block">
                 📎 Attachments ({detail.attachments.length})
               </span>
               <div className="space-y-2">
                 {detail.attachments.map((attachment) => (
-                  <div key={attachment.id} className="flex items-center gap-3 p-3 bg-background rounded border hover:border-purple-500/50 transition-colors">
+                  <div key={attachment.id} className="flex items-center gap-3 p-3 bg-background rounded border hover:border-accent/50 transition-colors">
                     <div className="flex-shrink-0">
                       {attachment.file_type?.includes('image') ? (
                         <span className="text-2xl">🖼️</span>
@@ -167,7 +167,7 @@ export default function RequestDetail() {
                       href={attachment.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1.5 text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-500/20 hover:bg-purple-200 dark:hover:bg-purple-500/30 rounded transition-colors"
+                      className="px-3 py-1.5 text-xs font-medium text-accent bg-accent/10 hover:bg-accent/20 rounded transition-colors"
                     >
                       View
                     </a>
@@ -184,14 +184,14 @@ export default function RequestDetail() {
             <button
               onClick={() => approveMutation.mutate()}
               disabled={approveMutation.isPending || rejectMutation.isPending}
-              className="btn bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
+              className="btn bg-success text-success-foreground hover:bg-success/90 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
             >
               {approveMutation.isPending ? 'Approving...' : '✓ Approve Request'}
             </button>
             <button
               onClick={() => setShowRejectModal(true)}
               disabled={approveMutation.isPending || rejectMutation.isPending}
-              className="btn bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
+              className="btn bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
             >
               ✕ Reject Request
             </button>
@@ -218,7 +218,7 @@ export default function RequestDetail() {
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="Enter rejection reason..."
-              className="w-full border-2 rounded-lg p-4 text-sm mb-6 bg-background focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+              className="w-full border-2 rounded-lg p-4 text-sm mb-6 bg-background focus:ring-2 focus:ring-destructive focus:border-destructive transition-all"
               rows={4}
             />
             <div className="flex gap-3">
@@ -234,7 +234,7 @@ export default function RequestDetail() {
               <button
                 onClick={() => rejectMutation.mutate(rejectReason)}
                 disabled={!rejectReason.trim() || rejectMutation.isPending}
-                className="btn bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 flex-1 shadow-md hover:shadow-lg transition-all"
+                className="btn bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 flex-1 shadow-md hover:shadow-lg transition-all"
               >
                 {rejectMutation.isPending ? 'Rejecting...' : 'Confirm Reject'}
               </button>
@@ -249,11 +249,11 @@ export default function RequestDetail() {
 function badgeForStatus(status: LeaveStatus) {
   switch (status) {
     case "pending":
-      return { label: "Pending", className: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400" };
+      return { label: "Pending", className: "bg-warning/10 text-warning" };
     case "approved":
-      return { label: "Approved", className: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400" };
+      return { label: "Approved", className: "bg-success/10 text-success" };
     case "rejected":
-      return { label: "Rejected", className: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400" };
+      return { label: "Rejected", className: "bg-destructive/10 text-destructive" };
     case "cancelled":
       return { label: "Cancelled", className: "bg-muted text-muted-foreground" };
     default:

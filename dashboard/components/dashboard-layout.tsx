@@ -20,8 +20,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-600 dark:text-slate-400">Loading...</p>
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -32,7 +32,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="flex h-screen bg-background">
       {/* Sidebar */}
       <Sidebar />
 

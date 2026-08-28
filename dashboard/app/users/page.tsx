@@ -44,8 +44,8 @@ export default memo(function UsersPage() {
     return (
       <main className="space-y-6">
         <div>
-          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+          <div className="h-9 bg-muted rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <TableSkeleton rows={5} />
       </main>
@@ -53,7 +53,7 @@ export default memo(function UsersPage() {
   }
 
   if (error) {
-    return <div className="text-red-600">Failed to load users.</div>;
+    return <div className="text-destructive">Failed to load users.</div>;
   }
 
   return (
@@ -127,11 +127,11 @@ export default memo(function UsersPage() {
 function roleColor(role: string) {
   switch (role) {
     case 'admin':
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-400';
+      return 'bg-accent/10 text-accent';
     case 'hr':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400';
+      return 'bg-primary/10 text-primary';
     case 'manager':
-      return 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400';
+      return 'bg-success/10 text-success';
     case 'worker':
       return 'bg-muted text-muted-foreground';
     default:

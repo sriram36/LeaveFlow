@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, FileText, AlertCircle } from "lucide-react";
+import { Calendar, FileText, CircleAlert as AlertCircle } from "lucide-react";
 
 interface LeaveFormProps {
   onSubmit?: (data: LeaveFormData) => Promise<void>;
@@ -65,13 +65,13 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Error Alert */}
           {error && (
-            <div className="flex gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+            <div className="flex gap-3 p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-red-600 dark:text-red-400">
+                <p className="font-medium text-destructive">
                   Error
                 </p>
-                <p className="text-sm text-red-600 dark:text-red-400">
+                <p className="text-sm text-destructive">
                   {error}
                 </p>
               </div>
@@ -80,15 +80,15 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
 
           {/* Success Alert */}
           {success && (
-            <div className="flex gap-3 p-4 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-lg">
-              <div className="w-5 h-5 text-teal-600 dark:text-teal-400 flex-shrink-0 mt-0.5">
+            <div className="flex gap-3 p-4 bg-success/10 border border-success/20 rounded-lg">
+              <div className="w-5 h-5 text-success flex-shrink-0 mt-0.5">
                 ✓
               </div>
               <div>
-                <p className="font-medium text-teal-600 dark:text-teal-400">
+                <p className="font-medium text-success">
                   Request submitted
                 </p>
-                <p className="text-sm text-teal-600 dark:text-teal-400">
+                <p className="text-sm text-success">
                   Your manager has been notified and will review your request
                   soon.
                 </p>
@@ -98,7 +98,7 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
 
           {/* Leave Type */}
           <div>
-            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Leave Type
             </label>
             <select
@@ -109,14 +109,14 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
                   leaveType: e.target.value as LeaveFormData["leaveType"],
                 })
               }
-              className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             >
               <option value="casual">Casual Leave</option>
               <option value="sick">Sick Leave</option>
               <option value="special">Special Leave</option>
               <option value="unpaid">Unpaid Leave</option>
             </select>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5">
+            <p className="text-xs text-muted-foreground mt-1.5">
               Select the type of leave you want to request
             </p>
           </div>
@@ -125,11 +125,11 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
           <div className="grid grid-cols-2 gap-4">
             {/* Start Date */}
             <div>
-              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Start Date
               </label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                 <input
                   type="date"
                   value={formData.startDate}
@@ -140,18 +140,18 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
                     })
                   }
                   required
-                  className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                 />
               </div>
             </div>
 
             {/* End Date */}
             <div>
-              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 End Date
               </label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                 <input
                   type="date"
                   value={formData.endDate}
@@ -162,7 +162,7 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
                     })
                   }
                   required
-                  className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                 />
               </div>
             </div>
@@ -170,11 +170,11 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
 
           {/* Reason */}
           <div>
-            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Reason (Optional)
             </label>
             <div className="relative">
-              <FileText className="absolute left-3 top-3 w-4 h-4 text-slate-400 pointer-events-none" />
+              <FileText className="absolute left-3 top-3 w-4 h-4 text-muted-foreground pointer-events-none" />
               <textarea
                 value={formData.reason}
                 onChange={(e) =>
@@ -185,10 +185,10 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
                 }
                 placeholder="Let your manager know why you need this leave..."
                 rows={4}
-                className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent resize-none"
               />
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5">
+            <p className="text-xs text-muted-foreground mt-1.5">
               Providing a reason increases approval chances
             </p>
           </div>
@@ -198,7 +198,7 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {isLoading ? "Submitting..." : "Submit Request"}
             </Button>
@@ -220,7 +220,7 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
           </div>
 
           {/* Info */}
-          <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
+          <div className="text-xs text-muted-foreground space-y-1">
             <p>
               💡 <strong>Tip:</strong> Submit requests at least 5 days in advance for better approval chances.
             </p>
