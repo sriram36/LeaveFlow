@@ -321,5 +321,3 @@ export default memo(function RequestsPage() {
     </div>
   );
 });
-
-export default memo(function RequestsPage() {
