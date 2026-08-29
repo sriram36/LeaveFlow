@@ -65,16 +65,16 @@ export function AnalyticsChart({ data }: AnalyticsChartProps) {
             <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorSick" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={isDark ? "#8b5cf6" : "#8b5cf6"} stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor={isDark ? "#6d28d9" : "#a855f7"} stopOpacity={0.7}/>
+                  <stop offset="5%" stopColor={isDark ? "#f87171" : "#ef4444"} stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor={isDark ? "#dc2626" : "#f87171"} stopOpacity={0.7}/>
                 </linearGradient>
                 <linearGradient id="colorCasual" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={isDark ? "#38bdf8" : "#0ea5e9"} stopOpacity={0.9}/>
                   <stop offset="95%" stopColor={isDark ? "#0284c7" : "#38bdf8"} stopOpacity={0.7}/>
                 </linearGradient>
                 <linearGradient id="colorSpecial" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={isDark ? "#f472b6" : "#ec4899"} stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor={isDark ? "#db2777" : "#f472b6"} stopOpacity={0.7}/>
+                  <stop offset="5%" stopColor={isDark ? "#fbbf24" : "#f59e0b"} stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor={isDark ? "#d97706" : "#fbbf24"} stopOpacity={0.7}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={colors.grid} opacity={0.5} />

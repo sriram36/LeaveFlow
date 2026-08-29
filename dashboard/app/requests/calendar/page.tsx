@@ -118,7 +118,7 @@ export default function CalendarPage() {
           </button>
           
           <div className="flex flex-col items-center">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               {format(currentMonth, 'MMMM yyyy')}
             </h2>
             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground mt-1">

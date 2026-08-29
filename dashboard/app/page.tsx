@@ -11,29 +11,7 @@ import { AnalyticsChart } from "@/components/analytics-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  MessageSquare,
-  Users,
-  Calendar,
-  CheckCircle,
-  ArrowRight,
-  BarChart3,
-  Clock,
-  Smartphone,
-  Zap,
-  Shield,
-  ChevronRight,
-  Play,
-  Sparkles,
-  Globe,
-  Lock,
-  BarChart,
-  UserCheck,
-  CalendarDays,
-  FileText,
-  Settings,
-  Bell,
-} from "lucide-react";
+import { MessageSquare, Users, Calendar, CircleCheck as CheckCircle, ArrowRight, ChartBar as BarChart3, Clock, Smartphone, Zap, Shield, ChevronRight, Play, Sparkles, Globe, Lock, ChartBar as BarChart, UserCheck, CalendarDays, FileText, Settings, Bell } from "lucide-react";
 
 const LandingPage = memo(function LandingPage() {
   return (
@@ -186,7 +164,8 @@ const LandingPage = memo(function LandingPage() {
             ].map((step, i) => (
               <div
                 key={i}
-                className={`flex flex-col ${i % 2 === 1 ? "md:flex-row-reverse" : "md:flex-row"} items-center gap-8`}
+                className={`flex flex-col ${i % 2 === 1 ? "md:flex-row-reverse" : "md:flex-row"} items-center gap-8 animate-fade-in`}
+                style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'both' }}
               >
                 <div className="flex-1">
                   <div className={`inline-flex items-center justify-center w-14 h-14 ${step.bg} rounded-xl mb-5`}>
@@ -223,9 +202,9 @@ const LandingPage = memo(function LandingPage() {
               { icon: Users, title: "Role-Based Access", desc: "Worker, Manager, HR, Admin. Granular permissions for every team member.", color: "text-destructive", bg: "bg-destructive/10" },
               { icon: Shield, title: "Enterprise Security", desc: "End-to-end encryption, audit logs, compliance ready. Your data is protected.", color: "text-primary", bg: "bg-primary/10" },
             ].map((feature, i) => (
-              <Link href="/signup" key={i} className="group">
-                <div className="bg-card rounded-xl border border-border/60 p-6 hover:border-primary/40 hover:shadow-md transition-all duration-300 h-full">
-                  <div className={`w-12 h-12 ${feature.bg} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+              <Link href="/signup" key={i} className="group animate-fade-in" style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'both' }}>
+                <div className="bg-card rounded-xl border border-border/60 p-6 hover:border-primary/40 hover:shadow-md hover:-translate-y-1 transition-all duration-300 h-full">
+                  <div className={`w-12 h-12 ${feature.bg} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
                     <feature.icon className={`w-6 h-6 ${feature.color}`} />
                   </div>
                   <h3 className="text-lg font-bold text-foreground mb-2">{feature.title}</h3>
@@ -255,7 +234,7 @@ const LandingPage = memo(function LandingPage() {
               { icon: Shield, title: "Compliance", desc: "SOC 2 Type II and GDPR compliant, trusted by thousands of businesses for secure operations.", color: "text-accent", bg: "bg-accent/10" },
               { icon: Globe, title: "Your Data, Your Control", desc: "Your data is only accessible to your team and is never used to train models.", color: "text-success", bg: "bg-success/10" },
             ].map((item, i) => (
-              <div key={i} className="bg-card rounded-xl border border-border/60 p-6 hover:shadow-md transition-shadow">
+              <div key={i} className="bg-card rounded-xl border border-border/60 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 animate-fade-in" style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'both' }}>
                 <div className={`w-11 h-11 ${item.bg} rounded-lg flex items-center justify-center mb-4`}>
                   <item.icon className={`w-5 h-5 ${item.color}`} />
                 </div>
@@ -530,10 +509,10 @@ function StatCard({
   bg: string;
 }) {
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <div className={`w-8 h-8 rounded-full ${bg} flex items-center justify-center`}>
+        <div className={`w-8 h-8 rounded-full ${bg} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}>
           <Icon className={`w-4 h-4 ${color}`} />
         </div>
       </CardHeader>
