@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, memo, useCallback, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Calendar } from "lucide-react";
 
 export default memo(function HolidaysPage() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -183,8 +184,12 @@ export default memo(function HolidaysPage() {
 
       {/* Holidays List */}
       {sortedHolidays.length === 0 ? (
-        <div className="card text-center py-8 text-muted-foreground">
-          No holidays configured for {year}.
+        <div className="card text-center py-16 px-6 border border-border shadow-sm bg-card rounded-xl">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <Calendar className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-1">No holidays for {year}</h3>
+          <p className="text-sm text-muted-foreground">Add holidays to exclude them from leave calculations.</p>
         </div>
       ) : (
         <div className="card overflow-hidden shadow-sm border border-border bg-card rounded-xl p-0">

@@ -5,6 +5,7 @@ import { api, LeaveRequest } from "../../lib/api";
 import { useAuth } from "../../lib/auth-context";
 import { TableSkeleton } from "../../components/skeleton";
 import Link from "next/link";
+import { Download, Inbox, Calendar as CalendarIcon, ArrowRight, Clock, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, ChangeEvent } from "react";
 
@@ -96,17 +97,21 @@ export default function HistoryPage() {
             disabled={rows.length === 0}
             className="btn text-sm bg-success text-success-foreground hover:bg-success/90 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
           >
-            📥 Export CSV
+            <Download className="w-4 h-4 mr-1.5" /> Export CSV
           </button>
           <Link href="/requests" className="btn btn-primary text-sm shadow-md hover:shadow-lg transition-all">
-            📋 View Pending
+            <Inbox className="w-4 h-4 mr-1.5" /> View Pending
           </Link>
         </div>
       </div>
 
       {!rows.length ? (
-        <div className="card text-center py-8 text-muted-foreground">
-          No historical requests yet.
+        <div className="card text-center py-16 px-6 border border-border shadow-sm bg-card rounded-xl">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-1">No history yet</h3>
+          <p className="text-sm text-muted-foreground">Past leave requests will appear here.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -122,7 +127,7 @@ export default function HistoryPage() {
 function HistoryCard({ req }: { req: LeaveRequest }) {
   const badge = badgeForStatus(req.status);
   return (
-    <div className="card hover:shadow-lg hover:border-primary/50 transition-all duration-200 p-4">
+    <div className="card hover:shadow-lg hover:border-primary/50 hover:-translate-y-0.5 transition-all duration-200 p-4">
       <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
         
         {/* Left: Avatar + Name + Meta */}
@@ -138,7 +143,7 @@ function HistoryCard({ req }: { req: LeaveRequest }) {
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
-              <span>📅 {req.start_date} → {req.end_date}</span>
+              <span className="inline-flex items-center gap-1"><CalendarIcon className="w-3 h-3" /> {req.start_date} → {req.end_date}</span>
               <span>•</span>
               <span className="capitalize">{req.leave_type}</span>
               <span>•</span>
@@ -153,8 +158,8 @@ function HistoryCard({ req }: { req: LeaveRequest }) {
         {/* Right: Request ID + View button */}
         <div className="flex items-center gap-3 flex-shrink-0 self-start sm:self-center">
           <span className="text-xs font-mono text-muted-foreground">#{req.id}</span>
-          <Link href={`/requests/${req.id}`} className="btn btn-ghost border text-sm hover:border-primary transition-all whitespace-nowrap">
-            View →
+          <Link href={`/requests/${req.id}`} className="btn btn-ghost border text-sm hover:border-primary transition-all whitespace-nowrap gap-1">
+            View <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>

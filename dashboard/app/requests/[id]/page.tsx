@@ -7,6 +7,7 @@ import { DashboardSkeleton } from "../../components/skeleton";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { FileText, Image as ImageIcon, File, Video, Paperclip } from "lucide-react";
 
 type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
@@ -65,7 +66,16 @@ export default function RequestDetail() {
   }
 
   if (error || !detail) {
-    return <div className="text-destructive">Failed to load request or not found.</div>;
+    return (
+      <main className="space-y-6 max-w-4xl">
+        <Link href="/requests" className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">
+          ← Back to Pending Requests
+        </Link>
+        <div className="card border-destructive/20 bg-destructive/5 p-8 text-center">
+          <p className="text-destructive font-medium">Failed to load request or not found.</p>
+        </div>
+      </main>
+    );
   }
 
   const badge = badgeForStatus(detail.status);
@@ -142,21 +152,21 @@ export default function RequestDetail() {
         {detail.attachments && detail.attachments.length > 0 && (
           <div className="px-6 pb-4">
             <div className="p-4 bg-accent/10 border border-accent/30 rounded-xl">
-              <span className="text-xs font-semibold uppercase tracking-wide text-accent mb-3 block">
-                📎 Attachments ({detail.attachments.length})
+              <span className="text-xs font-semibold uppercase tracking-wide text-accent mb-3 block flex items-center gap-1.5">
+                <Paperclip className="w-3.5 h-3.5" /> Attachments ({detail.attachments.length})
               </span>
               <div className="space-y-2">
                 {detail.attachments.map((attachment) => (
                   <div key={attachment.id} className="flex items-center gap-3 p-3 bg-background rounded border hover:border-accent/50 transition-colors">
                     <div className="flex-shrink-0">
                       {attachment.file_type?.includes('image') ? (
-                        <span className="text-2xl">🖼️</span>
+                        <ImageIcon className="w-6 h-6 text-muted-foreground" />
                       ) : attachment.file_type?.includes('pdf') ? (
-                        <span className="text-2xl">📄</span>
+                        <FileText className="w-6 h-6 text-muted-foreground" />
                       ) : attachment.file_type?.includes('video') ? (
-                        <span className="text-2xl">🎥</span>
+                        <Video className="w-6 h-6 text-muted-foreground" />
                       ) : (
-                        <span className="text-2xl">📎</span>
+                        <Paperclip className="w-6 h-6 text-muted-foreground" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -208,8 +218,8 @@ export default function RequestDetail() {
 
       {/* Reject Modal */}
       {showRejectModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl shadow-2xl p-8 w-full max-w-md border">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-card rounded-xl shadow-2xl p-8 w-full max-w-md border animate-fade-in" style={{ animation: 'fade-in 0.2s ease-out' }}>
             <h3 className="text-2xl font-bold mb-4">Reject Leave Request</h3>
             <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
               Please provide a reason for rejection. This will be sent to the employee via WhatsApp.
