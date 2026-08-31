@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { TableSkeleton } from "../components/skeleton";
 import { useEffect, useState, memo, useCallback, useMemo } from "react";
+import { CircleCheck as CheckCircle, UserCheck, UserX, CircleAlert as AlertCircle } from "lucide-react";
 
 export default memo(function PendingAccountsPage() {
   const { isAuthenticated, isLoading: authLoading, user: currentUser } = useAuth();
@@ -104,9 +105,12 @@ export default memo(function PendingAccountsPage() {
       )}
 
       {!pendingAccounts || pendingAccounts.length === 0 ? (
-        <div className="text-center py-12 bg-card rounded-lg border">
-          <div className="text-4xl mb-4">✅</div>
-          <p className="text-muted-foreground">No pending account approvals</p>
+        <div className="card text-center py-16 px-6 border border-border shadow-sm bg-card rounded-xl">
+          <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-success" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-1">All caught up</h3>
+          <p className="text-sm text-muted-foreground">No pending account approvals right now.</p>
         </div>
       ) : (
         <div className="grid gap-6">
@@ -153,8 +157,9 @@ export default memo(function PendingAccountsPage() {
                   <button
                     onClick={() => approveMutation.mutate(account.id)}
                     disabled={approveMutation.isPending || rejectMutation.isPending}
-                    className="px-4 py-2 bg-success text-success-foreground rounded-md hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-success text-success-foreground rounded-md hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
                   >
+                    <UserCheck className="w-4 h-4" />
                     {approveMutation.isPending ? 'Approving...' : 'Approve'}
                   </button>
                   <button
@@ -164,8 +169,9 @@ export default memo(function PendingAccountsPage() {
                       }
                     }}
                     disabled={approveMutation.isPending || rejectMutation.isPending}
-                    className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
                   >
+                    <UserX className="w-4 h-4" />
                     {rejectMutation.isPending ? 'Rejecting...' : 'Reject'}
                   </button>
                 </div>

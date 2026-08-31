@@ -87,7 +87,13 @@ export default memo(function HolidaysPage() {
   }
 
   if (error) {
-    return <div className="text-destructive">Failed to load holidays.</div>;
+    return (
+      <main className="space-y-6">
+        <div className="card border-destructive/20 bg-destructive/5 p-8 text-center rounded-xl">
+          <p className="text-destructive font-medium">Failed to load holidays. Please try again.</p>
+        </div>
+      </main>
+    );
   }
 
   const sortedHolidays = [...(holidays || [])].sort((a, b) => 

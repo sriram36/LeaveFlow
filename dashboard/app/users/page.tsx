@@ -8,6 +8,7 @@ import { useEffect, useState, memo, useMemo, useCallback } from "react";
 import { TableSkeleton } from "../components/skeleton";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Users } from "lucide-react";
 
 export default memo(function UsersPage() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -53,7 +54,13 @@ export default memo(function UsersPage() {
   }
 
   if (error) {
-    return <div className="text-destructive">Failed to load users.</div>;
+    return (
+      <main className="space-y-6">
+        <div className="card border-destructive/20 bg-destructive/5 p-8 text-center rounded-xl">
+          <p className="text-destructive font-medium">Failed to load users. Please try again.</p>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -81,7 +88,7 @@ export default memo(function UsersPage() {
       {!rows.length ? (
         <div className="card text-center py-20 px-6 border border-border shadow-sm bg-card rounded-xl">
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-muted-foreground text-sm font-medium">No Users</span>
+            <Users className="w-8 h-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-1">No users found</h3>
           <p className="text-sm text-muted-foreground">Try adjusting your filters or search criteria.</p>
