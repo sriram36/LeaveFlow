@@ -9,6 +9,7 @@ import { TableSkeleton } from "../components/skeleton";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default memo(function UsersPage() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -25,7 +26,7 @@ export default memo(function UsersPage() {
     }
   }, [authLoading, isAuthenticated, user, router]);
 
-  const { data: users, isLoading, error } = useQuery({
+  const { data: users, isLoading, error, refetch } = useQuery({
     queryKey: ['users', roleFilter],
     queryFn: () => api.getUsers(roleFilter || undefined),
     enabled: isAuthenticated && (user?.role === 'hr' || user?.role === 'admin'),
@@ -58,6 +59,7 @@ export default memo(function UsersPage() {
       <main className="space-y-6">
         <div className="card border-destructive/20 bg-destructive/5 p-8 text-center rounded-xl">
           <p className="text-destructive font-medium">Failed to load users. Please try again.</p>
+          <Button onClick={() => refetch()} className="mt-4" size="sm">Try Again</Button>
         </div>
       </main>
     );

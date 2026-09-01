@@ -9,6 +9,7 @@ import { useEffect, useState, memo, useCallback, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default memo(function HolidaysPage() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -28,7 +29,7 @@ export default memo(function HolidaysPage() {
 
   const canEdit = user?.role === 'hr' || user?.role === 'admin';
 
-  const { data: holidays, isLoading, error } = useQuery({
+  const { data: holidays, isLoading, error, refetch } = useQuery({
     queryKey: ['holidays', year],
     queryFn: () => api.getHolidays(year),
     enabled: Boolean(isAuthenticated),
@@ -91,6 +92,7 @@ export default memo(function HolidaysPage() {
       <main className="space-y-6">
         <div className="card border-destructive/20 bg-destructive/5 p-8 text-center rounded-xl">
           <p className="text-destructive font-medium">Failed to load holidays. Please try again.</p>
+          <Button onClick={() => refetch()} className="mt-4" size="sm">Try Again</Button>
         </div>
       </main>
     );

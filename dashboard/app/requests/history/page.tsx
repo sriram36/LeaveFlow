@@ -6,6 +6,7 @@ import { useAuth } from "../../lib/auth-context";
 import { TableSkeleton } from "../../components/skeleton";
 import Link from "next/link";
 import { Download, Inbox, Calendar as CalendarIcon, ArrowRight, Clock, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, ChangeEvent } from "react";
 
@@ -22,7 +23,7 @@ export default function HistoryPage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  const { data: requests, isLoading, error } = useQuery<LeaveRequest[]>({
+  const { data: requests, isLoading, error, refetch } = useQuery<LeaveRequest[]>({
     queryKey: ['leave-history', statusFilter],
     queryFn: () => api.getLeaveHistory(statusFilter || undefined),
     enabled: isAuthenticated,
@@ -72,6 +73,7 @@ export default function HistoryPage() {
       <main className="space-y-6">
         <div className="card border-destructive/20 bg-destructive/5 p-8 text-center rounded-xl">
           <p className="text-destructive font-medium">Failed to load history. Please try again.</p>
+          <Button onClick={() => refetch()} className="mt-4" size="sm">Try Again</Button>
         </div>
       </main>
     );

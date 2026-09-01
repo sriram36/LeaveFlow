@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, User, Clock, CircleCheck as CheckCircle, Circle as XCircle, Factory as History, Grid3x3 } from "lucide-react";
+import { Calendar, Clock, CircleCheck as CheckCircle, Circle as XCircle, Factory as History, Grid3x3 } from "lucide-react";
 
 type LeaveStatus = "pending" | "approved" | "rejected" | "cancelled";
 

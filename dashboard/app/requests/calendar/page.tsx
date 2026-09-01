@@ -35,13 +35,13 @@ export default function CalendarPage() {
 
   const year = currentMonth.getFullYear();
 
-  const { data: leaves, isLoading: leavesLoading } = useQuery({
+  const { data: leaves, isLoading: leavesLoading, error: leavesError, refetch: refetchLeaves } = useQuery({
     queryKey: ['leave-history-calendar', year],
     queryFn: () => api.getLeaveHistory('approved'),
     enabled: isAuthenticated,
   });
 
-  const { data: holidays, isLoading: holidaysLoading } = useQuery({
+  const { data: holidays, isLoading: holidaysLoading, error: holidaysError, refetch: refetchHolidays } = useQuery({
     queryKey: ['holidays', year],
     queryFn: () => api.getHolidays(year),
     enabled: isAuthenticated,
@@ -81,6 +81,19 @@ export default function CalendarPage() {
           <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <DashboardSkeleton />
+      </main>
+    );
+  }
+
+  if (leavesError || holidaysError) {
+    return (
+      <main className="space-y-6">
+        <div className="card border-destructive/20 bg-destructive/5 p-8 text-center rounded-xl">
+          <p className="text-destructive font-medium">Failed to load calendar data. Please try again.</p>
+          <button onClick={() => { refetchLeaves(); refetchHolidays(); }} className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all">
+            Try Again
+          </button>
+        </div>
       </main>
     );
   }
