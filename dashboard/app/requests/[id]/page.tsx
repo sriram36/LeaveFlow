@@ -7,7 +7,7 @@ import { DashboardSkeleton } from "../../components/skeleton";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { FileText, Image as ImageIcon, File, Video, Paperclip } from "lucide-react";
+import { FileText, Image as ImageIcon, File, Video, Paperclip, CircleCheck as CheckCircle, X, ArrowLeft } from "lucide-react";
 
 type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
@@ -69,7 +69,7 @@ export default function RequestDetail() {
     return (
       <main className="space-y-6 max-w-4xl">
         <Link href="/requests" className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">
-          ← Back to Pending Requests
+          <ArrowLeft className="w-4 h-4" /> Back to Pending Requests
         </Link>
         <div className="card border-destructive/20 bg-destructive/5 p-8 text-center">
           <p className="text-destructive font-medium">Failed to load request or not found.</p>
@@ -84,7 +84,7 @@ export default function RequestDetail() {
   return (
     <main className="space-y-6 max-w-4xl">
       <Link href="/requests" className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">
-        ← Back to Pending Requests
+        <ArrowLeft className="w-4 h-4" /> Back to Pending Requests
       </Link>
 
       <div className="card shadow-xl border overflow-hidden">
@@ -196,14 +196,14 @@ export default function RequestDetail() {
               disabled={approveMutation.isPending || rejectMutation.isPending}
               className="btn bg-success text-success-foreground hover:bg-success/90 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
             >
-              {approveMutation.isPending ? 'Approving...' : '✓ Approve Request'}
+              {approveMutation.isPending ? 'Approving...' : (<><CheckCircle className="w-4 h-4 inline mr-1" /> Approve Request</>)}
             </button>
             <button
               onClick={() => setShowRejectModal(true)}
               disabled={approveMutation.isPending || rejectMutation.isPending}
               className="btn bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
             >
-              ✕ Reject Request
+              <X className="w-4 h-4 inline mr-1" /> Reject Request
             </button>
           </div>
         )}

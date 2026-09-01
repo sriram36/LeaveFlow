@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, FileText, CircleAlert as AlertCircle } from "lucide-react";
+import { Calendar, FileText, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Lightbulb, Smartphone } from "lucide-react";
 
 interface LeaveFormProps {
   onSubmit?: (data: LeaveFormData) => Promise<void>;
@@ -81,9 +81,7 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
           {/* Success Alert */}
           {success && (
             <div className="flex gap-3 p-4 bg-success/10 border border-success/20 rounded-lg">
-              <div className="w-5 h-5 text-success flex-shrink-0 mt-0.5">
-                ✓
-              </div>
+              <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium text-success">
                   Request submitted
@@ -221,11 +219,11 @@ export function LeaveRequestForm({ onSubmit }: LeaveFormProps) {
 
           {/* Info */}
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>
-              💡 <strong>Tip:</strong> Submit requests at least 5 days in advance for better approval chances.
+            <p className="flex items-center gap-1.5">
+              <Lightbulb className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" /> <strong>Tip:</strong> Submit requests at least 5 days in advance for better approval chances.
             </p>
-            <p>
-              📱 <strong>Tip:</strong> You&apos;ll receive WhatsApp notifications about your request status.
+            <p className="flex items-center gap-1.5">
+              <Smartphone className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" /> <strong>Tip:</strong> You&apos;ll receive WhatsApp notifications about your request status.
             </p>
           </div>
         </form>
