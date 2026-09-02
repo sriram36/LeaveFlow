@@ -7,7 +7,7 @@ import { DashboardSkeleton } from "../../components/skeleton";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, User as UserIcon, Mail, Phone, Shield, Briefcase, Calendar, CheckCircle, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Shield, Briefcase, Calendar, CircleCheck as CheckCircle, CircleX as XCircle, Clock } from "lucide-react";
 
 export default function UserDetailPage() {
   const params = useParams();

@@ -5,7 +5,7 @@ import { api, Holiday } from "../lib/api";
 import { useAuth } from "../lib/auth-context";
 import { TableSkeleton } from "../components/skeleton";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, memo, useCallback, useMemo } from "react";
+import { useEffect, useState, memo, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar } from "lucide-react";
@@ -41,6 +41,8 @@ export default memo(function HolidaysPage() {
   const holidaysList = useMemo(() => holidays ?? [], [holidays]);
   const holidayCount = useMemo(() => holidaysList.length, [holidaysList]);
 
+  const [mutationError, setMutationError] = useState('');
+
   const addMutation = useMutation({
     mutationFn: () => api.createHoliday(newDate, newName, newDescription),
     onSuccess: () => {
@@ -49,6 +51,10 @@ export default memo(function HolidaysPage() {
       setNewDate('');
       setNewName('');
       setNewDescription('');
+      setMutationError('');
+    },
+    onError: (error: Error) => {
+      setMutationError(error.message || 'Failed to add holiday');
     },
   });
 
@@ -56,24 +62,12 @@ export default memo(function HolidaysPage() {
     mutationFn: (id: number) => api.deleteHoliday(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holidays', year] });
+      setMutationError('');
+    },
+    onError: (error: Error) => {
+      setMutationError(error.message || 'Failed to delete holiday');
     },
   });
-
-  const handleYearChange = useCallback((newYear: number) => {
-    setYear(newYear);
-  }, []);
-
-  const handleAddHoliday = useCallback(() => {
-    if (newDate && newName) {
-      addMutation.mutate();
-    }
-  }, [newDate, newName, addMutation]);
-
-  const handleDeleteHoliday = useCallback((id: number) => {
-    if (confirm('Are you sure you want to delete this holiday?')) {
-      deleteMutation.mutate(id);
-    }
-  }, [deleteMutation]);
 
   if (authLoading || isLoading) {
     return (
@@ -129,6 +123,12 @@ export default memo(function HolidaysPage() {
           )}
         </div>
       </div>
+
+      {mutationError && (
+        <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
+          <p className="text-sm text-destructive font-medium">{mutationError}</p>
+        </div>
+      )}
 
       {/* Add Holiday Form */}
       {showAddForm && (

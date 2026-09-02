@@ -33,12 +33,18 @@ export default function RequestDetail() {
     enabled: isAuthenticated && !!id,
   });
 
+  const [actionError, setActionError] = useState('');
+
   const approveMutation = useMutation({
     mutationFn: () => api.approveLeave(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leave-request', id] });
       queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
       queryClient.invalidateQueries({ queryKey: ['leave-history'] });
+      setActionError('');
+    },
+    onError: (error: Error) => {
+      setActionError(error.message || 'Failed to approve request');
     },
   });
 
@@ -50,6 +56,10 @@ export default function RequestDetail() {
       queryClient.invalidateQueries({ queryKey: ['leave-request', id] });
       queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
       queryClient.invalidateQueries({ queryKey: ['leave-history'] });
+      setActionError('');
+    },
+    onError: (error: Error) => {
+      setActionError(error.message || 'Failed to reject request');
     },
   });
 
@@ -215,6 +225,13 @@ export default function RequestDetail() {
         )}
       </div>
 
+
+      {/* Action Error */}
+      {actionError && (
+        <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
+          <p className="text-sm text-destructive font-medium">{actionError}</p>
+        </div>
+      )}
 
       {/* Reject Modal */}
       {showRejectModal && (

@@ -11,7 +11,7 @@ import { AnalyticsChart } from "@/components/analytics-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Users, Calendar, CircleCheck as CheckCircle, ArrowRight, ChartBar as BarChart3, Clock, Smartphone, Zap, Shield, ChevronRight, Play, Sparkles, Globe, Lock, ChartBar as BarChart, UserCheck, CalendarDays, FileText, Settings, Bell } from "lucide-react";
+import { MessageSquare, Users, Calendar, CircleCheck as CheckCircle, ArrowRight, ChartBar as BarChart3, Clock, Zap, Shield, ChevronRight, Play, Sparkles, Globe, Lock, UserCheck, CalendarDays, FileText, Settings } from "lucide-react";
 
 const LandingPage = memo(function LandingPage() {
   return (
@@ -438,7 +438,7 @@ const DashboardHome = memo(function DashboardHome() {
               className="w-full justify-start"
               variant="outline"
             >
-              <BarChart className="w-4 h-4 mr-2 text-primary" />
+              <BarChart3 className="w-4 h-4 mr-2 text-primary" />
               {isGenerating ? "Generating..." : "Generate Report"}
             </Button>
             <Link href="/users" className="block group">

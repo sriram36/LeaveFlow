@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth-context";
 import { Button } from "@/components/ui/button";
-import { Mail, Lock, ArrowRight, CalendarDays, CircleCheck as CheckCircle, Zap, MessageSquare, ChartBar as BarChart3 } from "lucide-react";
+import { Mail, Lock, ArrowRight, CalendarDays, Zap, MessageSquare, ChartBar as BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SigninPage() {

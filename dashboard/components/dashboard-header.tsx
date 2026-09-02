@@ -4,11 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/app/lib/auth-context";
-import { api } from "@/app/lib/api";
+import { api, LeaveRequest } from "@/app/lib/api";
 import {
   Bell,
-  Search,
-  Settings,
   LogOut,
 } from "lucide-react";
 import {
@@ -69,7 +67,7 @@ export function DashboardHeader() {
                     <h2 className="text-lg font-semibold mb-4">Pending Requests</h2>
                     {pendingRequests && pendingRequests.length > 0 ? (
                       <div className="space-y-2">
-                        {pendingRequests.slice(0, 5).map((request: any) => (
+                        {pendingRequests.slice(0, 5).map((request: LeaveRequest) => (
                           <div
                             key={request.id}
                             className="p-3 bg-muted rounded-lg border border-border"
@@ -115,7 +113,6 @@ export function DashboardHeader() {
                   </p>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="gap-2 cursor-pointer text-destructive"
