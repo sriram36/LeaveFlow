@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/app/lib/auth-context";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, CalendarDays, Users, Settings, LogOut, Sun, Moon, Laptop, ChartBar as BarChart3, UserPlus, ChevronLeft, ChevronRight, Inbox, Calendar } from "lucide-react";
+import { LayoutDashboard, CalendarDays, Users, Settings, LogOut, Sun, Moon, Laptop, ChartBar as BarChart3, UserPlus, Inbox, Calendar } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import {
   DropdownMenu,

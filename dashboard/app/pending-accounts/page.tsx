@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { TableSkeleton } from "../components/skeleton";
 import { useEffect, useState, memo, useCallback, useMemo } from "react";
-import { CircleCheck as CheckCircle, UserCheck, UserX, CircleAlert as AlertCircle } from "lucide-react";
+import { CircleCheck as CheckCircle, UserCheck, UserX } from "lucide-react";
 
 export default memo(function PendingAccountsPage() {
   const { isAuthenticated, isLoading: authLoading, user: currentUser } = useAuth();

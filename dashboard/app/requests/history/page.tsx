@@ -5,7 +5,7 @@ import { api, LeaveRequest } from "../../lib/api";
 import { useAuth } from "../../lib/auth-context";
 import { TableSkeleton } from "../../components/skeleton";
 import Link from "next/link";
-import { Download, Inbox, Calendar as CalendarIcon, ArrowRight, Clock, FileText } from "lucide-react";
+import { Download, Inbox, Calendar as CalendarIcon, ArrowRight, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, ChangeEvent } from "react";
