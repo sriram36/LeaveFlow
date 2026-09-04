@@ -122,7 +122,7 @@ export default memo(function SignupPage() {
 
       {/* Right — Form */}
       <div className="flex-1 flex items-center justify-center px-4 py-12 overflow-y-auto">
-        <div className="w-full max-w-md space-y-6 my-auto">
+        <div className="w-full max-w-md space-y-6 my-auto animate-slide-up">
           {/* Mobile Logo */}
           <Link href="/" className="flex items-center gap-2.5 lg:hidden">
             <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">

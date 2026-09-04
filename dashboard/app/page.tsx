@@ -246,6 +246,67 @@ const LandingPage = memo(function LandingPage() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Loved by teams everywhere
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              See what HR managers and team leads say about LeaveFlow.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                quote: "We cut our leave approval time from 2 days to under 5 minutes. The WhatsApp integration is a game changer.",
+                name: "Sarah Chen",
+                role: "HR Director, TechCorp",
+                initials: "SC",
+              },
+              {
+                quote: "My team loves that they can request leave from their phone without logging into anything. It just works.",
+                name: "Marcus Johnson",
+                role: "Engineering Manager, FlowOps",
+                initials: "MJ",
+              },
+              {
+                quote: "The analytics dashboard gives me a clear picture of leave patterns across the whole company. Invaluable for planning.",
+                name: "Priya Patel",
+                role: "VP People, GrowthLab",
+                initials: "PP",
+              },
+            ].map((t, i) => (
+              <div
+                key={i}
+                className="bg-card rounded-xl border border-border/60 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 animate-fade-in"
+                style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'both' }}
+              >
+                <div className="flex items-center gap-1 mb-4 text-warning">
+                  {Array.from({ length: 5 }).map((_, s) => (
+                    <svg key={s} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                      <path d="M10 1l2.928 5.934 6.55.95-4.739 4.619 1.118 6.523L10 16.987l-5.857 3.039 1.118-6.523L.522 7.884l6.55-.95z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-6">&ldquo;{t.quote}&rdquo;</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm">
+                    {t.initials}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent -z-10" />
@@ -279,6 +340,50 @@ const LandingPage = memo(function LandingPage() {
           </p>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-card/50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+            <div className="col-span-2">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                  <CalendarDays className="w-4 h-4 text-primary-foreground" />
+                </div>
+                <span className="text-lg font-bold tracking-tight text-foreground">LeaveFlow</span>
+              </div>
+              <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
+                WhatsApp-native leave automation with AI-powered processing and real-time analytics for modern teams.
+              </p>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-foreground mb-3">Product</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="/signup" className="hover:text-primary transition-colors">Get Started</Link></li>
+                <li><Link href="/requests" className="hover:text-primary transition-colors">Demo</Link></li>
+                <li><Link href="/requests/calendar" className="hover:text-primary transition-colors">Calendar</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-foreground mb-3">Company</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><span className="cursor-default">About</span></li>
+                <li><span className="cursor-default">Privacy</span></li>
+                <li><span className="cursor-default">Contact</span></li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-8 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-muted-foreground">© 2026 LeaveFlow. All rights reserved.</p>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                All systems operational
+              </span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 });

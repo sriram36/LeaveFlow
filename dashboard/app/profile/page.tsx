@@ -139,7 +139,7 @@ export default memo(function ProfilePage() {
       )}
 
       {/* Profile Card */}
-      <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+      <div className="bg-card rounded-xl border shadow-sm overflow-hidden animate-scale-in">
         {/* Profile Header */}
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 sm:p-6 border-b">
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">

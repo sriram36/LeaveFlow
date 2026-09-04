@@ -96,7 +96,7 @@ export default memo(function UsersPage() {
           <p className="text-sm text-muted-foreground">Try adjusting your filters or search criteria.</p>
         </div>
       ) : (
-        <div className="card overflow-hidden shadow-sm border border-border bg-card rounded-xl p-0">
+        <div className="card overflow-hidden shadow-sm border border-border bg-card rounded-xl p-0 animate-scale-in">
           <Table>
             <TableHeader className="bg-muted/50">
               <TableRow className="hover:bg-transparent">

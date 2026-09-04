@@ -85,7 +85,7 @@ export default function SigninPage() {
 
       {/* Right — Form */}
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md space-y-8">
+        <div className="w-full max-w-md space-y-8 animate-slide-up">
           {/* Mobile Logo */}
           <Link href="/" className="flex items-center gap-2.5 lg:hidden">
             <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
@@ -136,6 +136,13 @@ export default function SigninPage() {
                 className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
                 placeholder="••••••••"
               />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Forgot your password?</span>
+              <Link href="/signin" className="text-sm font-semibold text-primary hover:underline">
+                Reset it
+              </Link>
             </div>
 
             <Button

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/app/lib/auth-context";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, CalendarDays, Users, Settings, LogOut, Sun, Moon, Laptop, ChartBar as BarChart3, UserPlus, Inbox, Calendar } from "lucide-react";
+import { LayoutDashboard, CalendarDays, Users, Settings, LogOut, Sun, Moon, Laptop, ChartBar as BarChart3, UserPlus, Inbox, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import {
   DropdownMenu,
@@ -81,7 +81,7 @@ export function Sidebar({ className }: { className?: string }) {
         className
       )}
     >
-      <div className="p-4 overflow-hidden">
+      <div className="p-4 overflow-hidden relative">
         <Link
           href="/"
           className={cn(
@@ -98,6 +98,14 @@ export function Sidebar({ className }: { className?: string }) {
             </span>
           )}
         </Link>
+
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="hidden md:flex absolute top-7 -right-3 w-6 h-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all shadow-sm z-50"
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+        </button>
 
         {!isCollapsed && (
           <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">

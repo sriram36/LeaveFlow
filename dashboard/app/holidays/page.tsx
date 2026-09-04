@@ -132,7 +132,7 @@ export default memo(function HolidaysPage() {
 
       {/* Add Holiday Form */}
       {showAddForm && (
-        <div className="card p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 shadow-lg mb-6">
+        <div className="card p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 shadow-lg mb-6 animate-slide-up">
           <h3 className="text-lg font-bold mb-4">Add New Holiday</h3>
           <div className="grid gap-4">
             <div className="grid sm:grid-cols-2 gap-4">

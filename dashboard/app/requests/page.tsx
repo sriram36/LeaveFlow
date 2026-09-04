@@ -208,10 +208,11 @@ export default memo(function RequestsPage() {
       ) : view === "list" ? (
         /* List View */
         <div className="space-y-3">
-          {rows.map((request: LeaveRequest) => (
+          {rows.map((request: LeaveRequest, i: number) => (
             <Card
               key={request.id}
-              className="shadow-sm hover:shadow-md transition-shadow cursor-pointer border-border bg-card group"
+              className="shadow-sm hover:shadow-md transition-shadow cursor-pointer border-border bg-card group animate-slide-up"
+              style={{ animationDelay: `${i * 50}ms`, animationFillMode: 'both' }}
               onClick={() => router.push(`/requests/${request.id}`)}
             >
               <CardContent className="pt-6">
@@ -266,10 +267,11 @@ export default memo(function RequestsPage() {
       ) : (
         /* Grid View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {rows.map((request: LeaveRequest) => (
+          {rows.map((request: LeaveRequest, i: number) => (
             <Card
               key={request.id}
-              className="shadow-sm hover:shadow-md transition-shadow cursor-pointer border-border bg-card group"
+              className="shadow-sm hover:shadow-md transition-shadow cursor-pointer border-border bg-card group animate-scale-in"
+              style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
               onClick={() => router.push(`/requests/${request.id}`)}
             >
               <CardHeader className="pb-3">

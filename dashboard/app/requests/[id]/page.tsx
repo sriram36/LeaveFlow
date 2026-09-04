@@ -97,7 +97,7 @@ export default function RequestDetail() {
         <ArrowLeft className="w-4 h-4" /> Back to Pending Requests
       </Link>
 
-      <div className="card shadow-xl border overflow-hidden">
+      <div className="card shadow-xl border overflow-hidden animate-scale-in">
         {/* Header */}
         <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border-b">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

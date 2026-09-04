@@ -123,8 +123,8 @@ export default function HistoryPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {rows.map((req) => (
-            <HistoryCard key={req.id} req={req} />
+          {rows.map((req, i) => (
+            <HistoryCard key={req.id} req={req} index={i} />
           ))}
         </div>
       )}
@@ -132,10 +132,10 @@ export default function HistoryPage() {
   );
 }
 
-function HistoryCard({ req }: { req: LeaveRequest }) {
+function HistoryCard({ req, index }: { req: LeaveRequest; index: number }) {
   const badge = badgeForStatus(req.status);
   return (
-    <div className="card hover:shadow-lg hover:border-primary/50 hover:-translate-y-0.5 transition-all duration-200 p-4">
+    <div className="card hover:shadow-lg hover:border-primary/50 hover:-translate-y-0.5 transition-all duration-200 p-4 animate-slide-up" style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}>
       <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
         
         {/* Left: Avatar + Name + Meta */}
