@@ -114,10 +114,11 @@ export default memo(function PendingAccountsPage() {
         </div>
       ) : (
         <div className="grid gap-6">
-          {pendingAccounts.map((account) => (
+          {pendingAccounts.map((account, i) => (
             <div
               key={account.id}
-              className="bg-card border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+              className="bg-card border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow animate-slide-up"
+              style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">

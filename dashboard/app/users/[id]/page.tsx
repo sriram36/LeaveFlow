@@ -121,7 +121,7 @@ export default function UserDetailPage() {
       </Link>
 
       {/* Profile Card */}
-      <div className="card border-border/50 shadow-glass bg-card/50 backdrop-blur-md rounded-3xl overflow-hidden p-0 relative">
+      <div className="card border-border/50 shadow-glass bg-card/50 backdrop-blur-md rounded-3xl overflow-hidden p-0 relative animate-scale-in">
         {/* Decorative Header Banner */}
         <div className="h-32 bg-gradient-to-r from-primary/80 to-accent/80 relative">
           <div className="absolute inset-0 bg-white/10 dark:bg-black/10 backdrop-blur-[2px]"></div>

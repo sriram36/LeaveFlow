@@ -8,6 +8,7 @@ import { api, LeaveRequest } from "@/app/lib/api";
 import {
   Bell,
   LogOut,
+  User,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -114,6 +115,13 @@ export function DashboardHeader() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="gap-2 cursor-pointer"
+                onClick={() => window.location.href = '/profile'}
+              >
+                <User className="w-4 h-4" />
+                <span>My Profile</span>
+              </DropdownMenuItem>
               <DropdownMenuItem
                 className="gap-2 cursor-pointer text-destructive"
                 onClick={logout}
