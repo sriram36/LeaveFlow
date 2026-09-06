@@ -18,8 +18,15 @@ class AIService:
     """Service for natural language processing with OpenRouter (free models)."""
     
     def __init__(self):
-        self.model = "meta-llama/llama-2-70b-chat:free"
-        if settings.openrouter_api_key:
+        self.model = settings.azure_foundry_model or "meta-llama/llama-2-70b-chat:free"
+        provider = settings.ai_provider.lower().strip()
+        if provider in {"azure", "foundry", "azure_foundry"} and settings.azure_foundry_api_key and settings.azure_foundry_endpoint:
+            self.client = OpenAI(
+                base_url=settings.azure_foundry_endpoint.rstrip("/") + "/openai/v1/",
+                api_key=settings.azure_foundry_api_key,
+            )
+            logger.info(f"[AI] [OK] Initialized with Azure Foundry ({self.model})")
+        elif settings.openrouter_api_key:
             self.client = OpenAI(
                 base_url="https://openrouter.ai/api/v1",
                 api_key=settings.openrouter_api_key
@@ -27,8 +34,8 @@ class AIService:
             logger.info(f"[AI] [OK] Initialized with OpenRouter ({self.model})")
         else:
             self.client = None
-            logger.warning("[AI] [WARN] No OpenRouter API key - using fallback mode")
-            logger.info("[AI] Get FREE key at: https://openrouter.ai/keys")
+            logger.warning("[AI] [WARN] No AI API key - using fallback mode")
+            logger.info("[AI] Configure OPENROUTER_API_KEY or Azure Foundry settings")
 
     async def _create_chat_completion(self, **kwargs):
         """Call chat completions and support both sync and async mock clients."""

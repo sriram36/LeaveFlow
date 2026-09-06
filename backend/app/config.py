@@ -82,8 +82,12 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000,https://leave-flow-cyan.vercel.app"
     escalation_hours: int = 24
     
-    # AI Service (OpenRouter - Free models available)
+    # AI Service
     openrouter_api_key: str = ""
+    ai_provider: str = "openrouter"
+    azure_foundry_api_key: str = ""
+    azure_foundry_endpoint: str = ""
+    azure_foundry_model: str = ""
 
 
 @lru_cache()
