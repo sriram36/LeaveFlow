@@ -216,7 +216,7 @@ async def approve_account_request(
         
         # Notify requester about approval
         requester_result = await db.execute(
-            select(User).where(User.id == request_obj.requester_id)
+            select(User).where(User.id == request_obj.requested_by)
         )
         requester = requester_result.scalar_one_or_none()
         
@@ -244,7 +244,7 @@ async def approve_account_request(
         
         # Notify requester about rejection
         requester_result = await db.execute(
-            select(User).where(User.id == request_obj.requester_id)
+            select(User).where(User.id == request_obj.requested_by)
         )
         requester = requester_result.scalar_one_or_none()
         
