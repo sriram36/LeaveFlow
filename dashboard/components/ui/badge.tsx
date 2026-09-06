@@ -3,26 +3,26 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
+  "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100",
+          "border-transparent bg-muted text-muted-foreground",
         pending:
-          "border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-800 dark:bg-amber-900 dark:text-amber-200",
+          "border-warning/30 bg-warning/10 text-warning",
         approved:
-          "border-green-300 bg-green-100 text-green-800 dark:border-green-800 dark:bg-green-900 dark:text-green-200",
+          "border-success/30 bg-success/10 text-success",
         rejected:
-          "border-red-300 bg-red-100 text-red-800 dark:border-red-800 dark:bg-red-900 dark:text-red-200",
+          "border-destructive/30 bg-destructive/10 text-destructive",
         cancelled:
-          "border-slate-300 bg-slate-200 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400",
+          "border-border bg-muted text-muted-foreground",
         outline:
-          "text-slate-900 dark:text-slate-100",
+          "border-border text-foreground",
         destructive:
-          "border-red-500 bg-red-500 text-white dark:border-red-600 dark:bg-red-600",
+          "border-destructive bg-destructive text-destructive-foreground",
         secondary:
-          "border-slate-300 bg-slate-200 text-slate-700 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200",
+          "border-transparent bg-secondary text-secondary-foreground",
       },
     },
     defaultVariants: {

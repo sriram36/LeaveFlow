@@ -5,9 +5,11 @@ import { api, Holiday } from "../lib/api";
 import { useAuth } from "../lib/auth-context";
 import { TableSkeleton } from "../components/skeleton";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, memo, useCallback, useMemo } from "react";
+import { useEffect, useState, memo, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default memo(function HolidaysPage() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -27,7 +29,7 @@ export default memo(function HolidaysPage() {
 
   const canEdit = user?.role === 'hr' || user?.role === 'admin';
 
-  const { data: holidays, isLoading, error } = useQuery({
+  const { data: holidays, isLoading, error, refetch } = useQuery({
     queryKey: ['holidays', year],
     queryFn: () => api.getHolidays(year),
     enabled: Boolean(isAuthenticated),
@@ -39,6 +41,8 @@ export default memo(function HolidaysPage() {
   const holidaysList = useMemo(() => holidays ?? [], [holidays]);
   const holidayCount = useMemo(() => holidaysList.length, [holidaysList]);
 
+  const [mutationError, setMutationError] = useState('');
+
   const addMutation = useMutation({
     mutationFn: () => api.createHoliday(newDate, newName, newDescription),
     onSuccess: () => {
@@ -47,6 +51,10 @@ export default memo(function HolidaysPage() {
       setNewDate('');
       setNewName('');
       setNewDescription('');
+      setMutationError('');
+    },
+    onError: (error: Error) => {
+      setMutationError(error.message || 'Failed to add holiday');
     },
   });
 
@@ -54,31 +62,19 @@ export default memo(function HolidaysPage() {
     mutationFn: (id: number) => api.deleteHoliday(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holidays', year] });
+      setMutationError('');
+    },
+    onError: (error: Error) => {
+      setMutationError(error.message || 'Failed to delete holiday');
     },
   });
-
-  const handleYearChange = useCallback((newYear: number) => {
-    setYear(newYear);
-  }, []);
-
-  const handleAddHoliday = useCallback(() => {
-    if (newDate && newName) {
-      addMutation.mutate();
-    }
-  }, [newDate, newName, addMutation]);
-
-  const handleDeleteHoliday = useCallback((id: number) => {
-    if (confirm('Are you sure you want to delete this holiday?')) {
-      deleteMutation.mutate(id);
-    }
-  }, [deleteMutation]);
 
   if (authLoading || isLoading) {
     return (
       <main className="space-y-6">
         <div>
-          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+          <div className="h-9 bg-muted rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <TableSkeleton rows={5} />
       </main>
@@ -86,7 +82,14 @@ export default memo(function HolidaysPage() {
   }
 
   if (error) {
-    return <div className="text-red-600">Failed to load holidays.</div>;
+    return (
+      <main className="space-y-6">
+        <div className="card border-destructive/20 bg-destructive/5 p-8 text-center rounded-xl">
+          <p className="text-destructive font-medium">Failed to load holidays. Please try again.</p>
+          <Button onClick={() => refetch()} className="mt-4" size="sm">Try Again</Button>
+        </div>
+      </main>
+    );
   }
 
   const sortedHolidays = [...(holidays || [])].sort((a, b) => 
@@ -104,7 +107,7 @@ export default memo(function HolidaysPage() {
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="text-sm border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary focus:border-primary"
+            className="text-sm border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-ring focus:border-ring"
           >
             {[year - 1, year, year + 1].map(y => (
               <option key={y} value={y}>{y}</option>
@@ -121,9 +124,15 @@ export default memo(function HolidaysPage() {
         </div>
       </div>
 
+      {mutationError && (
+        <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
+          <p className="text-sm text-destructive font-medium">{mutationError}</p>
+        </div>
+      )}
+
       {/* Add Holiday Form */}
       {showAddForm && (
-        <div className="card p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 shadow-lg mb-6">
+        <div className="card p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 shadow-lg mb-6 animate-slide-up">
           <h3 className="text-lg font-bold mb-4">Add New Holiday</h3>
           <div className="grid gap-4">
             <div className="grid sm:grid-cols-2 gap-4">
@@ -133,7 +142,7 @@ export default memo(function HolidaysPage() {
                   type="date"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
-                  className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                  className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-ring focus:border-ring transition-all"
                 />
               </div>
               <div>
@@ -143,7 +152,7 @@ export default memo(function HolidaysPage() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g., Independence Day"
-                  className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                  className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-ring focus:border-ring transition-all"
                 />
               </div>
             </div>
@@ -154,7 +163,7 @@ export default memo(function HolidaysPage() {
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
                 placeholder="e.g., National holiday celebrating independence"
-                className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                className="w-full border rounded-lg px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-ring focus:border-ring transition-all"
               />
             </div>
             <div className="flex gap-3 justify-end mt-2">
@@ -183,8 +192,12 @@ export default memo(function HolidaysPage() {
 
       {/* Holidays List */}
       {sortedHolidays.length === 0 ? (
-        <div className="card text-center py-8 text-muted-foreground">
-          No holidays configured for {year}.
+        <div className="card text-center py-16 px-6 border border-border shadow-sm bg-card rounded-xl">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <Calendar className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-1">No holidays for {year}</h3>
+          <p className="text-sm text-muted-foreground">Add holidays to exclude them from leave calculations.</p>
         </div>
       ) : (
         <div className="card overflow-hidden shadow-sm border border-border bg-card rounded-xl p-0">

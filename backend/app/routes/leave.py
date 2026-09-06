@@ -15,25 +15,6 @@ from app.auth import get_current_user_required, require_manager, require_admin, 
 from app.models import User, LeaveStatus, LeaveRequest, LeaveBalance, LeaveBalanceHistory, LeaveType
 from app.schemas import (
     LeaveRequestResponse, LeaveRequestCreate, ApproveRequest, RejectRequest,
-    LeaveBalanceResponse, TodayLeaveResponse, UserResponse, LeaveBalanceHistoryResponse
-)
-from app.logging_config import logger
-"""
-Leave API Routes
-"""
-
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, or_
-from sqlalchemy.orm import selectinload
-from typing import List, Optional
-from datetime import date, datetime
-
-from app.database import get_db
-from app.auth import get_current_user_required, require_manager, require_admin, require_user_access, require_role_or_self, require_leave_request_access
-from app.models import User, LeaveStatus, LeaveRequest, LeaveBalance, LeaveBalanceHistory, LeaveType
-from app.schemas import (
-    LeaveRequestResponse, LeaveRequestCreate, ApproveRequest, RejectRequest,
     LeaveBalanceResponse, TodayLeaveResponse, UserResponse, LeaveBalanceHistoryResponse,
     DashboardStatsResponse
 )
@@ -305,6 +286,70 @@ async def get_user_balance(
     )
 
 
+@router.get("/requests/search", response_model=List[LeaveRequestResponse])
+async def advanced_search(
+    user_name: Optional[str] = Query(None, description="Search by employee name"),
+    status: Optional[LeaveStatus] = Query(None, description="Filter by status"),
+    leave_type: Optional[LeaveType] = Query(None, description="Filter by leave type"),
+    date_from: Optional[date] = Query(None, description="Leave start date from"),
+    date_to: Optional[date] = Query(None, description="Leave start date to"),
+    user_id: Optional[int] = Query(None, description="Filter by user ID"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, le=500),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user_required)
+):
+    """
+    Advanced search for leave requests with multiple filters.
+    Managers see their team, HR/Admin see all.
+    """
+    query = select(LeaveRequest).options(
+        selectinload(LeaveRequest.user),
+        selectinload(LeaveRequest.approver),
+        selectinload(LeaveRequest.attachments)
+    )
+    
+    # Role-based filtering
+    from app.models import UserRole
+    if user.role == UserRole.worker:
+        query = query.where(LeaveRequest.user_id == user.id)
+    elif user.role == UserRole.manager:
+        # Managers see their team's requests
+        query = query.join(User).where(
+            or_(
+                User.manager_id == user.id,
+                LeaveRequest.user_id == user.id
+            )
+        )
+    # HR and Admin see all (no additional filter)
+    
+    # Apply search filters
+    if user_name:
+        query = query.join(User).where(User.name.ilike(f"%{user_name}%"))
+    
+    if status:
+        query = query.where(LeaveRequest.status == status)
+    
+    if leave_type:
+        query = query.where(LeaveRequest.leave_type == leave_type)
+    
+    if date_from:
+        query = query.where(LeaveRequest.start_date >= date_from)
+    
+    if date_to:
+        query = query.where(LeaveRequest.start_date <= date_to)
+    
+    if user_id:
+        # Check permission to view specific user
+        require_role_or_self(user, user_id, ["hr", "admin", "manager"])
+        query = query.where(LeaveRequest.user_id == user_id)
+    
+    query = query.order_by(LeaveRequest.created_at.desc()).offset(skip).limit(limit)
+    
+    result = await db.execute(query)
+    return result.scalars().all()
+
+
 @router.get("/{request_id}", response_model=LeaveRequestResponse)
 async def get_leave_request(
     request_id: int,
@@ -445,67 +490,3 @@ async def carry_forward_leaves(
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Carry forward failed: {str(e)}")
-
-
-@router.get("/requests/search", response_model=List[LeaveRequestResponse])
-async def advanced_search(
-    user_name: Optional[str] = Query(None, description="Search by employee name"),
-    status: Optional[LeaveStatus] = Query(None, description="Filter by status"),
-    leave_type: Optional[LeaveType] = Query(None, description="Filter by leave type"),
-    date_from: Optional[date] = Query(None, description="Leave start date from"),
-    date_to: Optional[date] = Query(None, description="Leave start date to"),
-    user_id: Optional[int] = Query(None, description="Filter by user ID"),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, le=500),
-    db: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user_required)
-):
-    """
-    Advanced search for leave requests with multiple filters.
-    Managers see their team, HR/Admin see all.
-    """
-    query = select(LeaveRequest).options(
-        selectinload(LeaveRequest.user),
-        selectinload(LeaveRequest.approver),
-        selectinload(LeaveRequest.attachments)
-    )
-    
-    # Role-based filtering
-    from app.models import UserRole
-    if user.role == UserRole.worker:
-        query = query.where(LeaveRequest.user_id == user.id)
-    elif user.role == UserRole.manager:
-        # Managers see their team's requests
-        query = query.join(User).where(
-            or_(
-                User.manager_id == user.id,
-                LeaveRequest.user_id == user.id
-            )
-        )
-    # HR and Admin see all (no additional filter)
-    
-    # Apply search filters
-    if user_name:
-        query = query.join(User).where(User.name.ilike(f"%{user_name}%"))
-    
-    if status:
-        query = query.where(LeaveRequest.status == status)
-    
-    if leave_type:
-        query = query.where(LeaveRequest.leave_type == leave_type)
-    
-    if date_from:
-        query = query.where(LeaveRequest.start_date >= date_from)
-    
-    if date_to:
-        query = query.where(LeaveRequest.start_date <= date_to)
-    
-    if user_id:
-        # Check permission to view specific user
-        require_role_or_self(user, user_id, ["hr", "admin", "manager"])
-        query = query.where(LeaveRequest.user_id == user_id)
-    
-    query = query.order_by(LeaveRequest.created_at.desc()).offset(skip).limit(limit)
-    
-    result = await db.execute(query)
-    return result.scalars().all()

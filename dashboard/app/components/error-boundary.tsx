@@ -33,11 +33,11 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+        <div className="min-h-screen flex items-center justify-center bg-muted px-4">
+          <div className="max-w-md w-full bg-card rounded-lg shadow-lg p-6 text-center border">
             <div className="mb-4">
               <svg
-                className="mx-auto h-12 w-12 text-red-500"
+                className="mx-auto h-12 w-12 text-destructive"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -50,22 +50,22 @@ export class ErrorBoundary extends Component<Props, State> {
                 />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               Something went wrong
             </h1>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               {this.state.error?.message || "An unexpected error occurred"}
             </p>
             <div className="space-y-2">
               <button
                 onClick={() => window.location.reload()}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition"
               >
                 Reload Page
               </button>
               <button
                 onClick={() => (window.location.href = "/")}
-                className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition"
+                className="w-full bg-muted text-muted-foreground px-4 py-2 rounded-md hover:bg-muted/80 transition"
               >
                 Go to Home
               </button>

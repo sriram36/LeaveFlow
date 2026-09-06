@@ -190,7 +190,6 @@ class ApiClient {
   // Leave requests
   async getPendingRequests(): Promise<LeaveRequest[]> {
     const data = await this.fetch('/leave/pending');
-    console.log('[API] getPendingRequests response:', data, 'Type:', typeof data, 'isArray:', Array.isArray(data));
     return data as LeaveRequest[];
   }
 

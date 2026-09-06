@@ -217,7 +217,7 @@ async def reject_account(
     return {"message": "Account rejected and deleted"}
 
 
-@router.delete("/{user_id}", response_model=dict)
+@router.put("/{user_id}", response_model=UserResponse)
 async def update_user(
     user_id: int,
     user_data: UserUpdate,

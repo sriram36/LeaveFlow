@@ -8,6 +8,8 @@ import { useEffect, useState, memo, useMemo, useCallback } from "react";
 import { TableSkeleton } from "../components/skeleton";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default memo(function UsersPage() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -24,7 +26,7 @@ export default memo(function UsersPage() {
     }
   }, [authLoading, isAuthenticated, user, router]);
 
-  const { data: users, isLoading, error } = useQuery({
+  const { data: users, isLoading, error, refetch } = useQuery({
     queryKey: ['users', roleFilter],
     queryFn: () => api.getUsers(roleFilter || undefined),
     enabled: isAuthenticated && (user?.role === 'hr' || user?.role === 'admin'),
@@ -44,8 +46,8 @@ export default memo(function UsersPage() {
     return (
       <main className="space-y-6">
         <div>
-          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+          <div className="h-9 bg-muted rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <TableSkeleton rows={5} />
       </main>
@@ -53,7 +55,14 @@ export default memo(function UsersPage() {
   }
 
   if (error) {
-    return <div className="text-red-600">Failed to load users.</div>;
+    return (
+      <main className="space-y-6">
+        <div className="card border-destructive/20 bg-destructive/5 p-8 text-center rounded-xl">
+          <p className="text-destructive font-medium">Failed to load users. Please try again.</p>
+          <Button onClick={() => refetch()} className="mt-4" size="sm">Try Again</Button>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -81,13 +90,13 @@ export default memo(function UsersPage() {
       {!rows.length ? (
         <div className="card text-center py-20 px-6 border border-border shadow-sm bg-card rounded-xl">
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-muted-foreground text-sm font-medium">No Users</span>
+            <Users className="w-8 h-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-1">No users found</h3>
           <p className="text-sm text-muted-foreground">Try adjusting your filters or search criteria.</p>
         </div>
       ) : (
-        <div className="card overflow-hidden shadow-sm border border-border bg-card rounded-xl p-0">
+        <div className="card overflow-hidden shadow-sm border border-border bg-card rounded-xl p-0 animate-scale-in">
           <Table>
             <TableHeader className="bg-muted/50">
               <TableRow className="hover:bg-transparent">
@@ -127,11 +136,11 @@ export default memo(function UsersPage() {
 function roleColor(role: string) {
   switch (role) {
     case 'admin':
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-400';
+      return 'bg-accent/10 text-accent';
     case 'hr':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400';
+      return 'bg-primary/10 text-primary';
     case 'manager':
-      return 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400';
+      return 'bg-success/10 text-success';
     case 'worker':
       return 'bg-muted text-muted-foreground';
     default:

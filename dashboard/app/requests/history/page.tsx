@@ -5,6 +5,8 @@ import { api, LeaveRequest } from "../../lib/api";
 import { useAuth } from "../../lib/auth-context";
 import { TableSkeleton } from "../../components/skeleton";
 import Link from "next/link";
+import { Download, Inbox, Calendar as CalendarIcon, ArrowRight, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, ChangeEvent } from "react";
 
@@ -21,7 +23,7 @@ export default function HistoryPage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  const { data: requests, isLoading, error } = useQuery<LeaveRequest[]>({
+  const { data: requests, isLoading, error, refetch } = useQuery<LeaveRequest[]>({
     queryKey: ['leave-history', statusFilter],
     queryFn: () => api.getLeaveHistory(statusFilter || undefined),
     enabled: isAuthenticated,
@@ -58,8 +60,8 @@ export default function HistoryPage() {
     return (
       <main className="space-y-6">
         <div>
-          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+          <div className="h-9 bg-muted rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <TableSkeleton rows={5} />
       </main>
@@ -67,7 +69,14 @@ export default function HistoryPage() {
   }
 
   if (error) {
-    return <div className="text-red-600">Failed to load history.</div>;
+    return (
+      <main className="space-y-6">
+        <div className="card border-destructive/20 bg-destructive/5 p-8 text-center rounded-xl">
+          <p className="text-destructive font-medium">Failed to load history. Please try again.</p>
+          <Button onClick={() => refetch()} className="mt-4" size="sm">Try Again</Button>
+        </div>
+      </main>
+    );
   }
 
   const rows: LeaveRequest[] = requests ?? [];
@@ -94,24 +103,28 @@ export default function HistoryPage() {
           <button
             onClick={handleExportCSV}
             disabled={rows.length === 0}
-            className="btn text-sm bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
+            className="btn text-sm bg-success text-success-foreground hover:bg-success/90 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
           >
-            📥 Export CSV
+            <Download className="w-4 h-4 mr-1.5" /> Export CSV
           </button>
           <Link href="/requests" className="btn btn-primary text-sm shadow-md hover:shadow-lg transition-all">
-            📋 View Pending
+            <Inbox className="w-4 h-4 mr-1.5" /> View Pending
           </Link>
         </div>
       </div>
 
       {!rows.length ? (
-        <div className="card text-center py-8 text-muted-foreground">
-          No historical requests yet.
+        <div className="card text-center py-16 px-6 border border-border shadow-sm bg-card rounded-xl">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-1">No history yet</h3>
+          <p className="text-sm text-muted-foreground">Past leave requests will appear here.</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {rows.map((req) => (
-            <HistoryCard key={req.id} req={req} />
+          {rows.map((req, i) => (
+            <HistoryCard key={req.id} req={req} index={i} />
           ))}
         </div>
       )}
@@ -119,10 +132,10 @@ export default function HistoryPage() {
   );
 }
 
-function HistoryCard({ req }: { req: LeaveRequest }) {
+function HistoryCard({ req, index }: { req: LeaveRequest; index: number }) {
   const badge = badgeForStatus(req.status);
   return (
-    <div className="card hover:shadow-lg hover:border-primary/50 transition-all duration-200 p-4">
+    <div className="card hover:shadow-lg hover:border-primary/50 hover:-translate-y-0.5 transition-all duration-200 p-4 animate-slide-up" style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}>
       <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
         
         {/* Left: Avatar + Name + Meta */}
@@ -138,7 +151,7 @@ function HistoryCard({ req }: { req: LeaveRequest }) {
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
-              <span>📅 {req.start_date} → {req.end_date}</span>
+              <span className="inline-flex items-center gap-1"><CalendarIcon className="w-3 h-3" /> {req.start_date} → {req.end_date}</span>
               <span>•</span>
               <span className="capitalize">{req.leave_type}</span>
               <span>•</span>
@@ -153,8 +166,8 @@ function HistoryCard({ req }: { req: LeaveRequest }) {
         {/* Right: Request ID + View button */}
         <div className="flex items-center gap-3 flex-shrink-0 self-start sm:self-center">
           <span className="text-xs font-mono text-muted-foreground">#{req.id}</span>
-          <Link href={`/requests/${req.id}`} className="btn btn-ghost border text-sm hover:border-primary transition-all whitespace-nowrap">
-            View →
+          <Link href={`/requests/${req.id}`} className="btn btn-ghost border text-sm hover:border-primary transition-all whitespace-nowrap gap-1">
+            View <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>
@@ -165,11 +178,11 @@ function HistoryCard({ req }: { req: LeaveRequest }) {
 function badgeForStatus(status: LeaveStatus) {
   switch (status) {
     case "pending":
-      return { label: "Pending", className: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400" };
+      return { label: "Pending", className: "bg-warning/10 text-warning" };
     case "approved":
-      return { label: "Approved", className: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400" };
+      return { label: "Approved", className: "bg-success/10 text-success" };
     case "rejected":
-      return { label: "Rejected", className: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400" };
+      return { label: "Rejected", className: "bg-destructive/10 text-destructive" };
     case "cancelled":
       return { label: "Cancelled", className: "bg-muted text-muted-foreground" };
     default:

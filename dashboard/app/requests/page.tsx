@@ -9,17 +9,9 @@ import { useRouter } from "next/navigation";
 import { useState, memo, useMemo, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Calendar,
-  User,
-  Clock,
-  CheckCircle,
-  XCircle,
-  History,
-  Grid3x3,
-} from "lucide-react";
+import { Calendar, Clock, CircleCheck as CheckCircle, Circle as XCircle, Factory as History, Grid3x3 } from "lucide-react";
 
 type LeaveStatus = "pending" | "approved" | "rejected" | "cancelled";
 
@@ -129,8 +121,8 @@ export default memo(function RequestsPage() {
       <div className="space-y-6">
         {/* Title skeleton */}
         <div className="space-y-2">
-          <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded w-1/2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/4 animate-pulse"></div>
+          <div className="h-10 bg-muted rounded w-1/2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/4 animate-pulse"></div>
         </div>
         <DashboardSkeleton />
       </div>
@@ -143,9 +135,9 @@ export default memo(function RequestsPage() {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Pending Requests</h1>
-        <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+        <Card className="border-destructive/20 bg-destructive/5">
           <CardContent className="pt-6">
-            <p className="text-red-600 dark:text-red-400">{errorMessage}</p>
+            <p className="text-destructive">{errorMessage}</p>
             <Button onClick={handleRefetch} className="mt-4" size="sm">
               Try Again
             </Button>
@@ -161,10 +153,10 @@ export default memo(function RequestsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-4xl font-bold text-foreground">
             Leave Requests
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-muted-foreground mt-1">
             {requestCount} {requestCount === 1 ? "request" : "requests"} pending
             approval
           </p>
@@ -216,10 +208,11 @@ export default memo(function RequestsPage() {
       ) : view === "list" ? (
         /* List View */
         <div className="space-y-3">
-          {rows.map((request: LeaveRequest) => (
+          {rows.map((request: LeaveRequest, i: number) => (
             <Card
               key={request.id}
-              className="shadow-sm hover:shadow-md transition-shadow cursor-pointer border-border bg-card group"
+              className="shadow-sm hover:shadow-md transition-shadow cursor-pointer border-border bg-card group animate-slide-up"
+              style={{ animationDelay: `${i * 50}ms`, animationFillMode: 'both' }}
               onClick={() => router.push(`/requests/${request.id}`)}
             >
               <CardContent className="pt-6">
@@ -231,16 +224,16 @@ export default memo(function RequestsPage() {
                         {request.user?.name?.charAt(0) || "U"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-slate-900 dark:text-white truncate">
+                        <p className="font-semibold text-foreground truncate">
                           {request.user?.name || "Unknown User"}
                         </p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                        <p className="text-sm text-muted-foreground">
                           {request.leave_type}
                         </p>
                       </div>
                     </div>
                     {request.reason && (
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 truncate">
+                      <p className="text-sm text-muted-foreground mt-2 truncate">
                         {request.reason}
                       </p>
                     )}
@@ -248,13 +241,13 @@ export default memo(function RequestsPage() {
 
                   {/* Middle */}
                   <div className="flex-shrink-0 text-right">
-                    <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                       <Calendar className="w-4 h-4" />
                       <span>
                         {request.start_date} to {request.end_date}
                       </span>
                     </div>
-                    <p className="text-sm font-medium text-slate-900 dark:text-white">
+                    <p className="text-sm font-medium text-foreground">
                       {request.days || 0} days
                     </p>
                   </div>
@@ -274,10 +267,11 @@ export default memo(function RequestsPage() {
       ) : (
         /* Grid View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {rows.map((request: LeaveRequest) => (
+          {rows.map((request: LeaveRequest, i: number) => (
             <Card
               key={request.id}
-              className="shadow-sm hover:shadow-md transition-shadow cursor-pointer border-border bg-card group"
+              className="shadow-sm hover:shadow-md transition-shadow cursor-pointer border-border bg-card group animate-scale-in"
+              style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
               onClick={() => router.push(`/requests/${request.id}`)}
             >
               <CardHeader className="pb-3">
@@ -287,10 +281,10 @@ export default memo(function RequestsPage() {
                         {request.user?.name?.charAt(0) || "U"}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">
+                        <p className="font-semibold text-sm text-foreground truncate">
                           {request.user?.name || "Unknown User"}
                       </p>
-                      <p className="text-xs text-slate-600 dark:text-slate-400">
+                      <p className="text-xs text-muted-foreground">
                         {request.leave_type}
                       </p>
                     </div>
@@ -305,19 +299,19 @@ export default memo(function RequestsPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {request.reason && (
-                  <p className="text-sm text-slate-600 dark:text-slate-400 truncate">
+                  <p className="text-sm text-muted-foreground truncate">
                     {request.reason}
                   </p>
                 )}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-900 dark:text-white">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-foreground">
                       {request.start_date}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-white">
-                    <Clock className="w-4 h-4 text-slate-400" />
+                  <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
                     {request.days || 0} days
                   </div>
                 </div>
@@ -329,58 +323,3 @@ export default memo(function RequestsPage() {
     </div>
   );
 });
-
-function RequestCard({ req }: { req: LeaveRequest }) {
-  const badge = badgeForStatus(req.status);
-  return (
-    <div className="card hover:border-primary/50 hover:shadow-lg transition-all duration-200">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="text-xl font-bold text-foreground">#{req.id}</span>
-            <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${badge.className}`}>{badge.label}</span>
-          </div>
-          <div className="text-base text-foreground font-semibold mb-2">
-            {req.user?.name || "Unknown"}
-            <span className="text-muted-foreground font-normal text-sm ml-2">({req.user?.phone})</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-2">
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 rounded">
-              📅 {req.start_date} → {req.end_date}
-            </span>
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-muted rounded capitalize">
-              {req.leave_type}
-            </span>
-            {req.duration_type !== 'full' && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-700 rounded text-xs">
-                {req.duration_type.replace('half_', 'Half ')}
-              </span>
-            )}
-          </div>
-          <div className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{req.reason}</div>
-        </div>
-        <Link
-          href={`/requests/${req.id}`}
-          className="btn btn-primary text-sm shadow-md hover:shadow-lg transition-all whitespace-nowrap"
-        >
-          Review →
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function badgeForStatus(status: LeaveStatus) {
-  switch (status) {
-    case "pending":
-      return { label: "Pending", className: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400" };
-    case "approved":
-      return { label: "Approved", className: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400" };
-    case "rejected":
-      return { label: "Rejected", className: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400" };
-    case "cancelled":
-      return { label: "Cancelled", className: "bg-muted text-muted-foreground" };
-    default:
-      return { label: status, className: "bg-muted text-muted-foreground" };
-  }
-}

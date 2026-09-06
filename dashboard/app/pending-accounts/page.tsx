@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { TableSkeleton } from "../components/skeleton";
 import { useEffect, useState, memo, useCallback, useMemo } from "react";
+import { CircleCheck as CheckCircle, UserCheck, UserX } from "lucide-react";
 
 export default memo(function PendingAccountsPage() {
   const { isAuthenticated, isLoading: authLoading, user: currentUser } = useAuth();
@@ -74,8 +75,8 @@ export default memo(function PendingAccountsPage() {
     return (
       <main className="space-y-6">
         <div>
-          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+          <div className="h-9 bg-muted rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <TableSkeleton rows={5} />
       </main>
@@ -95,8 +96,8 @@ export default memo(function PendingAccountsPage() {
         <div
           className={`mb-6 p-4 rounded-md ${
             message.type === 'success'
-              ? 'bg-green-50 text-green-800 dark:bg-green-500/20 dark:text-green-400 border border-green-200 dark:border-green-500/30'
-              : 'bg-red-50 text-red-800 dark:bg-red-500/20 dark:text-red-400 border border-red-200 dark:border-red-500/30'
+              ? 'bg-success/10 text-success border border-success/20'
+              : 'bg-destructive/10 text-destructive border border-destructive/20'
           }`}
         >
           {message.text}
@@ -104,16 +105,20 @@ export default memo(function PendingAccountsPage() {
       )}
 
       {!pendingAccounts || pendingAccounts.length === 0 ? (
-        <div className="text-center py-12 bg-card rounded-lg border">
-          <div className="text-4xl mb-4">✅</div>
-          <p className="text-muted-foreground">No pending account approvals</p>
+        <div className="card text-center py-16 px-6 border border-border shadow-sm bg-card rounded-xl">
+          <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-success" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-1">All caught up</h3>
+          <p className="text-sm text-muted-foreground">No pending account approvals right now.</p>
         </div>
       ) : (
         <div className="grid gap-6">
-          {pendingAccounts.map((account) => (
+          {pendingAccounts.map((account, i) => (
             <div
               key={account.id}
-              className="bg-card border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+              className="bg-card border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow animate-slide-up"
+              style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
@@ -122,10 +127,10 @@ export default memo(function PendingAccountsPage() {
                     <span
                       className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
                         account.role === 'manager'
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400'
+                          ? 'bg-primary/10 text-primary'
                           : account.role === 'hr'
-                          ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-400'
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-500/20 dark:text-gray-400'
+                          ? 'bg-accent/10 text-accent'
+                          : 'bg-muted text-muted-foreground'
                       }`}
                     >
                       {account.role.toUpperCase()}
@@ -153,8 +158,9 @@ export default memo(function PendingAccountsPage() {
                   <button
                     onClick={() => approveMutation.mutate(account.id)}
                     disabled={approveMutation.isPending || rejectMutation.isPending}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-success text-success-foreground rounded-md hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
                   >
+                    <UserCheck className="w-4 h-4" />
                     {approveMutation.isPending ? 'Approving...' : 'Approve'}
                   </button>
                   <button
@@ -164,8 +170,9 @@ export default memo(function PendingAccountsPage() {
                       }
                     }}
                     disabled={approveMutation.isPending || rejectMutation.isPending}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
                   >
+                    <UserX className="w-4 h-4" />
                     {rejectMutation.isPending ? 'Rejecting...' : 'Reject'}
                   </button>
                 </div>

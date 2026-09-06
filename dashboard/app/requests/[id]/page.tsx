@@ -7,6 +7,7 @@ import { DashboardSkeleton } from "../../components/skeleton";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { FileText, Image as ImageIcon, File, Video, Paperclip, CircleCheck as CheckCircle, X, ArrowLeft } from "lucide-react";
 
 type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
@@ -32,12 +33,18 @@ export default function RequestDetail() {
     enabled: isAuthenticated && !!id,
   });
 
+  const [actionError, setActionError] = useState('');
+
   const approveMutation = useMutation({
     mutationFn: () => api.approveLeave(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leave-request', id] });
       queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
       queryClient.invalidateQueries({ queryKey: ['leave-history'] });
+      setActionError('');
+    },
+    onError: (error: Error) => {
+      setActionError(error.message || 'Failed to approve request');
     },
   });
 
@@ -49,6 +56,10 @@ export default function RequestDetail() {
       queryClient.invalidateQueries({ queryKey: ['leave-request', id] });
       queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
       queryClient.invalidateQueries({ queryKey: ['leave-history'] });
+      setActionError('');
+    },
+    onError: (error: Error) => {
+      setActionError(error.message || 'Failed to reject request');
     },
   });
 
@@ -56,8 +67,8 @@ export default function RequestDetail() {
     return (
       <main className="space-y-6">
         <div>
-          <div className="h-9 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-2 animate-pulse"></div>
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 animate-pulse"></div>
+          <div className="h-9 bg-muted rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
         </div>
         <DashboardSkeleton />
       </main>
@@ -65,7 +76,16 @@ export default function RequestDetail() {
   }
 
   if (error || !detail) {
-    return <div className="text-red-600">Failed to load request or not found.</div>;
+    return (
+      <main className="space-y-6 max-w-4xl">
+        <Link href="/requests" className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back to Pending Requests
+        </Link>
+        <div className="card border-destructive/20 bg-destructive/5 p-8 text-center">
+          <p className="text-destructive font-medium">Failed to load request or not found.</p>
+        </div>
+      </main>
+    );
   }
 
   const badge = badgeForStatus(detail.status);
@@ -73,11 +93,11 @@ export default function RequestDetail() {
 
   return (
     <main className="space-y-6 max-w-4xl">
-      <Link href="/requests" className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
-        ← Back to Pending Requests
+      <Link href="/requests" className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">
+        <ArrowLeft className="w-4 h-4" /> Back to Pending Requests
       </Link>
 
-      <div className="card shadow-xl border overflow-hidden">
+      <div className="card shadow-xl border overflow-hidden animate-scale-in">
         {/* Header */}
         <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border-b">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -131,9 +151,9 @@ export default function RequestDetail() {
         {/* Rejection Reason */}
         {detail.rejection_reason && (
           <div className="px-6 pb-4">
-            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
-              <span className="text-xs font-semibold uppercase tracking-wide text-red-600 dark:text-red-400 block mb-2">Rejection Reason</span>
-              <p className="text-red-700 dark:text-red-300 leading-relaxed">{detail.rejection_reason}</p>
+            <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-xl">
+              <span className="text-xs font-semibold uppercase tracking-wide text-destructive block mb-2">Rejection Reason</span>
+              <p className="text-destructive leading-relaxed">{detail.rejection_reason}</p>
             </div>
           </div>
         )}
@@ -141,22 +161,22 @@ export default function RequestDetail() {
         {/* Attachments */}
         {detail.attachments && detail.attachments.length > 0 && (
           <div className="px-6 pb-4">
-            <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
-              <span className="text-xs font-semibold uppercase tracking-wide text-purple-600 dark:text-purple-400 mb-3 block">
-                📎 Attachments ({detail.attachments.length})
+            <div className="p-4 bg-accent/10 border border-accent/30 rounded-xl">
+              <span className="text-xs font-semibold uppercase tracking-wide text-accent mb-3 block flex items-center gap-1.5">
+                <Paperclip className="w-3.5 h-3.5" /> Attachments ({detail.attachments.length})
               </span>
               <div className="space-y-2">
                 {detail.attachments.map((attachment) => (
-                  <div key={attachment.id} className="flex items-center gap-3 p-3 bg-background rounded border hover:border-purple-500/50 transition-colors">
+                  <div key={attachment.id} className="flex items-center gap-3 p-3 bg-background rounded border hover:border-accent/50 transition-colors">
                     <div className="flex-shrink-0">
                       {attachment.file_type?.includes('image') ? (
-                        <span className="text-2xl">🖼️</span>
+                        <ImageIcon className="w-6 h-6 text-muted-foreground" />
                       ) : attachment.file_type?.includes('pdf') ? (
-                        <span className="text-2xl">📄</span>
+                        <FileText className="w-6 h-6 text-muted-foreground" />
                       ) : attachment.file_type?.includes('video') ? (
-                        <span className="text-2xl">🎥</span>
+                        <Video className="w-6 h-6 text-muted-foreground" />
                       ) : (
-                        <span className="text-2xl">📎</span>
+                        <Paperclip className="w-6 h-6 text-muted-foreground" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -167,7 +187,7 @@ export default function RequestDetail() {
                       href={attachment.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1.5 text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-500/20 hover:bg-purple-200 dark:hover:bg-purple-500/30 rounded transition-colors"
+                      className="px-3 py-1.5 text-xs font-medium text-accent bg-accent/10 hover:bg-accent/20 rounded transition-colors"
                     >
                       View
                     </a>
@@ -184,16 +204,16 @@ export default function RequestDetail() {
             <button
               onClick={() => approveMutation.mutate()}
               disabled={approveMutation.isPending || rejectMutation.isPending}
-              className="btn bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
+              className="btn bg-success text-success-foreground hover:bg-success/90 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
             >
-              {approveMutation.isPending ? 'Approving...' : '✓ Approve Request'}
+              {approveMutation.isPending ? 'Approving...' : (<><CheckCircle className="w-4 h-4 inline mr-1" /> Approve Request</>)}
             </button>
             <button
               onClick={() => setShowRejectModal(true)}
               disabled={approveMutation.isPending || rejectMutation.isPending}
-              className="btn bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
+              className="btn bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 shadow-md hover:shadow-lg transition-all"
             >
-              ✕ Reject Request
+              <X className="w-4 h-4 inline mr-1" /> Reject Request
             </button>
           </div>
         )}
@@ -206,10 +226,17 @@ export default function RequestDetail() {
       </div>
 
 
+      {/* Action Error */}
+      {actionError && (
+        <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
+          <p className="text-sm text-destructive font-medium">{actionError}</p>
+        </div>
+      )}
+
       {/* Reject Modal */}
       {showRejectModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl shadow-2xl p-8 w-full max-w-md border">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-card rounded-xl shadow-2xl p-8 w-full max-w-md border animate-fade-in" style={{ animation: 'fade-in 0.2s ease-out' }}>
             <h3 className="text-2xl font-bold mb-4">Reject Leave Request</h3>
             <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
               Please provide a reason for rejection. This will be sent to the employee via WhatsApp.
@@ -218,7 +245,7 @@ export default function RequestDetail() {
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="Enter rejection reason..."
-              className="w-full border-2 rounded-lg p-4 text-sm mb-6 bg-background focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+              className="w-full border-2 rounded-lg p-4 text-sm mb-6 bg-background focus:ring-2 focus:ring-destructive focus:border-destructive transition-all"
               rows={4}
             />
             <div className="flex gap-3">
@@ -234,7 +261,7 @@ export default function RequestDetail() {
               <button
                 onClick={() => rejectMutation.mutate(rejectReason)}
                 disabled={!rejectReason.trim() || rejectMutation.isPending}
-                className="btn bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 flex-1 shadow-md hover:shadow-lg transition-all"
+                className="btn bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 flex-1 shadow-md hover:shadow-lg transition-all"
               >
                 {rejectMutation.isPending ? 'Rejecting...' : 'Confirm Reject'}
               </button>
@@ -249,11 +276,11 @@ export default function RequestDetail() {
 function badgeForStatus(status: LeaveStatus) {
   switch (status) {
     case "pending":
-      return { label: "Pending", className: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400" };
+      return { label: "Pending", className: "bg-warning/10 text-warning" };
     case "approved":
-      return { label: "Approved", className: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400" };
+      return { label: "Approved", className: "bg-success/10 text-success" };
     case "rejected":
-      return { label: "Rejected", className: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400" };
+      return { label: "Rejected", className: "bg-destructive/10 text-destructive" };
     case "cancelled":
       return { label: "Cancelled", className: "bg-muted text-muted-foreground" };
     default:
