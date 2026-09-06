@@ -4,6 +4,7 @@ Authentication utilities
 
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+import os
 import jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
@@ -219,15 +220,26 @@ def require_role_or_self(current_user: User, target_user_id: int, allowed_roles:
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
 
-def require_leave_request_access(current_user: User, request_user_id: int) -> None:
+async def require_leave_request_access(
+    current_user: User,
+    request_user_id: int,
+    db: AsyncSession,
+) -> None:
     """Check if user has access to view a leave request."""
-    # Workers can only see their own requests
-    if current_user.role and current_user.role.value == "worker":
+    # Workers can only see their own requests.
+    if current_user.role == UserRole.worker:
         if request_user_id != current_user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
-    # Managers, HR, and Admin can see all requests (managers are filtered by team in queries)
-    # Managers, HR, and Admin can see all requests (managers are filtered by team in queries)
-    return
+        return
+
+    # Managers can only see requests from their own team (or their own request).
+    if current_user.role == UserRole.manager:
+        result = await db.execute(select(User.manager_id).where(User.id == request_user_id))
+        manager_id = result.scalar_one_or_none()
+        if request_user_id != current_user.id and manager_id != current_user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
+    # HR and Admin can see all requests.
 
 
 def normalize_phone_number(phone: str, default_country_code: str = "91") -> str:

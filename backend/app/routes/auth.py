@@ -3,6 +3,7 @@ Authentication API Routes
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
+import os
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.limiter import limiter
@@ -74,12 +75,13 @@ async def login(
         )
     
     access_token = create_access_token(data={"sub": user.id})
+    is_production = os.getenv("ENV", os.getenv("NODE_ENV", "development")).lower() == "production"
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=True, # Must be true for SameSite=None
-        samesite="none",
+        secure=is_production,
+        samesite="none" if is_production else "lax",
         max_age=settings.access_token_expire_minutes * 60
     )
     return Token(access_token=access_token, token_type="bearer")
@@ -88,11 +90,12 @@ async def login(
 @router.post("/logout")
 async def logout(response: Response) -> dict:
     """Logout by clearing the HttpOnly cookie."""
+    is_production = os.getenv("ENV", os.getenv("NODE_ENV", "development")).lower() == "production"
     response.delete_cookie(
         key="access_token",
         httponly=True,
-        secure=True,
-        samesite="none"
+        secure=is_production,
+        samesite="none" if is_production else "lax"
     )
     return {"message": "Logged out successfully"}
 

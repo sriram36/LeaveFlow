@@ -122,7 +122,7 @@ async def get_user(
 async def create_user(
     user_data: UserCreate,
     db: AsyncSession = Depends(get_db),
-    admin: User = Depends(require_hr_admin)
+    admin: User = Depends(require_admin)
 ):
     """Create a new user (HR and admin only)."""
     from app.auth import get_password_hash
@@ -253,7 +253,7 @@ async def admin_update_user(
     user_id: int,
     user_data: UserCreate,
     db: AsyncSession = Depends(get_db),
-    admin: User = Depends(require_hr_admin)
+    admin: User = Depends(require_admin)
 ):
     """Update any user (HR and admin only) - can change role, manager, password."""
     result = await db.execute(select(User).where(User.id == user_id))
