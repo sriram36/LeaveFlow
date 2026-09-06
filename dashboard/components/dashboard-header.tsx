@@ -74,7 +74,7 @@ export function DashboardHeader() {
                             className="p-3 bg-muted rounded-lg border border-border"
                           >
                             <p className="font-medium text-sm">
-                              {request.employee_name}
+                              {request.user?.name || 'Unknown Employee'}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {request.leave_type} • {request.start_date} to {request.end_date}
