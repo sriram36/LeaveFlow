@@ -53,7 +53,7 @@ export function AnalyticsChart({ data }: AnalyticsChartProps) {
     <Card className="w-full h-full border-border/50 bg-background/50 backdrop-blur-xl shadow-sm hover:shadow-lg transition-all duration-300 group">
       <CardHeader>
         <CardTitle className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-          Leave Trends
+          Leave trends
         </CardTitle>
         <CardDescription className="text-muted-foreground font-medium">
           Monthly distribution across the team

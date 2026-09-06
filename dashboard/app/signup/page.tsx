@@ -57,7 +57,7 @@ export default memo(function SignupPage() {
           role: formData.role,
         });
 
-        setSuccess("Account created successfully! You can now sign in.");
+        setSuccess("Account created successfully! Your account is pending admin approval.");
 
         setFormData({
           name: "",
@@ -138,7 +138,7 @@ export default memo(function SignupPage() {
 
           <div className="p-3 bg-warning/5 border border-warning/20 rounded-lg">
             <p className="text-xs text-warning font-medium">
-              Note: In production, new accounts require admin approval. For testing, instant access is enabled.
+              Note: New accounts require admin approval before you can sign in. You will receive confirmation once your account is approved.
             </p>
           </div>
 

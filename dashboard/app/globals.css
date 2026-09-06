@@ -85,7 +85,10 @@
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
     color: hsl(var(--foreground));
-    background: hsl(var(--background));
+    background:
+      radial-gradient(circle at 8% -10%, hsl(var(--primary) / 0.10), transparent 32rem),
+      radial-gradient(circle at 100% 0%, hsl(var(--accent) / 0.07), transparent 28rem),
+      hsl(var(--background));
     background-attachment: fixed;
   }
 
@@ -109,7 +112,14 @@
 
 @layer components {
   .card {
-    @apply bg-card text-card-foreground rounded-xl border border-border/60 shadow-sm;
+    @apply bg-card text-card-foreground rounded-2xl border border-border/60 shadow-sm;
+    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.03), 0 10px 30px hsl(var(--foreground) / 0.04);
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  }
+
+  .card:hover {
+    border-color: hsl(var(--primary) / 0.22);
+    box-shadow: 0 2px 4px hsl(var(--foreground) / 0.04), 0 16px 36px hsl(var(--foreground) / 0.07);
   }
 
   .glass {
@@ -122,6 +132,10 @@
 
   .gradient-text {
     @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-bold uppercase tracking-[0.18em] text-primary;
   }
 
   .btn {
@@ -176,4 +190,13 @@
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
 }

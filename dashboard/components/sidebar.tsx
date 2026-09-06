@@ -146,6 +146,7 @@ export function Sidebar({ className }: { className?: string }) {
           <div className="flex items-center justify-between p-1 bg-muted rounded-full border border-border/60">
             <button
               onClick={() => setTheme("light")}
+              aria-label="Use light theme"
               className={cn(
                 "p-1.5 rounded-full transition-all",
                 theme === "light"
@@ -157,6 +158,7 @@ export function Sidebar({ className }: { className?: string }) {
             </button>
             <button
               onClick={() => setTheme("system")}
+              aria-label="Use system theme"
               className={cn(
                 "p-1.5 rounded-full transition-all",
                 theme === "system"
@@ -168,6 +170,7 @@ export function Sidebar({ className }: { className?: string }) {
             </button>
             <button
               onClick={() => setTheme("dark")}
+              aria-label="Use dark theme"
               className={cn(
                 "p-1.5 rounded-full transition-all",
                 theme === "dark"

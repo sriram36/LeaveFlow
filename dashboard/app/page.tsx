@@ -476,6 +476,23 @@ const DashboardHome = memo(function DashboardHome() {
 
   return (
     <div className="space-y-8">
+      <section className="relative overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-primary/[0.12] via-card to-accent/[0.08] px-6 py-7 sm:px-8 sm:py-8">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="eyebrow mb-3">Operations overview</p>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Welcome back, {user?.name?.split(" ")[0] || "there"}.</h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">Keep your team moving. Review requests, monitor leave patterns, and stay ahead of today&apos;s workload.</p>
+          </div>
+          <Link href="/requests" className="shrink-0">
+            <Button className="rounded-xl shadow-lg shadow-primary/20">
+              Review requests
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
@@ -520,9 +537,12 @@ const DashboardHome = memo(function DashboardHome() {
 
         {/* Quick Actions */}
         <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common tasks and shortcuts</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <p className="eyebrow mb-2">At a glance</p>
+              <CardTitle className="text-xl">Quick actions</CardTitle>
+            </div>
+            <Zap className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent className="space-y-2">
             <Link href="/requests" className="block group">
@@ -558,7 +578,8 @@ const DashboardHome = memo(function DashboardHome() {
         {/* Recent Activity */}
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <p className="eyebrow mb-2">The latest</p>
+            <CardTitle>Recent activity</CardTitle>
             <CardDescription>Latest leave requests and approvals</CardDescription>
           </CardHeader>
           <CardContent>
@@ -614,7 +635,7 @@ function StatCard({
   bg: string;
 }) {
   return (
-    <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+    <Card className="group hover:-translate-y-0.5">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         <div className={`w-8 h-8 rounded-full ${bg} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}>

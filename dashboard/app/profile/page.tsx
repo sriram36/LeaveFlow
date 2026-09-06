@@ -8,7 +8,7 @@ import { DashboardSkeleton } from "../components/skeleton";
 import { Pencil, CircleCheck as CheckCircle, CircleX as XCircle, Loader as Loader2 } from "lucide-react";
 
 export default memo(function ProfilePage() {
-  const { user, refreshUser } = useAuth();
+  const { user, isLoading, isAuthenticated, refreshUser } = useAuth();
   const router = useRouter();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -21,6 +21,12 @@ export default memo(function ProfilePage() {
     email: "",
     phone: "",
   });
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/signin");
+    }
+  }, [isLoading, isAuthenticated, router]);
 
   useEffect(() => {
     if (user) {
@@ -83,7 +89,7 @@ export default memo(function ProfilePage() {
     setError("");
   }, [user]);
 
-  if (!user) {
+  if (isLoading || !isAuthenticated || !user) {
     return (
       <main className="space-y-6">
         <div>

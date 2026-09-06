@@ -65,12 +65,12 @@ export function Header() {
           .join(' / ');
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl px-4 sm:px-6 py-3">
+    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border/70 bg-background/75 px-4 sm:px-6 py-3 backdrop-blur-xl">
       <div className="flex items-center gap-3">
         <div className="md:hidden flex items-center gap-3">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open navigation menu">
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
@@ -92,7 +92,11 @@ export function Header() {
           </Link>
         </div>
 
-        <h2 className="hidden sm:block text-sm font-medium text-muted-foreground tracking-wide">
+        <div className="hidden sm:flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-success shadow-[0_0_0_4px_hsl(var(--success)/0.12)]" />
+          <span className="text-xs font-semibold text-muted-foreground">Workspace live</span>
+        </div>
+        <h2 className="hidden lg:block text-sm font-semibold text-muted-foreground tracking-wide">
           {pathTitle}
         </h2>
       </div>
@@ -101,7 +105,7 @@ export function Header() {
         {(user?.role === 'manager' || user?.role === 'hr' || user?.role === 'admin') && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative hover:bg-muted rounded-full">
+              <Button variant="ghost" size="icon" className="relative hover:bg-muted rounded-full" aria-label={`Notifications${pendingCount ? ` (${pendingCount} pending)` : ''}`}>
                 <Bell className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" />
                 {pendingCount > 0 && (
                   <Badge
