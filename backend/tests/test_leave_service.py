@@ -148,3 +148,33 @@ async def test_reject_leave_request_refunds_balance(db_session: AsyncSession, sa
     await db_session.refresh(sample_worker)
     # Balance should be refunded
     assert sample_worker.casual_leave_balance == initial_balance
+
+
+@pytest.mark.asyncio
+async def test_manager_cannot_approve_another_manager_team(db_session: AsyncSession, sample_worker, sample_manager):
+    other_manager = User(
+        name="Other Manager",
+        phone="+919****9993",
+        role=UserRole.manager,
+    )
+    db_session.add(other_manager)
+    await db_session.commit()
+    await db_session.refresh(other_manager)
+
+    service = LeaveService(db_session)
+    start = date.today()
+    while start.weekday() != 0:
+        start += timedelta(days=1)
+    if start == date.today():
+        start += timedelta(days=7)
+    request = await service.create_leave_request(
+        user_id=sample_worker.id,
+        leave_type=LeaveType.casual,
+        start_date=start,
+        end_date=start,
+        notify_manager=False,
+        notify_employee=False,
+    )
+
+    with pytest.raises(LeaveValidationError, match="team"):
+        await service.approve_leave(request.id, other_manager.id)
