@@ -116,6 +116,15 @@ class LeaveBalanceResponse(LeaveBalanceBase):
         from_attributes = True
 
 
+class AuditEntryResponse(BaseModel):
+    """One entry of a leave request's audit trail"""
+    id: int
+    action: str
+    actor_name: Optional[str]
+    details: Optional[str]
+    created_at: datetime
+
+
 class LeaveBalanceHistoryResponse(BaseModel):
     """Leave balance change history"""
     id: int

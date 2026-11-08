@@ -15,7 +15,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.config import get_settings
-from app.routes import auth, leave, webhook, users, holidays, account_requests
+from app.routes import auth, leave, webhook, users, holidays, account_requests, demo
 
 settings = get_settings()
 
@@ -58,6 +58,7 @@ app.include_router(webhook.router)
 app.include_router(users.router)
 app.include_router(holidays.router)
 app.include_router(account_requests.router)
+app.include_router(demo.router)
 
 
 # Global exception handlers
