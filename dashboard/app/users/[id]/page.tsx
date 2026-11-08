@@ -7,6 +7,7 @@ import { DashboardSkeleton } from "../../components/skeleton";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { formatDateRange } from "../../lib/format";
 import { ArrowLeft, Mail, Phone, Shield, Briefcase, Calendar, CircleCheck as CheckCircle, CircleX as XCircle, Clock } from "lucide-react";
 
 export default function UserDetailPage() {
@@ -123,14 +124,13 @@ export default function UserDetailPage() {
       {/* Profile Card */}
       <div className="card border-border/50 shadow-glass bg-card/50 backdrop-blur-md rounded-3xl overflow-hidden p-0 relative animate-scale-in">
         {/* Decorative Header Banner */}
-        <div className="h-32 bg-gradient-to-r from-primary/80 to-accent/80 relative">
-          <div className="absolute inset-0 bg-white/10 dark:bg-black/10 backdrop-blur-[2px]"></div>
+        <div className="h-32 bg-primary/90 relative">
         </div>
 
         <div className="px-6 sm:px-8 pb-8 relative">
           {/* Profile Avatar Header */}
           <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-8">
-            <div className="relative -mt-14 sm:-mt-12 z-10 w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-xl border-4 border-card flex items-center justify-center text-3xl font-bold text-white flex-shrink-0">
+            <div className="relative -mt-14 sm:-mt-12 z-10 w-24 h-24 rounded-2xl bg-primary shadow-xl border-4 border-card flex items-center justify-center text-3xl font-bold text-primary-foreground flex-shrink-0">
               {user.name?.charAt(0)}
             </div>
             
@@ -264,7 +264,7 @@ export default function UserDetailPage() {
                 <div>
                   <div className="font-semibold text-foreground">Request #{leave.id}</div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    {leave.start_date} → {leave.end_date}
+                    {formatDateRange(leave.start_date, leave.end_date)}
                   </div>
                   <div className="text-sm text-muted-foreground capitalize mt-1">
                     {leave.leave_type} Leave

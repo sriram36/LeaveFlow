@@ -147,7 +147,7 @@ export default memo(function ProfilePage() {
       {/* Profile Card */}
       <div className="bg-card rounded-xl border shadow-sm overflow-hidden animate-scale-in">
         {/* Profile Header */}
-        <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 sm:p-6 border-b">
+        <div className="bg-primary-muted/60 p-4 sm:p-6 border-b">
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary/20 flex items-center justify-center text-primary text-2xl sm:text-3xl font-bold">
               {user.name.charAt(0).toUpperCase()}
