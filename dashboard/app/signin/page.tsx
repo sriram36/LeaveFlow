@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,14 @@ export default function SigninPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // "Try the live demo" on the landing page links here with ?demo=1
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("demo") === "1") {
+      setEmail("demo@leaveflow.com");
+      setPassword("demo123");
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,34 +51,30 @@ export default function SigninPage() {
   return (
     <main className="min-h-screen w-full flex">
       {/* Left — Brand Panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-accent relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-blob" />
-          <div className="absolute bottom-20 right-10 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-2000" />
-        </div>
-        <div className="flex flex-col justify-between p-12 relative z-10 text-white">
+      <div className="hidden lg:flex lg:w-1/2 bg-primary text-primary-foreground relative overflow-hidden">
+        <div className="flex flex-col justify-between p-12 relative z-10 text-primary-foreground">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <CalendarDays className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-lg bg-primary-foreground/15 flex items-center justify-center">
+              <CalendarDays className="w-5 h-5" />
             </div>
             <span className="text-xl font-bold tracking-tight">LeaveFlow</span>
           </Link>
 
           <div className="space-y-6">
             <h2 className="text-4xl font-bold leading-tight">
-              The modern way to manage team leave.
+              Leave requests that start as a text message.
             </h2>
-            <p className="text-white/80 text-lg">
-              WhatsApp-native leave automation with AI-powered processing and real-time analytics.
+            <p className="text-primary-foreground/80 text-lg">
+              Employees ask on WhatsApp. Managers approve here, live.
             </p>
             <div className="space-y-3 pt-4">
               {[
                 { icon: MessageSquare, text: "Apply for leave via WhatsApp" },
-                { icon: Zap, text: "AI-powered instant validation" },
-                { icon: BarChart3, text: "Real-time analytics dashboard" },
+                { icon: Zap, text: "Balance, overlap and holiday checks" },
+                { icon: BarChart3, text: "Live updates over WebSockets" },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 text-white/90">
-                  <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">
+                <div key={i} className="flex items-center gap-3 text-primary-foreground/90">
+                  <div className="w-8 h-8 rounded-lg bg-primary-foreground/15 flex items-center justify-center flex-shrink-0">
                     <item.icon className="w-4 h-4" />
                   </div>
                   <span className="text-sm font-medium">{item.text}</span>
@@ -79,7 +83,7 @@ export default function SigninPage() {
             </div>
           </div>
 
-          <p className="text-white/60 text-sm">Trusted by modern HR teams worldwide.</p>
+          <p className="text-primary-foreground/70 text-sm">A portfolio project. The demo account is shared.</p>
         </div>
       </div>
 
@@ -138,13 +142,6 @@ export default function SigninPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Forgot your password?</span>
-              <Link href="/signin" className="text-sm font-semibold text-primary hover:underline">
-                Reset it
-              </Link>
-            </div>
-
             <Button
               type="submit"
               disabled={loading}
@@ -181,7 +178,7 @@ export default function SigninPage() {
               size="lg"
             >
               <Zap className="w-4 h-4 mr-2 text-primary" />
-              Fill Demo Credentials
+              Use demo credentials
             </Button>
           </form>
 
