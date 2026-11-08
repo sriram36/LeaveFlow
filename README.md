@@ -7,6 +7,18 @@ Leave management where employees apply over WhatsApp ("leave tomorrow sick") and
 - **Live dashboard:** https://leave-flow-cyan.vercel.app
 - **Stack:** FastAPI, async SQLAlchemy 2.0 + asyncpg, PostgreSQL, Alembic, Next.js, Docker Compose, GitHub Actions
 
+## Screenshots
+
+| Landing (light) | Landing (dark) |
+|---|---|
+| ![Landing page, light theme](docs/screenshots/landing-light.png) | ![Landing page, dark theme](docs/screenshots/landing-dark.png) |
+
+| Dashboard | Requests (dark) | Calendar |
+|---|---|---|
+| ![Dashboard overview](docs/screenshots/dashboard-light.png) | ![Pending requests, dark theme](docs/screenshots/requests-dark.png) | ![Team leave calendar](docs/screenshots/calendar-light.png) |
+
+The landing-page chat is a scripted animation, not a live conversation. The dashboard screenshots use the data from `backend/scripts/seed_demo.py`.
+
 ## Features
 
 - Apply, cancel, approve and reject leave through a WhatsApp bot (rule-based parser, optional LLM fallback).
@@ -64,6 +76,7 @@ docker compose up --build
 - Migrations (`alembic upgrade head`) run automatically when the backend container starts.
 - WhatsApp and AI keys are optional. Set `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET`, `OPENROUTER_API_KEY` and `SECRET_KEY` in your shell or a `.env` file next to `docker-compose.yml`. Without WhatsApp credentials the bot does not send messages.
 - Without Docker, see [backend/.env.example](backend/.env.example).
+- Optional demo data (a small team, 12 leave requests, a few holidays; safe to re-run): `docker compose exec backend python scripts/seed_demo.py`
 
 ## Tests
 
