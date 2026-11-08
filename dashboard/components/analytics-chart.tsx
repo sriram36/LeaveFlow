@@ -1,93 +1,71 @@
 "use client";
 
-import { useTheme } from "@/components/theme-provider";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend
+  Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MonthlyTrend } from "@/app/lib/api";
 
-interface AnalyticsChartProps {
-  data: MonthlyTrend[];
+// Colours come from the theme variables, so light, dark and "system" all just work.
+const SICK = "hsl(var(--chart-5))";
+const CASUAL = "hsl(var(--chart-1))";
+const SPECIAL = "hsl(var(--chart-4))";
+const AXIS = "hsl(var(--muted-foreground))";
+const GRID = "hsl(var(--border))";
+
+interface TooltipEntry {
+  name: string;
+  value: number;
+  color: string;
 }
 
-export function AnalyticsChart({ data }: AnalyticsChartProps) {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
-  
-  const colors = {
-    grid: isDark ? "#334155" : "#e2e8f0",
-    text: isDark ? "#94a3b8" : "#64748b",
-  };
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-background/95 backdrop-blur-xl border border-border/50 p-4 rounded-xl shadow-xl shadow-black/5">
-          <p className="font-semibold text-foreground mb-2">{label}</p>
-          <div className="space-y-1.5">
-            {payload.map((entry: any, index: number) => (
-              <div key={index} className="flex items-center justify-between gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                  <span className="text-muted-foreground">{entry.name}</span>
-                </div>
-                <span className="font-medium text-foreground">{entry.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-
+function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: TooltipEntry[]; label?: string }) {
+  if (!active || !payload?.length) return null;
   return (
-    <Card className="w-full h-full border-border/50 bg-background/50 backdrop-blur-xl shadow-sm hover:shadow-lg transition-all duration-300 group">
+    <div className="rounded-xl border border-border bg-card p-3 text-sm shadow-lg">
+      <p className="mb-1.5 font-semibold text-foreground">{label}</p>
+      <div className="space-y-1">
+        {payload.map((entry) => (
+          <div key={entry.name} className="flex items-center justify-between gap-6">
+            <span className="flex items-center gap-2 text-muted-foreground">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
+              {entry.name}
+            </span>
+            <span className="font-medium text-foreground">{entry.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function AnalyticsChart({ data }: { data: MonthlyTrend[] }) {
+  const empty = data.every((m) => !m.Sick && !m.Casual && !m.Special);
+  return (
+    <Card className="h-full">
       <CardHeader>
-        <CardTitle className="text-xl font-bold">
-          Leave trends
-        </CardTitle>
-        <CardDescription className="text-muted-foreground font-medium">
-          Monthly distribution across the team
-        </CardDescription>
+        <CardTitle className="text-lg">Leave usage</CardTitle>
+        <CardDescription>Approved requests per month, by type (last 6 months)</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorSick" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={isDark ? "#f87171" : "#ef4444"} stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor={isDark ? "#dc2626" : "#f87171"} stopOpacity={0.7}/>
-                </linearGradient>
-                <linearGradient id="colorCasual" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={isDark ? "#34d399" : "#10b981"} stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor={isDark ? "#059669" : "#34d399"} stopOpacity={0.7}/>
-                </linearGradient>
-                <linearGradient id="colorSpecial" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={isDark ? "#fbbf24" : "#f59e0b"} stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor={isDark ? "#d97706" : "#fbbf24"} stopOpacity={0.7}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={colors.grid} opacity={0.5} />
-              <XAxis dataKey="name" stroke={colors.text} fontSize={12} tickLine={false} axisLine={false} dy={10} />
-              <YAxis stroke={colors.text} fontSize={12} tickLine={false} axisLine={false} dx={-10} />
-              <Tooltip cursor={{ fill: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }} content={<CustomTooltip />} />
-              <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '20px', fontWeight: 500 }} />
-              <Bar dataKey="Sick" stackId="a" fill="url(#colorSick)" radius={[0, 0, 4, 4]} />
-              <Bar dataKey="Casual" stackId="a" fill="url(#colorCasual)" />
-              <Bar dataKey="Special" stackId="a" fill="url(#colorSpecial)" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        {empty ? (
+          <p className="flex h-[260px] items-center justify-center text-sm text-muted-foreground">No leave recorded yet.</p>
+        ) : (
+          <div className="h-[260px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={GRID} />
+                <XAxis dataKey="name" stroke={AXIS} fontSize={12} tickLine={false} axisLine={false} dy={8} />
+                <YAxis stroke={AXIS} fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip cursor={{ fill: "hsl(var(--muted))", opacity: 0.5 }} content={<ChartTooltip />} />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
+                <Bar dataKey="Casual" stackId="a" fill={CASUAL} />
+                <Bar dataKey="Sick" stackId="a" fill={SICK} />
+                <Bar dataKey="Special" stackId="a" fill={SPECIAL} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

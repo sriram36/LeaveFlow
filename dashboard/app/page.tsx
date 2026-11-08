@@ -1,240 +1,204 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, memo, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "./lib/auth-context";
-import { DashboardSkeleton } from "./components/skeleton";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { addDays, format, parseISO } from "date-fns";
+import { ArrowRight, CalendarClock, CircleCheck, Download, Inbox, UserMinus } from "lucide-react";
+import { useAuth } from "./lib/auth-context";
 import { api, LeaveRequest } from "./lib/api";
+import { formatDateRange, formatDays, initials, leaveTypeLabel, startsIn } from "./lib/format";
+import { DashboardSkeleton } from "./components/skeleton";
 import { AnalyticsChart } from "@/components/analytics-chart";
+import { TeamAvailability } from "@/components/team-availability";
+import { StatusBadge } from "@/components/status-badge";
+import { LandingPage } from "@/components/landing/landing-page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Users, Calendar, CircleCheck as CheckCircle, ArrowRight, ChartBar as BarChart3, Clock, Zap, UserCheck, CalendarDays, FileText, Settings } from "lucide-react";
-import { LandingPage } from "@/components/landing/landing-page";
+
+const greeting = () => {
+  const hour = new Date().getHours();
+  return hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+};
 
 const DashboardHome = memo(function DashboardHome() {
   const { user } = useAuth();
 
-  const { data: pendingRequests, isLoading: pendingLoading } = useQuery({
-    queryKey: ['pending-requests', user?.id, user?.role],
-    queryFn: () => api.getPendingRequests(),
-    enabled: Boolean(
-      user && (user.role === 'manager' || user.role === 'hr' || user.role === 'admin')
-    ),
-    staleTime: 30000,
-    refetchInterval: 60000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: 'always',
-  });
+  const stats = useQuery({ queryKey: ["dashboard-stats"], queryFn: () => api.getDashboardStats() });
+  const today = useQuery({ queryKey: ["today-leaves"], queryFn: () => api.getTodayLeaves() });
+  const history = useQuery({ queryKey: ["leave-history", "all"], queryFn: () => api.getLeaveHistory() });
 
-  const { data: balance, isLoading: balanceLoading } = useQuery({
-    queryKey: ['my-balance'],
-    queryFn: () => api.getMyBalance(),
-    staleTime: 60000,
-    refetchInterval: 300000,
-    refetchOnWindowFocus: false,
-  });
+  const [exporting, setExporting] = useState(false);
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['dashboard-stats'],
-    queryFn: () => api.getDashboardStats(),
-    enabled: Boolean(
-      user && (user.role === 'manager' || user.role === 'hr' || user.role === 'admin')
-    ),
-    staleTime: 30000,
-  });
+  const { upcoming30, thisWeek, recent } = useMemo(() => {
+    const all = history.data ?? [];
+    const now = new Date();
+    const todayKey = format(now, "yyyy-MM-dd");
+    const weekKey = format(addDays(now, 7), "yyyy-MM-dd");
+    const monthKey = format(addDays(now, 30), "yyyy-MM-dd");
+    const approved = all.filter((r) => r.status === "approved");
+    return {
+      upcoming30: approved.filter((r) => r.start_date >= todayKey && r.start_date <= monthKey).length,
+      thisWeek: approved
+        .filter((r) => r.end_date >= todayKey && r.start_date <= weekKey)
+        .sort((a, b) => a.start_date.localeCompare(b.start_date))
+        .slice(0, 5),
+      recent: all.slice(0, 6),
+    };
+  }, [history.data]);
 
-  const pendingCount = useMemo(
-    () => stats?.pending_count ?? (pendingRequests?.length || 0),
-    [stats, pendingRequests]
-  );
-  const balanceData = useMemo(() => balance || { casual: 0, sick: 0, special: 0 }, [balance]);
-  const activityData = useMemo(() => stats?.recent_activity || [], [stats]);
-  const totalBalance = useMemo(
-    () => (balanceData.casual || 0) + (balanceData.sick || 0) + (balanceData.special || 0),
-    [balanceData]
-  );
-
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const handleGenerateReport = async () => {
+  const exportCsv = async () => {
     try {
-      setIsGenerating(true);
-      const history = await api.getLeaveHistory();
-      if (!history || history.length === 0) return;
-
-      const headers = [
-        'ID', 'Employee', 'Start Date', 'End Date', 'Days', 'Type', 'Duration', 'Status', 'Reason', 'Created At',
-      ];
-      const csvData: (string | number)[][] = history.map((req: LeaveRequest) => [
-        req.id,
-        req.user?.name || 'Unknown',
-        req.start_date,
-        req.end_date,
-        req.days,
-        req.leave_type,
-        req.duration_type,
-        req.status,
-        `"${(req.reason || '').replace(/"/g, '""')}"`,
-        req.created_at,
-      ]);
-
-      const csv = [headers.join(','), ...csvData.map((row) => row.join(','))].join('\n');
-      const blob = new Blob([csv], { type: 'text/csv' });
+      setExporting(true);
+      const rows = history.data ?? (await api.getLeaveHistory());
+      if (!rows.length) return;
+      const header = ["ID", "Employee", "Start Date", "End Date", "Days", "Type", "Duration", "Status", "Reason", "Created At"];
+      const lines = rows.map((r: LeaveRequest) =>
+        [r.id, r.user?.name || "Unknown", r.start_date, r.end_date, r.days, r.leave_type, r.duration_type, r.status,
+          `"${(r.reason || "").replace(/"/g, '""')}"`, r.created_at].join(",")
+      );
+      const blob = new Blob([[header.join(","), ...lines].join("\n")], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `leave-history-${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `leave-history-${format(new Date(), "yyyy-MM-dd")}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Failed to generate report", error);
     } finally {
-      setIsGenerating(false);
+      setExporting(false);
     }
   };
 
-  if (pendingLoading || balanceLoading || statsLoading) {
-    return <DashboardSkeleton />;
-  }
+  if (stats.isLoading || today.isLoading || history.isLoading) return <DashboardSkeleton />;
+
+  const firstName = user?.name?.split(" ")[0] || "there";
+  const pending = stats.data?.pending_count ?? 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="eyebrow mb-2">Overview</p>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">Welcome back, {user?.name?.split(" ")[0] || "there"}.</h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">Review pending requests, see who is off, and keep an eye on leave patterns.</p>
+          <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">
+            {greeting()}, {firstName}.
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+            {pending
+              ? `${pending} ${pending === 1 ? "request is" : "requests are"} waiting for your decision.`
+              : "Nothing is waiting for you. Here is how the team looks."}
+          </p>
         </div>
-        <Link href="/requests" className="shrink-0">
-          <Button className="rounded-xl">
-            Review requests
-            <ArrowRight className="ml-2 h-4 w-4" />
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportCsv} disabled={exporting}>
+            <Download className="h-4 w-4" /> {exporting ? "Exporting…" : "Export CSV"}
           </Button>
-        </Link>
+          <Button asChild>
+            <Link href="/requests">
+              Review requests <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
       </section>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Pending Requests"
-          value={pendingCount}
-          subtitle="Awaiting approval"
-          icon={Clock}
-          color="text-warning"
-          bg="bg-warning/10"
-        />
-        <StatCard
-          title="Leave Balance"
-          value={totalBalance}
-          subtitle="Days remaining"
-          icon={Calendar}
-          color="text-primary"
-          bg="bg-primary/10"
-        />
-        <StatCard
-          title="Approved Today"
-          value={stats?.approved_today || 0}
-          subtitle="Approved today"
-          icon={CheckCircle}
-          color="text-success"
-          bg="bg-success/10"
-        />
-        <StatCard
-          title="Team Members"
-          value={stats?.active_users || 0}
-          subtitle="Active users"
-          icon={Users}
-          color="text-accent"
-          bg="bg-accent/10"
-        />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Kpi href="/requests" icon={Inbox} label="Pending requests" value={pending} note="Waiting for approval" tone="amber" />
+        <Kpi href="/requests/history" icon={CircleCheck} label="Approved today" value={stats.data?.approved_today ?? 0} note="Decisions made today" tone="green" />
+        <Kpi href="/requests/calendar" icon={UserMinus} label="Away today" value={today.data?.count ?? 0} note="On approved leave" tone="blue" />
+        <Kpi href="/requests/calendar" icon={CalendarClock} label="Upcoming leave" value={upcoming30} note="Starting in the next 30 days" tone="teal" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Analytics */}
+      <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <AnalyticsChart data={stats?.monthly_trends || []} />
+          <AnalyticsChart data={stats.data?.monthly_trends ?? []} />
         </div>
+        <TeamAvailability total={stats.data?.active_users ?? 0} away={today.data?.count ?? 0} />
+      </div>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <div>
-              <p className="eyebrow mb-2">At a glance</p>
-              <CardTitle className="text-xl">Quick actions</CardTitle>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-row items-start justify-between space-y-0">
+            <div className="space-y-1.5">
+              <CardTitle className="text-lg">Recent requests</CardTitle>
+              <CardDescription>The latest requests, newest first</CardDescription>
             </div>
-            <Zap className="h-5 w-5 text-primary" />
+            <Link href="/requests/history" className="text-sm font-medium text-primary hover:underline">
+              View all
+            </Link>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <Link href="/requests" className="block group">
-              <Button className="w-full justify-start" variant="outline">
-                <UserCheck className="w-4 h-4 mr-2 text-primary" />
-                Review Requests
-              </Button>
-            </Link>
-            <Link href="/requests/calendar" className="block group">
-              <Button className="w-full justify-start" variant="outline">
-                <CalendarDays className="w-4 h-4 mr-2 text-primary" />
-                View Calendar
-              </Button>
-            </Link>
-            <Button
-              onClick={handleGenerateReport}
-              disabled={isGenerating}
-              className="w-full justify-start"
-              variant="outline"
-            >
-              <BarChart3 className="w-4 h-4 mr-2 text-primary" />
-              {isGenerating ? "Generating..." : "Generate Report"}
-            </Button>
-            <Link href="/users" className="block group">
-              <Button className="w-full justify-start" variant="outline">
-                <Settings className="w-4 h-4 mr-2 text-primary" />
-                Manage Users
-              </Button>
-            </Link>
+          <CardContent>
+            {recent.length === 0 ? (
+              <p className="py-10 text-center text-sm text-muted-foreground">
+                No requests yet. They appear here when someone sends one on WhatsApp.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                      <th className="pb-2 pr-4 font-semibold">Employee</th>
+                      <th className="hidden pb-2 pr-4 font-semibold sm:table-cell">Type</th>
+                      <th className="pb-2 pr-4 font-semibold">Dates</th>
+                      <th className="pb-2 text-right font-semibold">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recent.map((r) => (
+                      <tr key={r.id} className="border-b border-border/60 last:border-0">
+                        <td className="py-3 pr-4">
+                          <Link href={`/requests/${r.id}`} className="flex items-center gap-3 font-medium hover:underline">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-muted text-xs font-semibold text-primary">
+                              {initials(r.user?.name)}
+                            </span>
+                            {r.user?.name ?? "Unknown"}
+                          </Link>
+                        </td>
+                        <td className="hidden py-3 pr-4 text-muted-foreground sm:table-cell">{leaveTypeLabel(r.leave_type)}</td>
+                        <td className="py-3 pr-4 text-muted-foreground">
+                          {formatDateRange(r.start_date, r.end_date)}
+                          <span className="ml-2 text-xs">({formatDays(r.days)})</span>
+                        </td>
+                        <td className="py-3 text-right">
+                          <StatusBadge status={r.status} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
-        <Card className="lg:col-span-3">
+        <Card>
           <CardHeader>
-            <p className="eyebrow mb-2">The latest</p>
-            <CardTitle>Recent activity</CardTitle>
-            <CardDescription>Latest leave requests and approvals</CardDescription>
+            <CardTitle className="text-lg">Away this week</CardTitle>
+            <CardDescription>Approved leave in the next 7 days</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {activityData.length > 0 ? (
-                activityData.slice(0, 5).map((activity, index: number) => (
-                  <div
-                    key={index}
-                    className="flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                      {activity.user?.charAt(0)}
-                    </div>
-                    <div className="flex-1 space-y-0.5 min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">{activity.user}</p>
-                      <p className="text-xs text-muted-foreground truncate">{activity.action}</p>
-                    </div>
-                    <div className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full flex-shrink-0">
-                      {activity.time}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-14 h-14 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 text-muted-foreground">
-                    <FileText className="w-7 h-7" />
-                  </div>
-                  <p className="text-foreground font-medium">No recent activity</p>
-                  <p className="text-sm text-muted-foreground">New activity will appear here.</p>
-                </div>
-              )}
-            </div>
+            {thisWeek.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Everyone is in this week.</p>
+            ) : (
+              <ul className="space-y-4">
+                {thisWeek.map((r) => (
+                  <li key={r.id}>
+                    <Link href={`/requests/${r.id}`} className="flex items-center gap-3 hover:opacity-80">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-muted text-xs font-semibold text-primary">
+                        {initials(r.user?.name)}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium">{r.user?.name ?? "Unknown"}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {leaveTypeLabel(r.leave_type)} · {formatDateRange(r.start_date, r.end_date)}
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-xs font-medium text-muted-foreground">
+                        {parseISO(r.start_date) <= new Date() ? "now" : startsIn(r.start_date)}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -242,34 +206,38 @@ const DashboardHome = memo(function DashboardHome() {
   );
 });
 
-function StatCard({
-  title,
-  value,
-  subtitle,
-  icon: Icon,
-  color,
-  bg,
+const TONES = {
+  amber: "bg-warning/15 text-[hsl(30_80%_28%)] dark:text-warning",
+  green: "bg-success/15 text-success",
+  blue: "bg-[hsl(var(--chart-4)/0.15)] text-[hsl(var(--chart-4))]",
+  teal: "bg-primary-muted text-primary",
+} as const;
+
+function Kpi({
+  href, icon: Icon, label, value, note, tone,
 }: {
-  title: string;
-  value: number;
-  subtitle: string;
+  href: string;
   icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  bg: string;
+  label: string;
+  value: number;
+  note: string;
+  tone: keyof typeof TONES;
 }) {
   return (
-    <Card className="group hover:-translate-y-0.5">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <div className={`w-8 h-8 rounded-full ${bg} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}>
-          <Icon className={`w-4 h-4 ${color}`} />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold text-foreground">{value}</div>
-        <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
-      </CardContent>
-    </Card>
+    <Link href={href} className="group block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <Card className="h-full transition-colors group-hover:border-primary/40">
+        <CardContent className="flex items-start gap-4 p-5">
+          <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${TONES[tone]}`}>
+            <Icon className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-3xl font-semibold leading-none">{value}</p>
+            <p className="mt-2 text-sm font-medium">{label}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{note}</p>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
@@ -281,13 +249,7 @@ export default memo(function HomePage() {
     setMounted(true);
   }, []);
 
-  if (!mounted || isLoading) {
-    return <DashboardSkeleton />;
-  }
-
-  if (isAuthenticated) {
-    return <DashboardHome />;
-  }
-
+  if (!mounted || isLoading) return <DashboardSkeleton />;
+  if (isAuthenticated) return <DashboardHome />;
   return <LandingPage />;
 });
