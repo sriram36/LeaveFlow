@@ -6,7 +6,7 @@ async function signInAsDemo(page: Page) {
   await page.goto("/signin?demo=1");
   await expect(page.locator("#email")).toHaveValue("demo@leaveflow.com");
   await page.getByRole("button", { name: /Sign in to Dashboard/i }).click();
-  await expect(page.getByText("Welcome back,")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(/Good (morning|afternoon|evening)/, { timeout: 30_000 });
 }
 
 // /demo/reset is rate limited (5 per minute), so the walkthrough below resets exactly twice.
@@ -24,9 +24,39 @@ test("the landing page shows immediately and links to the demo", async ({ page }
   await expect(page.getByRole("link", { name: /Try the live demo/i }).first()).toBeVisible();
 });
 
-test("demo walkthrough: inbox, shortcuts, audit trail, timeline, restart", async ({ page }) => {
+test("the parser box runs the real parser and says plainly when it gives up", async ({ page }) => {
+  await page.goto("/");
+  const result = page.getByTestId("parser-result");
+
+  await page.getByRole("button", { name: "leave tomorrow sick", exact: true }).click();
+  await expect(result).toContainText("Leave request", { timeout: 30_000 });
+  await expect(result).toContainText("Sick leave");
+
+  await page.getByRole("button", { name: "leave next monday casual", exact: true }).click();
+  await expect(result).toContainText("something is missing", { timeout: 30_000 });
+  await expect(result).toContainText("Could not parse dates");
+});
+
+test("the landing page's product screenshots load", async ({ page }) => {
+  await page.goto("/");
+  for (const [tab, id] of [["Approval inbox", "inbox"], ["Dashboard", "dashboard"], ["Who's away", "timeline"]]) {
+    await page.getByRole("tab", { name: tab }).click();
+    const image = page.locator(`img[src="/landing/${id}-light.png"]`);
+    await image.scrollIntoViewIfNeeded();
+    await expect.poll(() => image.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
+  }
+});
+
+test("demo walkthrough: dashboard, inbox, shortcuts, audit trail, timeline, restart", async ({ page }) => {
   await signInAsDemo(page);
   await resetDemoViaApi(page);
+
+  await test.step("the dashboard shows the seeded numbers", async () => {
+    await page.goto("/");
+    await expect(page.getByText("4 requests are waiting for your decision.")).toBeVisible();
+    await expect(page.getByText("Team availability")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Recent requests" })).toBeVisible();
+  });
 
   await test.step("the seeded inbox shows pending requests, checks and live status", async () => {
     await page.goto("/requests");
