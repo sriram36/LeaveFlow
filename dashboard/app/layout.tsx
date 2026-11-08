@@ -11,8 +11,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-serif" });
 
 export const metadata = {
-  title: "LeaveFlow — Leave Management, Reimagined",
-  description: "WhatsApp-native leave automation and approval platform for modern teams.",
+  title: "LeaveFlow — leave requests that start as a WhatsApp message",
+  description: "Employees request leave on WhatsApp; managers approve from a live dashboard. Audit-logged, role-based and safe under concurrent approvals.",
   icons: {
     icon: [
       {

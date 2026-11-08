@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/app/lib/auth-context";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, CalendarDays, Users, Settings, LogOut, Sun, Moon, Laptop, ChartBar as BarChart3, UserPlus, Inbox, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { RestartDemoButton } from "@/components/restart-demo-button";
 import { useTheme } from "@/components/theme-provider";
 import {
   DropdownMenu,
@@ -42,7 +43,7 @@ export function Sidebar({ className }: { className?: string }) {
       roles: ["manager", "hr", "admin", "worker"],
     },
     {
-      title: "Calendar",
+      title: "Who's away",
       href: "/requests/calendar",
       icon: CalendarDays,
       roles: ["manager", "hr", "admin", "worker"],
@@ -142,6 +143,7 @@ export function Sidebar({ className }: { className?: string }) {
       </div>
 
       <div className="p-4 space-y-4 overflow-hidden">
+        {user?.email?.toLowerCase() === "demo@leaveflow.com" && <RestartDemoButton collapsed={isCollapsed} />}
         {!isCollapsed ? (
           <div className="flex items-center justify-between p-1 bg-muted rounded-full border border-border/60">
             <button

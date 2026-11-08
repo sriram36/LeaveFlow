@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
-import { Check, CheckCheck, CircleCheck, Clock, ShieldCheck } from "lucide-react";
+import { Check, CheckCheck, CircleCheck, Clock, RotateCcw, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -156,7 +156,16 @@ export function WhatsAppDemo() {
         </AnimatePresence>
       </div>
 
-      <p className="text-center text-xs text-muted-foreground md:col-span-2">Scripted preview with sample data, not a live conversation.</p>
+      <p className="flex items-center justify-center gap-3 text-center text-xs text-muted-foreground md:col-span-2">
+        Scripted preview with sample data, not a live conversation.
+        <button
+          type="button"
+          onClick={() => setStep(0)}
+          className="inline-flex items-center gap-1 rounded-md px-2 py-1 font-medium text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <RotateCcw className="h-3 w-3" /> Replay
+        </button>
+      </p>
     </div>
     </MotionConfig>
   );

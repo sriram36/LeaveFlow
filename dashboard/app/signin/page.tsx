@@ -178,7 +178,7 @@ export default function SigninPage() {
               size="lg"
             >
               <Zap className="w-4 h-4 mr-2 text-primary" />
-              Use demo credentials
+              Fill Demo Credentials
             </Button>
           </form>
 
