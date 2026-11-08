@@ -9,7 +9,7 @@ from datetime import date, datetime, timezone
 from typing import Optional, List, Dict, Any
 import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, or_, func
+from sqlalchemy import select, update, and_, or_, func
 from sqlalchemy.orm import selectinload
 
 from app.websockets import manager
@@ -18,7 +18,9 @@ from app.models import (
     User, LeaveRequest, LeaveBalance, AuditLog, Attachment,
     LeaveStatus, LeaveType, DurationType, UserRole
 )
-from app.services.validator import LeaveValidator, LeaveValidationError, deduct_balance, refund_balance
+from app.services.validator import (
+    LeaveValidator, LeaveValidationError, deduct_balance, refund_balance, ensure_balance_row
+)
 from app.services.whatsapp import (
     format_leave_request_notification,
     format_leave_confirmation,
@@ -61,6 +63,10 @@ class LeaveService:
         else:
             duration = DurationType.full
 
+        # Serialize creates per user: hold the user's balance row lock until commit, so the
+        # overlap and balance checks below read a state no concurrent create can change.
+        await ensure_balance_row(self.db, user_id, lock=True)
+
         # Validate the request
         is_valid, days, warning = await self.validator.validate_leave_request(
             user_id=user_id,
@@ -70,29 +76,30 @@ class LeaveService:
             is_half_day=is_half_day
         )
 
-        # Reserve the balance immediately so pending requests reflect reduced availability.
+        # Reserve the balance and create the request in ONE transaction: either both
+        # are saved or neither is.
         if not await deduct_balance(self.db, user_id, l_type, days):
             raise LeaveValidationError("Insufficient balance", "INSUFFICIENT_BALANCE")
 
-        # Create the request
-        leave_request = LeaveRequest(
-            user_id=user_id,
-            start_date=start_date,
-            end_date=end_date,
-            days=days,
-            leave_type=l_type,
-            duration_type=duration,
-            reason=reason,
-            status=LeaveStatus.pending
-        )
-
-        self.db.add(leave_request)
-        await self.db.commit()
+        try:
+            leave_request = LeaveRequest(
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+                days=days,
+                leave_type=l_type,
+                duration_type=duration,
+                reason=reason,
+                status=LeaveStatus.pending
+            )
+            self.db.add(leave_request)
+            await self.db.flush()  # assigns leave_request.id for the audit log
+            await self._log_action(leave_request.id, "created", user_id)
+            await self.db.commit()
+        except Exception:
+            await self.db.rollback()  # also undoes the balance reservation
+            raise
         await self.db.refresh(leave_request)
-
-        # Log the action AFTER commit (so leave_request.id exists)
-        await self._log_action(leave_request.id, "created", user_id)
-        await self.db.commit()
 
         # Get user and manager info for notifications
         user = await self._get_user(user_id)
@@ -148,12 +155,12 @@ class LeaveService:
         if leave_request.status != LeaveStatus.pending:
             raise LeaveValidationError(f"Request is already {leave_request.status.value}", "ALREADY_PROCESSED")
 
-        # Update status
-        leave_request.status = LeaveStatus.approved
-        leave_request.approved_by = approver_id
-        leave_request.approved_at = datetime.now(timezone.utc)
+        # Only one caller can move the request out of "pending".
+        await self._transition_status(
+            request_id, [LeaveStatus.pending], LeaveStatus.approved,
+            approved_by=approver_id, approved_at=datetime.now(timezone.utc),
+        )
 
-        # Log the action before commit
         await self._log_action(request_id, "approved", approver_id)
 
         await self.db.commit()
@@ -203,11 +210,13 @@ class LeaveService:
         if leave_request.status != LeaveStatus.pending:
             raise LeaveValidationError(f"Request is already {leave_request.status.value}", "ALREADY_PROCESSED")
 
-        # Update status
-        leave_request.status = LeaveStatus.rejected
-        leave_request.approved_by = approver_id
-        leave_request.approved_at = datetime.now(timezone.utc)
-        leave_request.rejection_reason = reason
+        # Only one caller can move the request out of "pending"; the refund below
+        # therefore happens at most once.
+        await self._transition_status(
+            request_id, [LeaveStatus.pending], LeaveStatus.rejected,
+            approved_by=approver_id, approved_at=datetime.now(timezone.utc),
+            rejection_reason=reason,
+        )
 
         # Refund the reserved balance now that the request is rejected.
         await refund_balance(
@@ -268,17 +277,18 @@ class LeaveService:
         if leave_request.status not in [LeaveStatus.pending, LeaveStatus.approved]:
             raise LeaveValidationError(f"Cannot cancel a {leave_request.status.value} request", "INVALID_STATUS")
 
-        # If approved, refund balance
-        if leave_request.status == LeaveStatus.approved:
-            await refund_balance(
-                self.db,
-                leave_request.user_id,
-                leave_request.leave_type,
-                leave_request.days
-            )
-
-        # Update status
-        leave_request.status = LeaveStatus.cancelled
+        # Balance is reserved when the request is created, so both a pending and an
+        # approved request hold days that must be returned. The transition guard makes
+        # sure this refund happens at most once.
+        await self._transition_status(
+            request_id, [LeaveStatus.pending, LeaveStatus.approved], LeaveStatus.cancelled,
+        )
+        await refund_balance(
+            self.db,
+            leave_request.user_id,
+            leave_request.leave_type,
+            leave_request.days
+        )
 
         # Log the action before commit
         await self._log_action(request_id, "cancelled", user_id)
@@ -302,23 +312,8 @@ class LeaveService:
 
     async def get_balance(self, user_id: int) -> Dict[str, float]:
         """Get user's leave balance."""
-        result = await self.db.execute(
-            select(LeaveBalance).where(LeaveBalance.user_id == user_id)
-        )
-        balance = result.scalar_one_or_none()
-
-        if not balance:
-            # Create default balance
-            balance = LeaveBalance(
-                user_id=user_id,
-                year=date.today().year,
-                casual=12.0,
-                sick=12.0,
-                special=5.0
-            )
-            self.db.add(balance)
-            await self.db.commit()
-            await self.db.refresh(balance)
+        balance = await ensure_balance_row(self.db, user_id)
+        await self.db.commit()  # persist the row if it was just created
 
         return {
             "casual": balance.casual,
@@ -444,6 +439,32 @@ class LeaveService:
 
         result = await self.db.execute(query)
         return result.scalars().all()
+
+    async def _transition_status(
+        self,
+        request_id: int,
+        allowed_from: List[LeaveStatus],
+        new_status: LeaveStatus,
+        **fields: Any
+    ) -> None:
+        """Atomically move a request to `new_status` if it is still in `allowed_from`.
+
+        The status check and the write are one UPDATE, so of several concurrent callers
+        exactly one wins; the rest get ALREADY_PROCESSED. Nothing is committed here.
+        """
+        result = await self.db.execute(
+            update(LeaveRequest)
+            .where(LeaveRequest.id == request_id, LeaveRequest.status.in_(allowed_from))
+            .values(status=new_status, **fields)
+            .execution_options(synchronize_session=False)
+        )
+        if result.rowcount == 0:
+            # Selecting just the column bypasses the session's possibly stale copy.
+            current = await self.db.scalar(
+                select(LeaveRequest.status).where(LeaveRequest.id == request_id)
+            )
+            state = current.value if current else "missing"
+            raise LeaveValidationError(f"Request is already {state}", "ALREADY_PROCESSED")
 
     async def _get_user(self, user_id: int) -> Optional[User]:
         """Get user by ID."""

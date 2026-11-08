@@ -12,7 +12,8 @@ Handles all business logic for leave validation:
 from datetime import date, timedelta
 from typing import List, Optional, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select, update, and_, or_
+from sqlalchemy.exc import IntegrityError
 from app.models import LeaveRequest, LeaveBalance, Holiday, LeaveStatus, LeaveType, DurationType, User
 
 
@@ -165,80 +166,92 @@ class LeaveValidator:
         return result.first() is not None
     
     async def _get_balance(self, user_id: int, leave_type: LeaveType) -> float:
-        """Get user's leave balance for the given type."""
-        user_result = await self.db.execute(select(User).where(User.id == user_id))
-        user = user_result.scalar_one_or_none()
-
-        result = await self.db.execute(
-            select(LeaveBalance).where(LeaveBalance.user_id == user_id)
-        )
-        balance = result.scalar_one_or_none()
-        
-        if not balance:
-            # Create balance from user seed values when available, otherwise defaults
-            casual = getattr(user, "casual_leave_balance", 12.0) if user else 12.0
-            sick = getattr(user, "sick_leave_balance", 12.0) if user else 12.0
-            special = getattr(user, "special_leave_balance", 5.0) if user else 5.0
-            balance = LeaveBalance(
-                user_id=user_id,
-                year=date.today().year,
-                casual=casual,
-                sick=sick,
-                special=special
-            )
-            self.db.add(balance)
-            await self.db.commit()
-            await self.db.refresh(balance)
-
-        if user:
-            user.casual_leave_balance = balance.casual
-            user.sick_leave_balance = balance.sick
-            user.special_leave_balance = balance.special
-            await self.db.commit()
-        
+        """Get user's leave balance for the given type (read only, never commits)."""
+        balance = await ensure_balance_row(self.db, user_id)
         return getattr(balance, leave_type.value)
 
 
+async def ensure_balance_row(db: AsyncSession, user_id: int, lock: bool = False) -> LeaveBalance:
+    """Return the user's LeaveBalance row, creating it from the user's seed values if missing.
+
+    Safe when several requests seed the same user at once: the insert runs in a savepoint,
+    and the loser of the unique(user_id) race just re-reads the winner's row.
+    Never commits; the caller owns the transaction. With lock=True the row is locked
+    (SELECT ... FOR UPDATE) until the caller's transaction ends.
+    """
+    query = select(LeaveBalance).where(LeaveBalance.user_id == user_id)
+    if lock:
+        query = query.with_for_update()
+        # Refresh in case this session already holds an older copy of the row.
+        query = query.execution_options(populate_existing=True)
+
+    balance = (await db.execute(query)).scalar_one_or_none()
+    if balance:
+        return balance
+
+    user = (await db.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
+    new_balance = LeaveBalance(
+        user_id=user_id,
+        year=date.today().year,
+        casual=user.casual_leave_balance if user else 12.0,
+        sick=user.sick_leave_balance if user else 12.0,
+        special=user.special_leave_balance if user else 5.0,
+    )
+    try:
+        async with db.begin_nested():
+            db.add(new_balance)
+    except IntegrityError:
+        # Another request created the row first.
+        pass
+    return (await db.execute(query)).scalar_one()
+
+
 async def deduct_balance(db: AsyncSession, user_id: int, leave_type: LeaveType, days: float) -> bool:
-    """Deduct leave balance after approval."""
-    user_result = await db.execute(select(User).where(User.id == user_id))
-    user = user_result.scalar_one_or_none()
+    """Atomically reserve `days` of balance. Returns False if there is not enough.
+
+    One conditional UPDATE does the check and the write together, so two concurrent
+    requests cannot both spend the same days. Does not commit: the caller commits
+    this together with the leave request, so both succeed or fail as one.
+    """
+    await ensure_balance_row(db, user_id)
+    column = leave_type.value
 
     result = await db.execute(
-        select(LeaveBalance).where(LeaveBalance.user_id == user_id)
+        update(LeaveBalance)
+        .where(LeaveBalance.user_id == user_id, getattr(LeaveBalance, column) >= days)
+        .values({column: getattr(LeaveBalance, column) - days})
     )
-    balance = result.scalar_one_or_none()
-    
-    if not balance:
+    if result.rowcount == 0:
         return False
-    
-    current = getattr(balance, leave_type.value)
-    if current < days:
-        return False
-    
-    setattr(balance, leave_type.value, current - days)
-    if user:
-        setattr(user, f"{leave_type.value}_leave_balance", current - days)
-    await db.commit()
+
+    await _mirror_to_user(db, user_id, leave_type, -days)
     return True
 
 
 async def refund_balance(db: AsyncSession, user_id: int, leave_type: LeaveType, days: float) -> bool:
-    """Refund leave balance after cancellation or rejection."""
-    user_result = await db.execute(select(User).where(User.id == user_id))
-    user = user_result.scalar_one_or_none()
+    """Atomically give `days` of balance back. Does not commit; the caller commits."""
+    await ensure_balance_row(db, user_id)
+    column = leave_type.value
 
     result = await db.execute(
-        select(LeaveBalance).where(LeaveBalance.user_id == user_id)
+        update(LeaveBalance)
+        .where(LeaveBalance.user_id == user_id)
+        .values({column: getattr(LeaveBalance, column) + days})
     )
-    balance = result.scalar_one_or_none()
-    
-    if not balance:
+    if result.rowcount == 0:
         return False
-    
-    current = getattr(balance, leave_type.value)
-    setattr(balance, leave_type.value, current + days)
-    if user:
-        setattr(user, f"{leave_type.value}_leave_balance", current + days)
-    await db.commit()
+
+    await _mirror_to_user(db, user_id, leave_type, days)
     return True
+
+
+async def _mirror_to_user(db: AsyncSession, user_id: int, leave_type: LeaveType, delta: float) -> None:
+    """Apply the same relative change to the legacy User.<type>_leave_balance column.
+
+    LeaveBalance is the source of truth; the User columns are a mirror the dashboard
+    still reads. A relative update (col = col + delta) cannot overwrite a concurrent change.
+    """
+    column = f"{leave_type.value}_leave_balance"
+    await db.execute(
+        update(User).where(User.id == user_id).values({column: getattr(User, column) + delta})
+    )

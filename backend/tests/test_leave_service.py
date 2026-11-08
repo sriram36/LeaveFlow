@@ -178,3 +178,56 @@ async def test_manager_cannot_approve_another_manager_team(db_session: AsyncSess
 
     with pytest.raises(LeaveValidationError, match="team"):
         await service.approve_leave(request.id, other_manager.id)
+
+
+def _next_monday() -> date:
+    start = date.today() + timedelta(days=1)
+    while start.weekday() != 0:
+        start += timedelta(days=1)
+    return start
+
+
+@pytest.mark.asyncio
+async def test_cancel_pending_request_refunds_reserved_balance(db_session: AsyncSession, sample_worker):
+    """Balance is reserved at creation, so cancelling a pending request must give it back."""
+    service = LeaveService(db_session)
+    start = _next_monday()
+    req = await service.create_leave_request(
+        user_id=sample_worker.id,
+        leave_type=LeaveType.casual,
+        start_date=start,
+        end_date=start,
+        notify_manager=False,
+        notify_employee=False,
+    )
+    await db_session.refresh(sample_worker)
+    assert sample_worker.casual_leave_balance == 4
+
+    cancelled = await service.cancel_leave(req.id, sample_worker.id)
+
+    assert cancelled.status == LeaveStatus.cancelled
+    await db_session.refresh(sample_worker)
+    assert sample_worker.casual_leave_balance == 5
+    assert (await service.get_balance(sample_worker.id))["casual"] == 5
+
+
+@pytest.mark.asyncio
+async def test_cancel_approved_request_refunds_balance_once(db_session: AsyncSession, sample_worker, sample_manager):
+    service = LeaveService(db_session)
+    start = _next_monday()
+    req = await service.create_leave_request(
+        user_id=sample_worker.id,
+        leave_type=LeaveType.casual,
+        start_date=start,
+        end_date=start,
+        notify_manager=False,
+        notify_employee=False,
+    )
+    await service.approve_leave(req.id, sample_manager.id)
+
+    await service.cancel_leave(req.id, sample_worker.id)
+
+    assert (await service.get_balance(sample_worker.id))["casual"] == 5
+    with pytest.raises(LeaveValidationError):
+        await service.cancel_leave(req.id, sample_worker.id)
+    assert (await service.get_balance(sample_worker.id))["casual"] == 5
