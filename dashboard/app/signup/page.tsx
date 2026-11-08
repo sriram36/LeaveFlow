@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth-context";
 import { api } from "../lib/api";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, CircleCheck as CheckCircle, Zap, MessageSquare, ChartBar as BarChart3 } from "lucide-react";
+import { Leaf, CircleCheck as CheckCircle, Zap, MessageSquare, ChartBar as BarChart3 } from "lucide-react";
 
 export default memo(function SignupPage() {
   const router = useRouter();
@@ -84,7 +84,7 @@ export default memo(function SignupPage() {
         <div className="flex flex-col justify-between p-12 relative z-10 text-primary-foreground">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-lg bg-primary-foreground/15 flex items-center justify-center">
-              <CalendarDays className="w-5 h-5" />
+              <Leaf className="w-5 h-5" />
             </div>
             <span className="text-xl font-bold tracking-tight">LeaveFlow</span>
           </Link>
@@ -120,7 +120,7 @@ export default memo(function SignupPage() {
           {/* Mobile Logo */}
           <Link href="/" className="flex items-center gap-2.5 lg:hidden">
             <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-              <CalendarDays className="w-5 h-5 text-primary-foreground" />
+              <Leaf className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold tracking-tight text-foreground">LeaveFlow</span>
           </Link>

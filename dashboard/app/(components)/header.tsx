@@ -18,6 +18,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Sidebar } from "@/components/sidebar";
+import { LogoMark } from "@/components/brand/logo-mark";
 import { formatDistanceToNow } from "date-fns";
 import {
   DropdownMenu,
@@ -85,9 +86,7 @@ export function Header() {
           </Sheet>
 
           <Link href="/" className="flex items-center gap-2 md:hidden">
-            <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shadow-sm">
-              <span className="text-primary-foreground font-bold text-xs">L</span>
-            </div>
+            <LogoMark className="h-7 w-7 rounded-md" iconClassName="h-4 w-4" />
             <span className="text-lg font-bold tracking-tight text-foreground">
               LeaveFlow
             </span>
