@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
@@ -22,13 +20,19 @@ services:
       context: ./backend
     ports:
       - "8000:8000"
+    # Apply migrations, then start the API (the app does not create tables itself).
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:password@db:5432/leaveflow
-      - WHATSAPP_API_TOKEN=your_token_here
-      - WHATSAPP_PHONE_NUMBER_ID=your_id_here
-      - WHATSAPP_VERIFY_TOKEN=your_verify_token
-      - SECRET_KEY=development_secret_key_change_in_production
-      - GEMINI_API_KEY=your_gemini_key
+      # sslmode=disable: the db container does not speak SSL
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@db:5432/leaveflow?sslmode=disable
+      # Leave the WhatsApp/AI values empty to run without outbound calls, or set them
+      # in your shell / a .env file next to this file.
+      - WHATSAPP_TOKEN=${WHATSAPP_TOKEN:-}
+      - WHATSAPP_PHONE_NUMBER_ID=${WHATSAPP_PHONE_NUMBER_ID:-}
+      - WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN:-dev_verify_token}
+      - WHATSAPP_APP_SECRET=${WHATSAPP_APP_SECRET:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - SECRET_KEY=${SECRET_KEY:-development_secret_key_change_in_production}
     depends_on:
       db:
         condition: service_healthy
