@@ -1,6 +1,6 @@
 # LeaveFlow: System Design & Architecture
 
-This document outlines the architectural decisions and system design principles behind LeaveFlow. It is structured to provide clear talking points for system design interviews.
+Design decisions and trade-offs behind LeaveFlow. For how concurrent requests are kept consistent, see the "Concurrency and data integrity" section of the [README](./README.md).
 
 ## 1. High-Level Architecture
 
@@ -36,13 +36,13 @@ graph TD
 **Why:**
 - **Asynchronous by Default:** Native `async/await` support handles concurrent webhook events from WhatsApp efficiently without blocking threads.
 - **Data Validation:** Pydantic models automatically validate incoming webhooks and API payloads, rejecting malformed data before it hits the business logic.
-- **Performance:** Built on Starlette and Uvicorn, offering Node.js/Go-like performance for IO-bound webhook processing.
+- **Runtime:** Built on Starlette and Uvicorn; request handling is non-blocking for IO-bound work. No benchmark results are recorded for this project yet.
 
 ### 2.2 Database Layer: PostgreSQL + SQLAlchemy Asyncio
 **Why:**
 - **Relational Integrity:** Leave balances, requests, and user hierarchies are highly relational. ACID compliance is non-negotiable for HR data.
-- **Async I/O:** Using `asyncpg` combined with SQLAlchemy 2.0 async sessions prevents database queries from blocking the event loop, maximizing throughput.
-- **Trade-off:** Async SQLAlchemy is more complex to set up than synchronous ORMs, but the scalability benefits under load justify the complexity.
+- **Async I/O:** Using `asyncpg` combined with SQLAlchemy 2.0 async sessions prevents database queries from blocking the event loop, so the event loop keeps serving other requests while a query is in flight.
+- **Trade-off:** Async SQLAlchemy is more complex to set up than synchronous ORMs, but it keeps the event loop free while queries run (not benchmarked here).
 
 ### 2.3 Real-Time Communication: WebSockets
 **Why:**

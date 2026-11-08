@@ -1,3 +1,4 @@
+from sqlalchemy import select
 import pytest
 from datetime import date, timedelta
 from unittest.mock import AsyncMock, MagicMock
@@ -106,18 +107,38 @@ async def test_validate_success():
     assert working_days == 2.0
     assert warning_msg is None
 
+@pytest.fixture
+async def user_with_balance(db_session):
+    user = User(name="Bal User", phone="+15550000001", casual_leave_balance=10.0)
+    db_session.add(user)
+    await db_session.commit()
+    db_session.add(LeaveBalance(user_id=user.id, year=2026, casual=10.0, sick=12.0, special=5.0))
+    await db_session.commit()
+    return user
+
+
 @pytest.mark.asyncio
-async def test_deduct_balance():
-    db = AsyncMock()
-    user_mock = MagicMock()
-    user_mock.scalar_one_or_none.return_value = User(id=1, casual_leave_balance=10.0)
-    balance_mock = MagicMock()
-    balance = LeaveBalance(user_id=1, casual=10.0)
-    balance_mock.scalar_one_or_none.return_value = balance
-    
-    # First execute returns user, second returns balance
-    db.execute.side_effect = [user_mock, balance_mock]
-    
-    result = await deduct_balance(db, 1, LeaveType.casual, 2.0)
-    assert result is True
+async def test_deduct_balance_updates_balance_and_user_mirror(db_session, user_with_balance):
+    assert await deduct_balance(db_session, user_with_balance.id, LeaveType.casual, 2.0) is True
+
+    balance = await db_session.scalar(select(LeaveBalance).where(LeaveBalance.user_id == user_with_balance.id))
+    await db_session.refresh(user_with_balance)
     assert balance.casual == 8.0
+    assert user_with_balance.casual_leave_balance == 8.0
+
+
+@pytest.mark.asyncio
+async def test_deduct_balance_refuses_to_go_negative(db_session, user_with_balance):
+    assert await deduct_balance(db_session, user_with_balance.id, LeaveType.casual, 10.5) is False
+
+    balance = await db_session.scalar(select(LeaveBalance).where(LeaveBalance.user_id == user_with_balance.id))
+    assert balance.casual == 10.0
+
+
+@pytest.mark.asyncio
+async def test_refund_balance_adds_days_back(db_session, user_with_balance):
+    await deduct_balance(db_session, user_with_balance.id, LeaveType.casual, 3.0)
+    assert await refund_balance(db_session, user_with_balance.id, LeaveType.casual, 3.0) is True
+
+    balance = await db_session.scalar(select(LeaveBalance).where(LeaveBalance.user_id == user_with_balance.id))
+    assert balance.casual == 10.0

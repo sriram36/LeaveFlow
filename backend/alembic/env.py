@@ -10,6 +10,7 @@ from alembic import context
 # Import your models Base
 from app.models import Base
 from app.config import get_settings
+from app.database import prepare_database_url
 
 config = context.config
 
@@ -21,7 +22,7 @@ target_metadata = Base.metadata
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
     settings = get_settings()
-    url = settings.database_url
+    url, _ = prepare_database_url(settings.database_url)
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -46,12 +47,15 @@ async def run_async_migrations() -> None:
     settings = get_settings()
     configuration = config.get_section(config.config_ini_section, {})
     # Use database_url from env/config
-    configuration["sqlalchemy.url"] = settings.database_url
+    # Same URL/SSL handling as the app (sslmode etc. must not reach asyncpg raw).
+    url, connect_args = prepare_database_url(settings.database_url)
+    configuration["sqlalchemy.url"] = url
 
     connectable = async_engine_from_config(
         configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args=connect_args,
     )
 
     async with connectable.connect() as connection:
