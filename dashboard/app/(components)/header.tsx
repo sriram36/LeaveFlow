@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
+import { useLiveStatus } from "../lib/live-updates";
 import { Bell, Menu } from "lucide-react";
 import {
   Sheet,
@@ -31,6 +32,7 @@ export function Header() {
   const { user, isAuthenticated } = useAuth();
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const liveStatus = useLiveStatus();
 
   useEffect(() => {
     setMounted(true);
@@ -93,8 +95,18 @@ export function Header() {
         </div>
 
         <div className="hidden sm:flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-success shadow-[0_0_0_4px_hsl(var(--success)/0.12)]" />
-          <span className="text-xs font-semibold text-muted-foreground">Workspace live</span>
+          <span
+            className={`h-2 w-2 rounded-full ${
+              liveStatus === 'live'
+                ? 'bg-success shadow-[0_0_0_4px_hsl(var(--success)/0.12)]'
+                : liveStatus === 'connecting'
+                ? 'bg-warning animate-pulse'
+                : 'bg-muted-foreground/50'
+            }`}
+          />
+          <span className="text-xs font-semibold text-muted-foreground">
+            {liveStatus === 'live' ? 'Live updates on' : liveStatus === 'connecting' ? 'Connecting…' : 'Live updates off'}
+          </span>
         </div>
         <h2 className="hidden lg:block text-sm font-semibold text-muted-foreground tracking-wide">
           {pathTitle}

@@ -10,7 +10,7 @@ const badgeVariants = cva(
         default:
           "border-transparent bg-muted text-muted-foreground",
         pending:
-          "border-warning/30 bg-warning/10 text-warning",
+          "border-warning/40 bg-warning/15 text-[hsl(30_80%_26%)] dark:text-warning",
         approved:
           "border-success/30 bg-success/10 text-success",
         rejected:
