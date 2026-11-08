@@ -14,11 +14,35 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// The session cookie is HttpOnly, so the page cannot see it. This non-sensitive flag only
+// records "this browser has signed in", so visitors who never did are shown the landing
+// page immediately instead of waiting for /auth/me on a possibly sleeping backend.
+const SESSION_HINT_KEY = 'leaveflow-session-hint';
+const hasSessionHint = () => {
+  try {
+    return window.localStorage.getItem(SESSION_HINT_KEY) === '1';
+  } catch {
+    return true; // storage blocked: fall back to checking with the server
+  }
+};
+const setSessionHint = (on: boolean) => {
+  try {
+    if (on) window.localStorage.setItem(SESSION_HINT_KEY, '1');
+    else window.localStorage.removeItem(SESSION_HINT_KEY);
+  } catch {
+    /* ignore */
+  }
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!hasSessionHint()) {
+      setIsLoading(false);
+      return;
+    }
     // Check for existing session via HTTP-only cookie
     api.getMe()
       .then(user => {
@@ -30,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(user);
       })
       .catch(() => {
+        setSessionHint(false);
         api.logout();
       })
       .finally(() => setIsLoading(false));
@@ -45,10 +70,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Dashboard access is restricted to managers, HR, and admin. Workers should use WhatsApp.');
     }
     
+    setSessionHint(true);
     setUser(currentUser);
   };
 
   const logout = () => {
+    setSessionHint(false);
     api.logout();
     setUser(null);
   };

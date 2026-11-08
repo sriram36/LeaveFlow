@@ -6,6 +6,9 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/app/lib/auth-context";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, CalendarDays, Users, Settings, LogOut, Sun, Moon, Laptop, ChartBar as BarChart3, UserPlus, Inbox, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { RestartDemoButton } from "@/components/restart-demo-button";
+import { LogoMark } from "@/components/brand/logo-mark";
+import { SidebarLeaves } from "@/components/brand/sidebar-leaves";
 import { useTheme } from "@/components/theme-provider";
 import {
   DropdownMenu,
@@ -42,7 +45,7 @@ export function Sidebar({ className }: { className?: string }) {
       roles: ["manager", "hr", "admin", "worker"],
     },
     {
-      title: "Calendar",
+      title: "Who's away",
       href: "/requests/calendar",
       icon: CalendarDays,
       roles: ["manager", "hr", "admin", "worker"],
@@ -89,9 +92,7 @@ export function Sidebar({ className }: { className?: string }) {
             isCollapsed && "justify-center"
           )}
         >
-          <div className="w-9 h-9 min-w-[36px] rounded-lg bg-primary flex items-center justify-center shadow-sm">
-            <CalendarDays className="w-5 h-5 text-primary-foreground" />
-          </div>
+          <LogoMark className="min-w-[36px] shadow-sm" />
           {!isCollapsed && (
             <span className="text-lg font-bold tracking-tight text-foreground">
               LeaveFlow
@@ -142,6 +143,10 @@ export function Sidebar({ className }: { className?: string }) {
       </div>
 
       <div className="p-4 space-y-4 overflow-hidden">
+        {!isCollapsed && (
+          <SidebarLeaves className="mx-auto -mb-1 hidden h-36 w-auto [@media(min-height:760px)]:block" />
+        )}
+        {user?.email?.toLowerCase() === "demo@leaveflow.com" && <RestartDemoButton collapsed={isCollapsed} />}
         {!isCollapsed ? (
           <div className="flex items-center justify-between p-1 bg-muted rounded-full border border-border/60">
             <button

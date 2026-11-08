@@ -66,6 +66,14 @@ export interface RecentActivity {
   time: string;
 }
 
+export interface AuditEntry {
+  id: number;
+  action: string;
+  actor_name?: string | null;
+  details?: string | null;
+  created_at: string;
+}
+
 export interface DashboardStats {
   pending_count: number;
   approved_today: number;
@@ -198,6 +206,14 @@ class ApiClient {
     if (status) params.append('status', status);
     if (userId) params.append('user_id', userId.toString());
     return this.fetch(`/leave/history?${params}`);
+  }
+
+  async getRequestAudit(id: number): Promise<AuditEntry[]> {
+    return this.fetch<AuditEntry[]>(`/leave/${id}/audit`);
+  }
+
+  async resetDemo(): Promise<{ users: number; requests: number }> {
+    return this.fetch<{ users: number; requests: number }>('/demo/reset', { method: 'POST' });
   }
 
   async getLeaveRequest(id: number): Promise<LeaveRequest> {

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth-context";
 import { api } from "../lib/api";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, CircleCheck as CheckCircle, Zap, MessageSquare, ChartBar as BarChart3 } from "lucide-react";
+import { Leaf, CircleCheck as CheckCircle, Zap, MessageSquare, ChartBar as BarChart3 } from "lucide-react";
 
 export default memo(function SignupPage() {
   const router = useRouter();
@@ -80,34 +80,28 @@ export default memo(function SignupPage() {
   return (
     <main className="min-h-screen w-full flex">
       {/* Left — Brand Panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-accent relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-blob" />
-          <div className="absolute bottom-20 right-10 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-2000" />
-        </div>
-        <div className="flex flex-col justify-between p-12 relative z-10 text-white">
+      <div className="hidden lg:flex lg:w-1/2 bg-primary text-primary-foreground relative overflow-hidden">
+        <div className="flex flex-col justify-between p-12 relative z-10 text-primary-foreground">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <CalendarDays className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-lg bg-primary-foreground/15 flex items-center justify-center">
+              <Leaf className="w-5 h-5" />
             </div>
             <span className="text-xl font-bold tracking-tight">LeaveFlow</span>
           </Link>
 
           <div className="space-y-6">
-            <h2 className="text-4xl font-bold leading-tight">
-              Start managing leave like a pro.
-            </h2>
-            <p className="text-white/80 text-lg">
-              Get set up in minutes. Your team will love the simplicity.
+            <h2 className="text-4xl font-bold leading-tight">Approve leave without leaving the dashboard.</h2>
+            <p className="text-primary-foreground/80 text-lg">
+              Accounts for managers, HR and admins are approved by an administrator. Employees use WhatsApp and need no account.
             </p>
             <div className="space-y-3 pt-4">
               {[
-                { icon: MessageSquare, text: "WhatsApp-native leave requests" },
-                { icon: Zap, text: "AI-powered validation & processing" },
-                { icon: BarChart3, text: "Analytics & team calendar" },
+                { icon: MessageSquare, text: "Requests arrive from WhatsApp" },
+                { icon: Zap, text: "Balance, overlap and holiday checks" },
+                { icon: BarChart3, text: "Team timeline and history" },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 text-white/90">
-                  <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">
+                <div key={i} className="flex items-center gap-3 text-primary-foreground/90">
+                  <div className="w-8 h-8 rounded-lg bg-primary-foreground/15 flex items-center justify-center flex-shrink-0">
                     <item.icon className="w-4 h-4" />
                   </div>
                   <span className="text-sm font-medium">{item.text}</span>
@@ -116,7 +110,7 @@ export default memo(function SignupPage() {
             </div>
           </div>
 
-          <p className="text-white/60 text-sm">Free 7-day trial. No credit card required.</p>
+          <p className="text-primary-foreground/70 text-sm">A portfolio project, not a commercial product.</p>
         </div>
       </div>
 
@@ -126,7 +120,7 @@ export default memo(function SignupPage() {
           {/* Mobile Logo */}
           <Link href="/" className="flex items-center gap-2.5 lg:hidden">
             <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-              <CalendarDays className="w-5 h-5 text-primary-foreground" />
+              <Leaf className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold tracking-tight text-foreground">LeaveFlow</span>
           </Link>

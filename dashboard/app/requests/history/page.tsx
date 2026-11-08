@@ -5,12 +5,12 @@ import { api, LeaveRequest } from "../../lib/api";
 import { useAuth } from "../../lib/auth-context";
 import { TableSkeleton } from "../../components/skeleton";
 import Link from "next/link";
-import { Download, Inbox, Calendar as CalendarIcon, ArrowRight, FileText } from "lucide-react";
+import { Download, Inbox, ArrowRight, FileText } from "lucide-react";
+import { formatDateRange, formatDays, initials, leaveTypeLabel } from "../../lib/format";
+import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, ChangeEvent } from "react";
-
-type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
 export default function HistoryPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -85,7 +85,7 @@ export default function HistoryPage() {
     <main className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Request History</h1>
+          <h1 className="font-serif text-3xl font-semibold tracking-tight">Request history</h1>
           <p className="text-sm text-muted-foreground mt-1">View and export past leave requests</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -133,59 +133,35 @@ export default function HistoryPage() {
 }
 
 function HistoryCard({ req, index }: { req: LeaveRequest; index: number }) {
-  const badge = badgeForStatus(req.status);
   return (
-    <div className="card hover:shadow-lg hover:border-primary/50 hover:-translate-y-0.5 transition-all duration-200 p-4 animate-slide-up" style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}>
-      <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
-        
-        {/* Left: Avatar + Name + Meta */}
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-sm flex-shrink-0">
-            {req.user?.name?.charAt(0) || 'U'}
+    <div
+      className="card p-4 transition-colors hover:border-primary/40 animate-slide-up"
+      style={{ animationDelay: `${Math.min(index, 8) * 40}ms`, animationFillMode: 'both' }}
+    >
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-muted text-sm font-semibold text-primary">
+            {initials(req.user?.name)}
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-foreground truncate">{req.user?.name || 'Unknown'}</span>
-              <span className={`inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full flex-shrink-0 ${badge.className}`}>
-                {badge.label}
-              </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="truncate font-semibold text-foreground">{req.user?.name || 'Unknown'}</span>
+              <StatusBadge status={req.status} />
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
-              <span className="inline-flex items-center gap-1"><CalendarIcon className="w-3 h-3" /> {req.start_date} → {req.end_date}</span>
-              <span>•</span>
-              <span className="capitalize">{req.leave_type}</span>
-              <span>•</span>
-              <span>{req.days} day(s)</span>
-            </div>
-            {req.reason && (
-              <p className="text-xs text-muted-foreground mt-1 truncate">{req.reason}</p>
-            )}
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {leaveTypeLabel(req.leave_type)} · {formatDateRange(req.start_date, req.end_date)} · {formatDays(req.days)}
+            </p>
+            {req.reason && <p className="mt-1 truncate text-xs text-muted-foreground">{req.reason}</p>}
           </div>
         </div>
 
-        {/* Right: Request ID + View button */}
-        <div className="flex items-center gap-3 flex-shrink-0 self-start sm:self-center">
-          <span className="text-xs font-mono text-muted-foreground">#{req.id}</span>
-          <Link href={`/requests/${req.id}`} className="btn btn-ghost border text-sm hover:border-primary transition-all whitespace-nowrap gap-1">
-            View <ArrowRight className="w-3.5 h-3.5" />
+        <div className="flex flex-shrink-0 items-center gap-3 self-start sm:self-center">
+          <span className="font-mono text-xs text-muted-foreground">#{req.id}</span>
+          <Link href={`/requests/${req.id}`} className="btn btn-ghost gap-1 whitespace-nowrap border text-sm hover:border-primary">
+            View <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
       </div>
     </div>
   );
-}
-
-function badgeForStatus(status: LeaveStatus) {
-  switch (status) {
-    case "pending":
-      return { label: "Pending", className: "bg-warning/10 text-warning" };
-    case "approved":
-      return { label: "Approved", className: "bg-success/10 text-success" };
-    case "rejected":
-      return { label: "Rejected", className: "bg-destructive/10 text-destructive" };
-    case "cancelled":
-      return { label: "Cancelled", className: "bg-muted text-muted-foreground" };
-    default:
-      return { label: status, className: "bg-muted text-muted-foreground" };
-  }
 }

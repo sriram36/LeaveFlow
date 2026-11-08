@@ -5,18 +5,18 @@ Leave API Routes
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select, update, and_, or_
 from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from datetime import date, datetime
 
 from app.database import get_db
 from app.auth import get_current_user_required, require_manager, require_admin, require_user_access, require_role_or_self, require_leave_request_access
-from app.models import User, LeaveStatus, LeaveRequest, LeaveBalance, LeaveBalanceHistory, LeaveType
+from app.models import User, LeaveStatus, LeaveRequest, LeaveBalance, LeaveBalanceHistory, LeaveType, AuditLog
 from app.schemas import (
     LeaveRequestResponse, LeaveRequestCreate, ApproveRequest, RejectRequest,
     LeaveBalanceResponse, TodayLeaveResponse, UserResponse, LeaveBalanceHistoryResponse,
-    DashboardStatsResponse
+    DashboardStatsResponse, AuditEntryResponse
 )
 from app.services.leave import LeaveService
 from app.services.validator import LeaveValidationError
@@ -275,7 +275,12 @@ async def get_user_balance(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_manager)
 ):
-    """Get a user's leave balance (manager only)."""
+    """Get a user's leave balance (managers: their own team; HR/admin: anyone)."""
+    target = await db.scalar(select(User).where(User.id == user_id))
+    if target is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    require_user_access(user, target)
+
     service = LeaveService(db)
     balance = await service.get_balance(user_id)
     return LeaveBalanceResponse(
@@ -367,6 +372,31 @@ async def get_leave_request(
     await require_leave_request_access(user, request.user_id, db)
     
     return request
+
+
+@router.get("/{request_id}/audit", response_model=List[AuditEntryResponse])
+async def get_request_audit(
+    request_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user_required)
+):
+    """Audit trail of a leave request, oldest first."""
+    owner_id = await db.scalar(select(LeaveRequest.user_id).where(LeaveRequest.id == request_id))
+    if owner_id is None:
+        raise HTTPException(status_code=404, detail="Leave request not found")
+
+    await require_leave_request_access(user, owner_id, db)
+
+    rows = (await db.execute(
+        select(AuditLog, User.name)
+        .outerjoin(User, User.id == AuditLog.actor_id)
+        .where(AuditLog.leave_request_id == request_id)
+        .order_by(AuditLog.created_at, AuditLog.id)
+    )).all()
+    return [
+        AuditEntryResponse(id=a.id, action=a.action, actor_name=name, details=a.details, created_at=a.created_at)
+        for a, name in rows
+    ]
 
 
 @router.post("/approve/{request_id}", response_model=LeaveRequestResponse)
@@ -467,6 +497,15 @@ async def carry_forward_leaves(
                 balance.sick = 12.0
                 balance.special = 5.0
                 balance.year = current_year
+
+                # Keep the User.*_leave_balance mirror in step with LeaveBalance.
+                await db.execute(
+                    update(User).where(User.id == balance.user_id).values(
+                        casual_leave_balance=balance.casual,
+                        sick_leave_balance=balance.sick,
+                        special_leave_balance=balance.special,
+                    )
+                )
                 
                 # Record in history
                 history = LeaveBalanceHistory(
