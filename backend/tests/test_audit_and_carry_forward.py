@@ -61,3 +61,41 @@ async def test_carry_forward_keeps_user_balance_columns_in_step(client: TestClie
         assert (user.casual_leave_balance, user.sick_leave_balance, user.special_leave_balance) == (
             balance.casual, balance.sick, balance.special
         )
+
+
+def test_balance_of_unknown_user_is_404(client: TestClient):
+    _login_demo(client)
+    assert client.get("/leave/balance/999999").status_code == 404
+
+
+def test_balance_of_unknown_user_does_not_create_a_row(client: TestClient):
+    _login_demo(client)
+    client.get("/leave/balance/999999")
+    # nothing was created for the made-up user, so asking again still says "not found"
+    assert client.get("/leave/balance/999999").status_code == 404
+
+
+def test_manager_cannot_read_another_teams_balance(client: TestClient, seeded):
+    _login_demo(client)
+    worker = next(r for r in client.get("/leave/pending").json())["user_id"]
+    from app.main import app
+
+    app.dependency_overrides[get_current_user_required] = lambda: User(
+        id=777, name="Other Manager", phone="+3", role=UserRole.manager
+    )
+
+    assert client.get(f"/leave/balance/{worker}").status_code == 403
+
+
+def test_hr_can_read_a_balance(client: TestClient, seeded):
+    _login_demo(client)
+    worker = next(r for r in client.get("/leave/pending").json())["user_id"]
+    from app.main import app
+
+    app.dependency_overrides[get_current_user_required] = lambda: User(
+        id=778, name="HR", phone="+4", role=UserRole.hr
+    )
+
+    response = client.get(f"/leave/balance/{worker}")
+    assert response.status_code == 200
+    assert set(response.json()) >= {"casual", "sick", "special"}

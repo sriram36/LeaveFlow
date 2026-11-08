@@ -275,7 +275,12 @@ async def get_user_balance(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_manager)
 ):
-    """Get a user's leave balance (manager only)."""
+    """Get a user's leave balance (managers: their own team; HR/admin: anyone)."""
+    target = await db.scalar(select(User).where(User.id == user_id))
+    if target is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    require_user_access(user, target)
+
     service = LeaveService(db)
     balance = await service.get_balance(user_id)
     return LeaveBalanceResponse(
